@@ -1,1 +1,373 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة التحكم — Fleurs by Liza</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#e91e8c;--pink-l:#f48fb1;--pink-pale:#fce4f3;
+  --black:#111;--dark:#1a1a1a;--white:#fff;
+  --gray:#f4f4f6;--border:rgba(0,0,0,.08);
+  --text:#1a1a2e;--muted:#888;
+  --green:#27ae60;--red:#e74c3c;--orange:#f39c12;--blue:#3498db;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Tajawal',sans-serif;background:var(--gray);color:var(--text);min-height:100vh;}
 
+/* LOGIN */
+#login-screen{
+  position:fixed;inset:0;background:linear-gradient(135deg,var(--black),#1a0a0a);
+  display:flex;align-items:center;justify-content:center;z-index:1000;
+}
+#login-screen.hidden{display:none;}
+.login-box{
+  background:#fff;border-radius:1.6rem;padding:2.5rem;
+  width:min(400px,92vw);text-align:center;
+  box-shadow:0 24px 80px rgba(0,0,0,.3);
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+.login-logo{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.6rem;color:var(--black);margin-bottom:.3rem;}
+.login-logo span{color:var(--pink);}
+.login-sub{font-size:.78rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:2rem;}
+.login-input{
+  width:100%;padding:.8rem 1.1rem;border:1.5px solid var(--border);
+  border-radius:.9rem;font-family:'Tajawal',sans-serif;font-size:.95rem;
+  outline:none;transition:border-color .25s;text-align:center;letter-spacing:.2em;
+}
+.login-input:focus{border-color:var(--pink);}
+.login-btn{
+  width:100%;background:var(--pink);color:#fff;border:none;
+  padding:.85rem;border-radius:3rem;font-family:'Tajawal',sans-serif;
+  font-size:1rem;font-weight:600;cursor:pointer;margin-top:1rem;
+  transition:background .3s;box-shadow:0 6px 20px rgba(233,30,140,.25);
+}
+.login-btn:hover{background:var(--black);}
+.login-err{color:var(--red);font-size:.82rem;margin-top:.6rem;display:none;}
+
+/* LAYOUT */
+#app{display:none;}
+#app.show{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{
+  width:240px;min-width:240px;background:var(--black);
+  display:flex;flex-direction:column;position:fixed;top:0;right:0;
+  height:100vh;z-index:100;overflow-y:auto;
+}
+.sb-logo{padding:1.5rem 1.4rem 1rem;border-bottom:1px solid rgba(255,255,255,.07);}
+.sb-logo-main{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.15rem;color:#fff;}
+.sb-logo-main span{color:var(--pink);}
+.sb-logo-sub{font-size:.62rem;color:rgba(255,255,255,.35);letter-spacing:.2em;text-transform:uppercase;margin-top:2px;}
+.sb-nav{flex:1;padding:1rem 0;}
+.sb-section{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:.7rem 1.4rem .3rem;}
+.sb-item{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.72rem 1.4rem;color:rgba(255,255,255,.55);
+  font-size:.88rem;cursor:pointer;transition:all .2s;
+  border-right:3px solid transparent;
+}
+.sb-item:hover{color:#fff;background:rgba(255,255,255,.05);}
+.sb-item.active{color:#fff;background:rgba(233,30,140,.12);border-right-color:var(--pink);}
+.sb-item .ico{font-size:1.1rem;min-width:20px;}
+.sb-footer{padding:1.2rem 1.4rem;border-top:1px solid rgba(255,255,255,.07);}
+.sb-logout{
+  display:flex;align-items:center;gap:.6rem;
+  color:rgba(255,255,255,.35);font-size:.82rem;cursor:pointer;
+  transition:color .2s;
+}
+.sb-logout:hover{color:var(--red);}
+
+/* MAIN */
+.main{flex:1;margin-right:240px;display:flex;flex-direction:column;}
+.topbar{
+  background:#fff;border-bottom:1px solid var(--border);
+  padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.page-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;color:var(--black);}
+.topbar-right{display:flex;align-items:center;gap:1rem;}
+.live-badge{background:var(--green);color:#fff;font-size:.7rem;padding:.25rem .8rem;border-radius:2rem;letter-spacing:.06em;display:flex;align-items:center;gap:.3rem;}
+.live-dot{width:7px;height:7px;background:#fff;border-radius:50%;animation:pulse 1.5s infinite;}
+.content{padding:2rem;flex:1;}
+
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.2rem;margin-bottom:2rem;}
+.stat-card{
+  background:#fff;border-radius:1.2rem;padding:1.4rem;
+  border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.04);
+  display:flex;align-items:center;gap:1rem;
+}
+.stat-ico{width:48px;height:48px;border-radius:.9rem;display:flex;align-items:center;justify-content:center;font-size:1.4rem;min-width:48px;}
+.ic-pink{background:var(--pink-pale);}
+.ic-green{background:rgba(39,174,96,.1);}
+.ic-blue{background:rgba(52,152,219,.1);}
+.ic-orange{background:rgba(243,156,18,.1);}
+.stat-num{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.7rem;color:var(--black);line-height:1;}
+.stat-lbl{font-size:.78rem;color:var(--muted);margin-top:.2rem;}
+
+/* CARDS */
+.card{background:#fff;border-radius:1.2rem;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.04);margin-bottom:1.5rem;}
+.card-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.95rem;color:var(--black);}
+.card-body{padding:1.5rem;}
+
+/* BUTTONS */
+.btn{padding:.6rem 1.3rem;border-radius:2rem;font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;border:none;transition:all .25s;}
+.btn-primary{background:var(--pink);color:#fff;box-shadow:0 4px 12px rgba(233,30,140,.2);}
+.btn-primary:hover{background:#c2185b;}
+.btn-success{background:var(--green);color:#fff;}
+.btn-success:hover{background:#219a52;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{background:#c0392b;}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border);}
+.btn-outline:hover{border-color:var(--pink);color:var(--pink);}
+.btn-sm{padding:.4rem .9rem;font-size:.76rem;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{text-align:right;padding:.7rem 1rem;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap;}
+td{padding:.8rem 1rem;font-size:.84rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border:none;}
+tr:hover td{background:rgba(233,30,140,.02);}
+
+/* STATUS BADGE */
+.status{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .75rem;border-radius:2rem;font-size:.72rem;font-weight:700;}
+.s-new{background:rgba(52,152,219,.12);color:var(--blue);}
+.s-process{background:rgba(243,156,18,.12);color:var(--orange);}
+.s-done{background:rgba(39,174,96,.12);color:var(--green);}
+.s-cancel{background:rgba(231,76,60,.1);color:var(--red);}
+
+/* FORM */
+.form-group{margin-bottom:1.1rem;}
+.form-label{display:block;font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:.35rem;letter-spacing:.03em;}
+.form-input,.form-select,.form-textarea{width:100%;padding:.7rem 1rem;border:1.5px solid var(--border);border-radius:.8rem;font-family:'Tajawal',sans-serif;font-size:.9rem;color:var(--text);background:#fff;outline:none;transition:border-color .25s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--pink);}
+.form-textarea{resize:vertical;min-height:80px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-hint{font-size:.73rem;color:var(--muted);margin-top:.3rem;}
+
+/* PRODUCT FORM CARD */
+.prod-admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem;}
+.prod-admin-card{background:#fff;border:1px solid var(--border);border-radius:1.2rem;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.pac-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:4rem;position:relative;}
+.pac-status{position:absolute;top:.6rem;right:.6rem;padding:.18rem .6rem;border-radius:2rem;font-size:.65rem;font-weight:700;}
+.pac-active{background:rgba(39,174,96,.15);color:var(--green);}
+.pac-inactive{background:rgba(231,76,60,.1);color:var(--red);}
+.pac-body{padding:1rem;}
+.pac-name{font-weight:700;font-size:.9rem;color:var(--black);margin-bottom:.25rem;}
+.pac-price{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.05rem;color:var(--pink);margin-bottom:.8rem;}
+.pac-actions{display:flex;gap:.5rem;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.modal-overlay.open{display:flex;}
+.modal-box{background:#fff;border-radius:1.4rem;padding:2rem;width:min(540px,94vw);max-height:88vh;overflow-y:auto;position:relative;animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;}
+.modal-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.05rem;color:var(--black);}
+.modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);}
+
+/* EMOJI PICKER */
+.emoji-picker{display:grid;grid-template-columns:repeat(8,1fr);gap:.4rem;margin-top:.5rem;}
+.ep-item{font-size:1.4rem;cursor:pointer;text-align:center;padding:.3rem;border-radius:.5rem;border:2px solid transparent;transition:all .2s;}
+.ep-item:hover,.ep-item.sel{border-color:var(--pink);background:var(--pink-pale);}
+
+/* DELIVERY PRICES */
+.delivery-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;}
+.del-card{background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.2rem;}
+.del-card-title{font-weight:700;font-size:.88rem;color:var(--black);margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem;}
+.del-card-zone{font-size:.7rem;color:var(--muted);}
+.del-input-wrap{display:flex;align-items:center;gap:.5rem;margin-top:.7rem;}
+.del-input{width:100%;padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:.75rem;font-family:'Montserrat',sans-serif;font-weight:600;font-size:1rem;color:var(--pink);outline:none;transition:border-color .2s;}
+.del-input:focus{border-color:var(--pink);}
+.del-suffix{font-size:.8rem;color:var(--muted);white-space:nowrap;}
+
+/* PROMO */
+.promo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;}
+.promo-card{background:#fff;border:1px solid var(--border);border-radius:1rem;padding:1.2rem;position:relative;}
+.promo-code{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.3rem;color:var(--black);letter-spacing:.08em;}
+.promo-desc{font-size:.8rem;color:var(--muted);margin:.3rem 0 .8rem;}
+.promo-toggle{display:flex;align-items:center;gap:.5rem;margin-top:.5rem;}
+.toggle{width:40px;height:22px;border-radius:11px;background:rgba(0,0,0,.15);position:relative;cursor:pointer;transition:background .25s;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+.toggle.on::after{transform:translateX(-18px);}
+
+/* CHART */
+.chart-wrap{height:200px;display:flex;align-items:flex-end;gap:6px;padding:.5rem 0;}
+.chart-bar{flex:1;border-radius:4px 4px 0 0;background:linear-gradient(to top,var(--pink),var(--pink-l));min-height:4px;transition:height .5s ease;position:relative;cursor:default;}
+.chart-bar:hover::after{content:attr(data-val);position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:var(--black);color:#fff;font-size:.65rem;padding:.15rem .4rem;border-radius:.3rem;white-space:nowrap;}
+.chart-labels{display:flex;gap:6px;margin-top:.3rem;}
+.chart-label{flex:1;font-size:.62rem;color:var(--muted);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* TOAST */
+#admin-toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--black);color:#fff;padding:.7rem 1.5rem;border-radius:3rem;font-size:.83rem;z-index:900;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.2);}
+#admin-toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar{width:200px;}
+  .main{margin-right:200px;}
+  .content{padding:1rem;}
+  .form-row{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .sidebar{transform:translateX(100%);transition:transform .3s;}
+  .sidebar.mob-open{transform:translateX(0);}
+  .main{margin-right:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Fleur<span>❀</span>by liza</div>
+    <div class="login-sub">لوحة التحكم</div>
+    <input class="login-input" type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">🔐 دخول</button>
+    <div class="login-err" id="loginErr">❌ كلمة السر غير صحيحة</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-main">Fleur<span>❀</span>by liza</div>
+      <div class="sb-logo-sub">Admin Panel</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">الرئيسية</div>
+      <div class="sb-item active" onclick="showPage('dashboard',this)"><span class="ico">📊</span>لوحة التحكم</div>
+      <div class="sb-section">المتجر</div>
+      <div class="sb-item" onclick="showPage('products',this)"><span class="ico">🌹</span>المنتجات</div>
+      <div class="sb-item" onclick="showPage('orders',this)"><span class="ico">📦</span>الطلبات <span id="newOrdersBadge" style="background:var(--red);color:#fff;font-size:.6rem;padding:.1rem .4rem;border-radius:1rem;margin-right:auto;display:none"></span></div>
+      <div class="sb-section">الإعدادات</div>
+      <div class="sb-item" onclick="showPage('delivery',this)"><span class="ico">🚚</span>أسعار التوصيل</div>
+      <div class="sb-item" onclick="showPage('promos',this)"><span class="ico">🎁</span>الترويج</div>
+      <div class="sb-item" onclick="showPage('reviews',this)"><span class="ico">⭐</span>التقييمات</div>
+      <div class="sb-item" onclick="showPage('settings',this)"><span class="ico">⚙️</span>الإعدادات</div>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-logout" onclick="logout()">🚪 <span>تسجيل الخروج</span></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">لوحة التحكم</div>
+      <div class="topbar-right">
+        <div class="live-badge"><div class="live-dot"></div>مباشر</div>
+        <a href="index.html" target="_blank" class="btn btn-outline btn-sm">🌐 الموقع</a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid" id="statsGrid"></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📦 آخر الطلبات</div>
+              <button class="btn btn-outline btn-sm" onclick="showPage('orders',document.querySelector('.sb-item:nth-child(6))'))">عرض الكل</button>
+            </div>
+            <div class="card-body tbl-wrap" id="dashOrders"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📈 الطلبات (7 أيام)</div></div>
+            <div class="card-body">
+              <div class="chart-wrap" id="chartBars"></div>
+              <div class="chart-labels" id="chartLabels"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="page" id="page-products">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;">🌹 إدارة المنتجات</h2>
+          <button class="btn btn-primary" onclick="openProductModal()">+ إضافة منتج</button>
+        </div>
+        <div class="prod-admin-grid" id="prodAdminGrid"></div>
+      </div>
+
+      <!-- ORDERS -->
+      <div class="page" id="page-orders">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;">📦 الطلبات</h2>
+          <div style="display:flex;gap:.7rem;flex-wrap:wrap;">
+            <select class="form-select" style="width:auto;padding:.5rem .9rem;" id="orderFilter" onchange="renderOrdersTable()">
+              <option value="">الكل</option>
+              <option value="جديد">جديد</option>
+              <option value="قيد التنفيذ">قيد التنفيذ</option>
+              <option value="موصّل">موصّل</option>
+              <option value="ملغي">ملغي</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="exportCSV()">📥 تصدير CSV</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body tbl-wrap">
+            <table id="ordersTable"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DELIVERY -->
+      <div class="page" id="page-delivery">
+        <div style="margin-bottom:1.5rem;">
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:.5rem;">🚚 أسعار التوصيل</h2>
+          <p style="font-size:.85rem;color:var(--muted);">يمكنك تعديل الأسعار وحفظها — ستنعكس فوراً على صفحة الزبون</p>
+        </div>
+        <div class="delivery-grid" id="deliveryEditGrid"></div>
+        <div style="margin-top:1.5rem;">
+          <button class="btn btn-primary" onclick="saveDelivery()">💾 حفظ الأسعار</button>
+        </div>
+      </div>
+
+      <!-- PROMOS -->
+      <div class="page" id="page-promos">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;">🎁 كودات الترويج</h2>
+          <button class="btn btn-primary" onclick="openPromoModal()">+ كود جديد</button>
+        </div>
+        <div class="promo-grid" id="promoGrid"></div>
+      </div>
+
+      <!-- REVIEWS -->
+      <div class="page" id="page-reviews">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+          <h2 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;">⭐ التقييمات</h2>
+          <button class="btn btn-primary" onclick="openReviewModal()">+ إضافة تقييم</button>
+        </div>
+        <div id="reviewsAdminGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <h2 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:1.5rem;">⚙️ الإعدادات</h2>
+        <div class="card" style="max-width:480px;">
+          <div class="card-header"><div class="card-title">🔐 تغيير كلمة السر</div></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">كلمة السر الحالية</label>
+              <input class="form-input" type="password" id="currentPass">
+            </div>
