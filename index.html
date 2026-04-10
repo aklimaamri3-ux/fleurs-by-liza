@@ -520,28 +520,85 @@ function renderOccs(){
 function filterOcc(n){activeOcc=n;renderOccs();renderProds();}
 
 function renderProds(){
-  const list=store.products.filter(p=>p.active&&(activeOcc==='الكل'||p.occasion===activeOcc));
-  document.getElementById('prodGrid').innerHTML=list.length?list.map(p=>{
-    const hasImg=p.realImages&&p.realImages.length>0;
-    const imgEl=hasImg
-      ?`<img src="${p.realImages[0]}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">`
-      :`<span style="font-size:5rem">${p.emoji}</span>`;
-    return `<div class="prod-card reveal" onclick="goProduct('${p.id}')">
-      <div class="prod-img" style="background:${hasImg?'#f8f8f8':p.bg};padding:0;overflow:hidden;">${imgEl}
-        ${p.badge?`<span class="prod-badge badge-${p.badgeType}">${p.badge}</span>`:''}
-      </div>
-      <div class="prod-body">
-        <div class="prod-name">${p.name}</div>
-        <div class="prod-desc">${p.desc.substring(0,65)}...</div>
-        <div class="color-dots">${(p.colors||[]).map(c=>`<div class="color-dot" style="background:${c}"></div>`).join('')}</div>
-        <div class="prod-foot">
-          <div class="prod-price">${p.price.toLocaleString()} دج ${p.oldPrice?`<del>${p.oldPrice.toLocaleString()}</del>`:''}</div>
-          <button class="view-btn" onclick="event.stopPropagation();goProduct('${p.id}')">التفاصيل</button>
-        </div>
-      </div>
-    </div>`}).join(''):'<p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:3rem">لا توجد باقات لهذه المناسبة</p>';
-  document.querySelectorAll('.prod-card.reveal:not(.vis)').forEach(r=>ro.observe(r));
+
+const list = store.products.filter(
+p => p.active && (activeOcc === 'الكل' || p.occasion === activeOcc)
+);
+
+document.getElementById('prodGrid').innerHTML =
+list.length ? list.map(p => {
+
+let media = "";
+
+if(p.video){
+media = `
+<video 
+src="${p.video}"
+autoplay
+muted
+loop
+playsinline
+style="width:100%;height:100%;object-fit:cover">
+</video>
+`;
 }
+else if(p.realImages && p.realImages.length){
+media = `
+<img 
+src="${p.realImages[0]}"
+style="width:100%;height:100%;object-fit:cover;">
+`;
+}
+else{
+media = `<span style="font-size:5rem">${p.emoji}</span>`;
+}
+
+return `
+<div class="prod-card reveal" onclick="goProduct('${p.id}')">
+
+<div class="prod-img" style="background:#f8f8f8;padding:0;overflow:hidden;">
+${media}
+${p.badge ? `<span class="prod-badge badge-${p.badgeType}">${p.badge}</span>` : ''}
+</div>
+
+<div class="prod-body">
+<div class="prod-name">${p.name}</div>
+<div class="prod-desc">${p.desc.substring(0,65)}...</div>
+
+<div class="color-dots">
+${(p.colors||[]).map(c=>`
+<div class="color-dot" style="background:${c}"></div>
+`).join('')}
+</div>
+
+<div class="prod-foot">
+<div class="prod-price">
+${p.price.toLocaleString()} دج
+${p.oldPrice ? `<del>${p.oldPrice.toLocaleString()}</del>` : ''}
+</div>
+
+<button class="view-btn"
+onclick="event.stopPropagation();goProduct('${p.id}')">
+التفاصيل
+</button>
+
+</div>
+</div>
+</div>
+
+`;
+
+}).join('')
+:
+'<p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:3rem">لا توجد باقات</p>';
+
+document
+.querySelectorAll('.prod-card.reveal:not(.vis)')
+.forEach(r => ro.observe(r));
+
+}
+
+  
 function goProduct(id){window.location.href='product.html?id='+id;}
 
 function renderDel(){
