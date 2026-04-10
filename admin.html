@@ -389,10 +389,10 @@ tr:hover td{background:rgba(233,30,140,.02);}
 </div>
 </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-
 const SUPABASE_URL = "https://vlgoldztzcflwhgyyxpl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_l9EJ9f8s6MujxjlKs2zhGw_uMJ-qucO";
 
@@ -407,11 +407,14 @@ const pass = document.getElementById("loginPass").value;
 
 const { data } = await supabase
 .from("admin")
-.select("*")
-.eq("password", pass)
-.single();
+.select("*");
 
-if(!data){
+if(!data || data.length === 0){
+alert("لا يوجد admin");
+return;
+}
+
+if(pass !== data[0].password){
 document.getElementById("loginErr").style.display="block";
 return;
 }
@@ -424,31 +427,6 @@ document.getElementById("app").classList.add("show");
 function logout(){
 location.reload();
 }
-
-function showPage(id,el){
-
-document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-document.getElementById("page-"+id).classList.add("active");
-
-document.querySelectorAll(".sb-item").forEach(i=>i.classList.remove("active"));
-if(el) el.classList.add("active");
-
-}
-
-async function changePassword(){
-
-const current = document.getElementById("currentPass").value;
-const newPass = document.getElementById("newPass").value;
-
-await supabase
-.from("admin")
-.update({password:newPass})
-.eq("password", current);
-
-alert("تم تغيير كلمة السر");
-
-}
-
 </script>
 
 </body>
