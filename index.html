@@ -567,31 +567,51 @@ async function trackOrder(){
 
 const q = document.getElementById("trackQ").value.trim();
 if(!q){
-showToast("ادخل رقم الطلب");
+showToast("ادخل رقم الطلب أو رقم الهاتف");
 return;
 }
 
-const { data, error } = await supabase
+let { data } = await supabase
 .from("orders")
 .select("*")
 .eq("id", q)
 .single();
 
+// بحث برقم الهاتف
+if(!data){
+const res2 = await supabase
+.from("orders")
+.select("*")
+.eq("phone", q)
+.order("created_at",{ascending:false})
+.limit(1);
+
+data = res2.data?.[0];
+}
+
 const res = document.getElementById("track-res");
 res.style.display="block";
 
-if(error || !data){
+if(!data){
 res.innerHTML="<div class='track-card'>الطلب غير موجود</div>";
 return;
 }
 
-const steps = ["موصل","خرج للتوصيل","قيد التنفيذ","جديد"];
-  const idx = steps.indexOf(data.status);
+const steps = ["جديد","قيد التنفيذ","خرج للتوصيل","موصل"];
+const idx = steps.indexOf(data.status);
 
 res.innerHTML = `
 <div class="track-card">
-<div><strong>#${data.id}</strong></div>
-<div>${data.product}</div>
+
+<div><strong>رقم الطلب:</strong> #${data.id}</div>
+<div><strong>المنتج:</strong> ${data.product}</div>
+<div><strong>السعر:</strong> ${data.price} دج</div>
+<div><strong>الحالة:</strong> ${data.status}</div>
+<div><strong>الدفع:</strong> ${data.payment || "الدفع عند الاستلام"}</div>
+<div><strong>الهاتف:</strong> ${data.phone}</div>
+<div><strong>الولاية:</strong> ${data.wilaya}</div>
+<div><strong>التاريخ:</strong> ${new Date(data.created_at).toLocaleDateString()}</div>
+
 <br>
 
 <div class="track-steps">
@@ -607,6 +627,7 @@ ${steps.map((s,i)=>`
 `;
 
 }
+  
 function openCart(){renderCart();document.getElementById('cart-side').classList.add('open');document.getElementById('cart-ov').classList.add('open');}
 function closeCart(){document.getElementById('cart-side').classList.remove('open');document.getElementById('cart-ov').classList.remove('open');}
 function renderCart(){
