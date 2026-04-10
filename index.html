@@ -1,1 +1,668 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleurs by Liza — باقات الورد الفاخرة</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#e91e8c;--pink-l:#f48fb1;--pink-pale:#fce4f3;--black:#111;--white:#fff;--gray:#f7f7f7;--text:#222;--muted:#888;--green:#27ae60;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{font-family:'Tajawal',sans-serif;background:#fff;color:var(--text);overflow-x:hidden;cursor:none;}
+#cur{width:12px;height:12px;background:var(--pink);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s;mix-blend-mode:multiply;}
+#cur.big{width:34px;height:34px;opacity:.5;}
+/* PROMO BAR */
+#promo-bar{background:linear-gradient(90deg,var(--pink),#c2185b);color:#fff;text-align:center;padding:.55rem 1rem;font-size:.82rem;font-weight:500;display:none;}
+#promo-bar.on{display:block;}
+#promo-bar strong{background:rgba(255,255,255,.2);border-radius:2rem;padding:.1rem .7rem;margin-left:.4rem;letter-spacing:.08em;}
+/* POPUP */
+#pop-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+#pop-ov.open{display:flex;}
+#pop-box{background:#fff;border-radius:1.8rem;width:min(460px,94vw);overflow:hidden;animation:popIn .4s cubic-bezier(.34,1.56,.64,1) both;position:relative;}
+.pop-img{height:180px;background:linear-gradient(135deg,var(--pink),#c2185b);display:flex;align-items:center;justify-content:center;font-size:7rem;}
+.pop-body{padding:1.6rem;text-align:center;}
+.pop-tag{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--pink);margin-bottom:.4rem;}
+.pop-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.3rem;color:var(--black);margin-bottom:.4rem;}
+.pop-desc{font-size:.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.65;}
+.pop-code{background:var(--pink-pale);border:2px dashed var(--pink-l);border-radius:.75rem;padding:.55rem 1.1rem;font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.25rem;color:var(--pink);letter-spacing:.12em;display:inline-block;margin-bottom:1rem;cursor:pointer;}
+.pop-btns{display:flex;gap:.7rem;justify-content:center;}
+.pop-x{position:absolute;top:.7rem;left:.7rem;background:rgba(255,255,255,.25);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* NAV */
+nav{position:fixed;top:0;width:100%;z-index:500;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(233,30,140,.1);display:flex;align-items:center;justify-content:space-between;padding:.85rem 2.5rem;}
+.logo-wrap{text-decoration:none;display:flex;flex-direction:column;line-height:1;}
+.logo-main{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.3rem;color:var(--black);}
+.logo-main span{color:var(--pink);}
+.logo-sub{font-family:'Montserrat',sans-serif;font-weight:300;font-size:.5rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-top:2px;}
+.nav-links{display:flex;gap:1.8rem;list-style:none;}
+.nav-links a{text-decoration:none;color:var(--text);font-size:.82rem;font-weight:500;letter-spacing:.04em;position:relative;padding-bottom:3px;}
+.nav-links a::after{content:'';position:absolute;bottom:0;right:0;width:0;height:1.5px;background:var(--pink);transition:width .3s;}
+.nav-links a:hover::after{width:100%;}
+.nav-right{display:flex;gap:.7rem;align-items:center;}
+.nav-ig{text-decoration:none;font-size:.78rem;font-weight:600;color:var(--pink);transition:opacity .2s;}
+.nav-ig:hover{opacity:.7;}
+.btn-track{background:var(--gray);color:var(--text);border:none;padding:.5rem 1rem;border-radius:2rem;font-family:'Tajawal',sans-serif;font-size:.76rem;cursor:none;transition:all .2s;}
+.btn-track:hover{background:var(--pink-pale);color:var(--pink);}
+.btn-cart{background:var(--pink);color:#fff;border:none;padding:.5rem 1.1rem;border-radius:2rem;font-family:'Tajawal',sans-serif;font-size:.76rem;cursor:none;transition:background .3s,transform .2s;position:relative;}
+.btn-cart:hover{background:var(--black);transform:scale(1.04);}
+.cart-badge{position:absolute;top:-7px;left:-7px;background:var(--black);color:#fff;width:18px;height:18px;border-radius:50%;font-size:.6rem;display:flex;align-items:center;justify-content:center;}
+/* HERO */
+#hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:5.5rem 2.5rem 3rem;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 80% 40%,rgba(233,30,140,.06) 0%,transparent 60%);pointer-events:none;}
+.hero-tag{display:inline-flex;align-items:center;gap:.5rem;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--pink);margin-bottom:1.2rem;animation:fadeUp .7s ease both;}
+.hero-tag::before,.hero-tag::after{content:'';display:block;width:18px;height:1px;background:var(--pink);}
+.hero-h1{font-family:'Montserrat',sans-serif;font-weight:700;font-size:clamp(2.2rem,4vw,3.8rem);line-height:1.1;color:var(--black);margin-bottom:.4rem;animation:fadeUp .7s .1s ease both;}
+.hero-h1 em{color:var(--pink);}
+.hero-italic{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(1rem,1.8vw,1.5rem);color:var(--muted);margin-bottom:1.2rem;animation:fadeUp .7s .2s ease both;}
+.hero-p{font-size:.88rem;color:var(--muted);line-height:1.85;max-width:400px;margin-bottom:1.8rem;font-weight:300;animation:fadeUp .7s .3s ease both;}
+.hero-btns{display:flex;gap:.85rem;flex-wrap:wrap;animation:fadeUp .7s .4s ease both;}
+.btn-pink{background:var(--pink);color:#fff;padding:.75rem 1.8rem;border:none;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.88rem;cursor:none;transition:all .3s;box-shadow:0 6px 20px rgba(233,30,140,.25);font-weight:500;}
+.btn-pink:hover{background:var(--black);transform:translateY(-2px);}
+.btn-outline{background:transparent;color:var(--black);padding:.75rem 1.6rem;border:1.5px solid rgba(0,0,0,.18);border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.88rem;cursor:none;transition:all .3s;}
+.btn-outline:hover{border-color:var(--pink);color:var(--pink);}
+.hero-trust{display:flex;gap:1.8rem;margin-top:2rem;animation:fadeUp .7s .5s ease both;}
+.trust-num{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.4rem;color:var(--black);line-height:1;}
+.trust-num span{color:var(--pink);}
+.trust-lbl{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.hero-right{display:flex;justify-content:center;align-items:center;animation:fadeIn 1s .2s ease both;position:relative;}
+.bouquet-wrap{position:relative;width:min(380px,38vw);height:min(380px,38vw);}
+.bouquet-circle{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#fce4f3,#f8bbd0,#f48fb1,#e91e8c);display:flex;align-items:center;justify-content:center;font-size:clamp(5rem,10vw,10rem);box-shadow:0 24px 80px rgba(233,30,140,.2);animation:float 5s ease-in-out infinite;}
+.ring{position:absolute;inset:-14px;border-radius:50%;border:1px dashed rgba(233,30,140,.2);animation:spin 22s linear infinite;}
+.ring2{position:absolute;inset:-28px;border-radius:50%;border:1px dashed rgba(233,30,140,.1);animation:spin 35s linear infinite reverse;}
+.fbadge{position:absolute;background:#fff;border-radius:1rem;padding:.7rem 1rem;box-shadow:0 6px 24px rgba(0,0,0,.08);display:flex;align-items:center;gap:.5rem;font-size:.74rem;font-weight:500;color:var(--black);}
+.fbadge small{display:block;font-size:.62rem;color:var(--muted);font-weight:400;}
+.fbadge.b1{bottom:8%;right:-4%;}.fbadge.b2{top:12%;left:-6%;}
+/* MARQUEE */
+.mq-wrap{background:var(--black);overflow:hidden;padding:.7rem 0;}
+.mq{display:flex;gap:2.5rem;white-space:nowrap;animation:marquee 22s linear infinite;width:max-content;}
+.mq span{font-family:'Montserrat',sans-serif;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);}
+.mq span.p{color:var(--pink);}
+/* SECTION */
+.sec-wrap{padding:4rem 2.5rem;}
+.sec-head{text-align:center;margin-bottom:2.5rem;}
+.sec-tag{display:inline-block;font-size:.67rem;letter-spacing:.18em;text-transform:uppercase;color:var(--pink);margin-bottom:.4rem;}
+.sec-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:clamp(1.5rem,2.8vw,2.3rem);color:var(--black);}
+.sec-title em{font-family:'Playfair Display',serif;font-style:italic;color:var(--pink);font-weight:400;}
+.sec-div{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-top:.6rem;}
+.sec-div::before,.sec-div::after{content:'';display:block;height:1px;width:32px;background:linear-gradient(to right,transparent,var(--pink-l));}
+.sec-div::after{background:linear-gradient(to left,transparent,var(--pink-l));}
+/* OCCASIONS */
+.occ-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.9rem;}
+.occ-card{background:var(--gray);border-radius:1.1rem;padding:1.1rem;text-align:center;cursor:none;transition:all .3s;border:2px solid transparent;}
+.occ-card:hover,.occ-card.active{background:var(--pink-pale);border-color:var(--pink);transform:translateY(-3px);}
+.occ-emoji{font-size:1.9rem;display:block;margin-bottom:.35rem;}
+.occ-name{font-size:.78rem;font-weight:600;color:var(--black);}
+/* PRODUCTS */
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:1.4rem;}
+.prod-card{background:#fff;border-radius:1.3rem;overflow:hidden;border:1px solid rgba(0,0,0,.06);box-shadow:0 2px 14px rgba(0,0,0,.04);transition:transform .35s,box-shadow .35s;cursor:none;}
+.prod-card:hover{transform:translateY(-7px);box-shadow:0 14px 44px rgba(233,30,140,.1);}
+.prod-img{height:200px;display:flex;align-items:center;justify-content:center;font-size:5rem;position:relative;}
+.prod-badge{position:absolute;top:.8rem;right:.8rem;padding:.18rem .65rem;border-radius:2rem;font-size:.6rem;letter-spacing:.06em;font-weight:700;text-transform:uppercase;}
+.badge-pink{background:var(--pink);color:#fff;}.badge-black{background:var(--black);color:#fff;}.badge-promo{background:#ff6f00;color:#fff;}
+.prod-body{padding:.95rem 1.05rem;}
+.prod-name{font-family:'Montserrat',sans-serif;font-weight:600;font-size:.91rem;color:var(--black);margin-bottom:.2rem;}
+.prod-desc{font-size:.75rem;color:var(--muted);line-height:1.5;margin-bottom:.65rem;}
+.color-dots{display:flex;gap:.35rem;margin-bottom:.7rem;}
+.color-dot{width:15px;height:15px;border-radius:50%;border:2px solid rgba(0,0,0,.08);transition:transform .2s;cursor:none;}
+.color-dot:hover{transform:scale(1.3);}
+.prod-foot{display:flex;align-items:center;justify-content:space-between;}
+.prod-price{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.02rem;color:var(--pink);}
+.prod-price del{font-size:.7rem;color:#ccc;font-weight:400;margin-left:.2rem;}
+.view-btn{background:var(--pink);color:#fff;border:none;padding:.5rem 1.1rem;border-radius:2rem;font-family:'Tajawal',sans-serif;font-size:.76rem;cursor:none;transition:all .3s;font-weight:500;}
+.view-btn:hover{background:var(--black);}
+/* TRACK */
+#track{padding:4rem 2.5rem;background:var(--gray);}
+.track-box{max-width:500px;margin:0 auto;text-align:center;}
+.track-row{display:flex;gap:.6rem;margin-top:1.4rem;}
+.track-inp{flex:1;padding:.75rem 1.1rem;border:1.5px solid rgba(0,0,0,.1);border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.88rem;outline:none;transition:border-color .25s;}
+.track-inp:focus{border-color:var(--pink);}
+.track-btn{background:var(--pink);color:#fff;border:none;padding:.75rem 1.4rem;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.85rem;cursor:none;white-space:nowrap;transition:background .3s;}
+.track-btn:hover{background:var(--black);}
+#track-res{margin-top:1.1rem;display:none;}
+.track-card{background:#fff;border-radius:1.1rem;padding:1.3rem;border:1px solid rgba(0,0,0,.07);text-align:right;}
+.track-steps{display:flex;justify-content:space-between;margin-top:1rem;position:relative;}
+.track-steps::before{content:'';position:absolute;top:13px;right:0;left:0;height:2px;background:rgba(0,0,0,.07);}
+.track-step{display:flex;flex-direction:column;align-items:center;gap:.25rem;position:relative;z-index:1;}
+.ts-dot{width:26px;height:26px;border-radius:50%;background:#eee;display:flex;align-items:center;justify-content:center;font-size:.75rem;border:2px solid #eee;}
+.ts-dot.done{background:var(--green);border-color:var(--green);}
+.ts-dot.active{background:var(--pink);border-color:var(--pink);box-shadow:0 0 0 4px rgba(233,30,140,.15);}
+.ts-lbl{font-size:.62rem;color:var(--muted);}
+/* DELIVERY */
+#delivery{padding:4rem 2.5rem;background:var(--black);color:#fff;position:relative;overflow:hidden;}
+#delivery::before{content:'';position:absolute;top:-30%;left:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(233,30,140,.12) 0%,transparent 70%);pointer-events:none;}
+.del-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:1rem;margin-bottom:2rem;position:relative;z-index:1;}
+.del-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:1.1rem;padding:1.1rem;text-align:center;transition:background .3s,transform .3s;}
+.del-card:hover{background:rgba(233,30,140,.1);transform:translateY(-4px);}
+.del-icon{font-size:1.7rem;margin-bottom:.4rem;display:block;}
+.del-title{font-weight:600;font-size:.82rem;margin-bottom:.2rem;}
+.del-desc{font-size:.7rem;color:rgba(255,255,255,.4);line-height:1.5;}
+.del-price{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.15rem;color:var(--pink);margin-top:.4rem;display:block;}
+.w-wrap{position:relative;z-index:1;}
+.w-title{text-align:center;font-family:'Montserrat',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:.9rem;}
+.w-search-row{display:flex;justify-content:center;margin-bottom:.9rem;}
+.w-search{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:2rem;padding:.55rem 1.2rem;color:#fff;font-family:'Tajawal',sans-serif;font-size:.86rem;width:min(330px,90%);outline:none;transition:border-color .3s;}
+.w-search::placeholder{color:rgba(255,255,255,.3);}
+.w-search:focus{border-color:var(--pink);}
+.w-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:.5rem;max-height:320px;overflow-y:auto;padding-left:.2rem;}
+.w-grid::-webkit-scrollbar{width:3px;}.w-grid::-webkit-scrollbar-thumb{background:var(--pink);border-radius:2px;}
+.w-pill{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:.65rem;padding:.48rem .8rem;font-size:.73rem;color:rgba(255,255,255,.6);transition:all .25s;cursor:none;display:flex;align-items:center;gap:.38rem;}
+.w-pill:hover{background:rgba(233,30,140,.18);border-color:var(--pink);color:#fff;}
+.w-num{font-size:.58rem;color:var(--pink);font-weight:700;font-family:'Montserrat',sans-serif;}
+.w-zone{font-size:.56rem;opacity:.38;margin-right:auto;}
+/* ABOUT */
+#about{padding:4rem 2.5rem;background:var(--pink-pale);}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;}
+.about-boxes{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;}
+.abox{border-radius:1.1rem;padding:1.25rem;transition:transform .3s;}.abox:hover{transform:scale(1.03);}
+.abox.full{grid-column:span 2;}
+.ab-pink{background:linear-gradient(135deg,var(--pink),#c2185b);color:#fff;}
+.ab-dark{background:var(--black);color:#fff;}
+.ab-white{background:#fff;color:var(--black);border:1px solid rgba(0,0,0,.06);}
+.abox .big{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.85rem;display:block;line-height:1;}
+.abox .lbl{font-size:.68rem;opacity:.55;margin-top:.2rem;display:block;letter-spacing:.04em;}
+.abox .emo{font-size:1.7rem;margin-bottom:.3rem;display:block;}
+.about-feats{display:flex;flex-direction:column;gap:.85rem;margin-top:1.4rem;}
+.feat{display:flex;align-items:center;gap:.85rem;background:#fff;border-radius:.9rem;padding:.85rem 1rem;box-shadow:0 2px 10px rgba(233,30,140,.06);transition:transform .3s;}
+.feat:hover{transform:translateX(-4px);}
+.feat-ico{width:36px;height:36px;min-width:36px;border-radius:.65rem;background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:.95rem;}
+.feat-text strong{display:block;font-size:.81rem;color:var(--black);margin-bottom:.1rem;}
+.feat-text span{font-size:.72rem;color:var(--muted);}
+/* REVIEWS */
+.rev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:1.2rem;}
+.rev-card{background:#fff;border:1px solid rgba(0,0,0,.06);border-radius:1.1rem;padding:1.3rem;box-shadow:0 2px 10px rgba(0,0,0,.04);transition:transform .3s,box-shadow .3s;}
+.rev-card:hover{transform:translateY(-4px);box-shadow:0 10px 30px rgba(233,30,140,.08);}
+.rev-stars{color:#f9a825;font-size:.86rem;letter-spacing:.05em;margin-bottom:.65rem;}
+.rev-body{font-size:.82rem;color:var(--text);line-height:1.7;font-style:italic;margin-bottom:.9rem;}
+.rev-author{display:flex;align-items:center;gap:.65rem;}
+.rev-av{width:34px;height:34px;border-radius:50%;background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:.9rem;border:2px solid rgba(233,30,140,.15);}
+.rev-name{font-weight:600;font-size:.78rem;color:var(--black);}
+.rev-date{font-size:.68rem;color:var(--muted);}
+/* CTA */
+#cta{padding:5rem 2.5rem;text-align:center;background:linear-gradient(135deg,var(--pink),#ad1457);position:relative;overflow:hidden;}
+#cta::before{content:'🌹';position:absolute;font-size:15rem;opacity:.04;top:50%;left:50%;transform:translate(-50%,-50%);}
+#cta .sec-title{color:#fff;}#cta .sec-title em{color:rgba(255,255,255,.7);}
+#cta p{color:rgba(255,255,255,.7);margin:.85rem 0 1.8rem;font-size:.88rem;font-weight:300;}
+.btn-white{background:#fff;color:var(--pink);padding:.82rem 2.2rem;border:none;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.9rem;font-weight:600;cursor:none;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+.btn-white:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.2);}
+.socials-row{display:flex;justify-content:center;gap:.7rem;flex-wrap:wrap;margin-top:1.1rem;}
+.soc-btn{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:2rem;padding:.48rem 1.1rem;text-decoration:none;font-size:.78rem;transition:background .3s;cursor:none;}
+.soc-btn:hover{background:rgba(255,255,255,.25);}
+/* FOOTER */
+footer{background:var(--black);color:rgba(255,255,255,.4);padding:1.8rem 2.5rem;display:flex;align-items:center;justify-content:space-between;font-size:.75rem;flex-wrap:wrap;gap:.9rem;}
+.f-logo{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.98rem;color:#fff;}
+.f-logo span{color:var(--pink);}
+.f-links{display:flex;gap:1.4rem;}
+.f-links a{color:rgba(255,255,255,.35);text-decoration:none;transition:color .2s;}
+.f-links a:hover{color:var(--pink);}
+/* wa float removed */
+/* CART */
+#cart-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:600;display:none;}
+#cart-ov.open{display:block;}
+#cart-side{position:fixed;top:0;left:0;width:min(370px,95vw);height:100vh;background:#fff;z-index:700;transform:translateX(-100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:4px 0 32px rgba(0,0,0,.12);}
+#cart-side.open{transform:translateX(0);}
+.c-hdr{padding:1.2rem 1.4rem;border-bottom:1px solid rgba(0,0,0,.07);display:flex;align-items:center;justify-content:space-between;}
+.c-hdr h3{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.98rem;}
+.c-x{background:none;border:none;font-size:1.15rem;cursor:pointer;color:var(--muted);}
+.c-items{flex:1;overflow-y:auto;padding:.9rem 1.4rem;}
+.c-empty{text-align:center;color:var(--muted);font-size:.86rem;padding:2.5rem 0;}
+.ci{display:flex;align-items:center;gap:.85rem;padding:.75rem 0;border-bottom:1px solid rgba(0,0,0,.05);}
+.ci-emo{font-size:1.8rem;min-width:38px;text-align:center;}
+.ci-info{flex:1;}
+.ci-name{font-weight:600;font-size:.82rem;color:var(--black);}
+.ci-price{font-size:.76rem;color:var(--pink);font-weight:700;margin-top:.1rem;}
+.ci-qty{display:flex;align-items:center;gap:.4rem;margin-top:.28rem;}
+.qty-btn{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(0,0,0,.12);background:none;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.qty-btn:hover{border-color:var(--pink);color:var(--pink);}
+.ci-rm{background:none;border:none;font-size:.82rem;color:var(--muted);cursor:pointer;transition:color .2s;}
+.ci-rm:hover{color:#e74c3c;}
+.c-ftr{padding:1.2rem 1.4rem;border-top:1px solid rgba(0,0,0,.07);}
+.c-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem;}
+.c-total-lbl{font-weight:600;font-size:.85rem;}
+.c-total-val{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;color:var(--pink);}
+.btn-checkout{width:100%;background:var(--pink);color:#fff;border:none;padding:.8rem;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .3s;box-shadow:0 4px 16px rgba(233,30,140,.25);}
+.btn-checkout:hover{background:var(--black);}
+/* TOAST */
+#toast{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--black);color:#fff;padding:.65rem 1.4rem;border-radius:3rem;font-size:.8rem;z-index:900;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.2);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-13px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes waPulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.5);opacity:0}}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.vis{opacity:1;transform:translateY(0);}
+@media(max-width:860px){
+  nav{padding:.8rem 1rem;}.nav-links{display:none;}
+  #hero{grid-template-columns:1fr;padding:5.2rem .9rem 2.5rem;text-align:center;}
+  .hero-p{max-width:100%;}.hero-btns,.hero-trust{justify-content:center;}
+  .hero-right{margin-top:1.8rem;}.bouquet-wrap{width:210px;height:210px;}
+  .fbadge.b1{right:0;}.fbadge.b2{left:0;}
+  .sec-wrap,#track,#delivery,#about,#cta{padding:3rem .9rem;}
+  .about-grid{grid-template-columns:1fr;}
+  footer{flex-direction:column;text-align:center;}
+}
+</style>
+</head>
+<body>
+<div id="cur"></div>
 
+<!-- POPUP -->
+<div id="pop-ov">
+  <div id="pop-box">
+    <button class="pop-x" onclick="closePopup()">✕</button>
+    <div class="pop-img">🌹</div>
+    <div class="pop-body">
+      <div class="pop-tag">✦ عرض خاص ✦</div>
+      <div class="pop-title" id="popTitle">خصم خاص بك!</div>
+      <div class="pop-desc" id="popDesc">استخدمي هذا الكود عند الطلب</div>
+      <div class="pop-code" id="popCode" onclick="copyCode()">WELCOME</div>
+      <div class="pop-btns">
+        <button class="btn-pink" onclick="closePopup();goSec('products')">اكتشفي الباقات 🌹</button>
+        <button class="btn-outline" onclick="closePopup()">لاحقاً</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="promo-bar"></div>
+
+
+
+<nav>
+  <a class="logo-wrap" href="index.html">
+    <div class="logo-main">Fleur<span>❀</span>by liza</div>
+    <div class="logo-sub">Flower Shop</div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#products">Bouquets</a></li>
+    <li><a href="#delivery">Livraison</a></li>
+    <li><a href="#about">À propos</a></li>
+    <li><a href="#reviews">Avis</a></li>
+  </ul>
+  <div class="nav-right">
+    <a class="nav-ig" href="https://www.instagram.com/fleurs_byliza?igsh=ZjkxOXcxcGYyMWl0" target="_blank">📸 fleurs_byliza</a>
+    <button class="btn-track" onclick="goSec('track')">🔍 تتبع طلبي</button>
+    <button class="btn-cart" onclick="openCart()">🛒 <span class="cart-badge" id="cartCount">0</span></button>
+  </div>
+</nav>
+
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div>
+    <div class="hero-tag">Fraîcheur &amp; Élégance</div>
+    <h1 class="hero-h1">Fleur<em>❀</em><br>by liza</h1>
+    <p class="hero-italic">باقات الورد الفاخرة لكل مناسبة</p>
+    <p class="hero-p">ورود طازجة مستوردة، تغليف أنيق، وتوصيل سريع لجميع ولايات الجزائر.</p>
+    <div class="hero-btns">
+      <button class="btn-pink" onclick="goSec('products')">🌹 اكتشفي الباقات</button>
+      <button class="btn-outline" onclick="goSec('delivery')">🚚 مناطق التوصيل</button>
+    </div>
+    <div class="hero-trust">
+      <div><div class="trust-num">89<span>K</span></div><div class="trust-lbl">Instagram</div></div>
+      <div><div class="trust-num">29<span>K</span></div><div class="trust-lbl">Facebook</div></div>
+      <div><div class="trust-num">+<span>5K</span></div><div class="trust-lbl">طلب ناجح</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="bouquet-wrap">
+      <div class="bouquet-circle">🌹</div>
+      <div class="ring"></div><div class="ring2"></div>
+      <div class="fbadge b1"><span>🚚</span><div><span>توصيل سريع</span><small>58 ولاية</small></div></div>
+      <div class="fbadge b2"><span>⭐</span><div><span>4.9 / 5</span><small>تقييم العملاء</small></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="mq-wrap"><div class="mq">
+  <span class="p">✦</span><span>Fleurs by Liza</span><span class="p">✦</span><span>ورد مستورد طازج</span>
+  <span class="p">✦</span><span>Livraison 58 Wilayas</span><span class="p">✦</span><span>توصيل لكل الجزائر</span>
+  <span class="p">✦</span><span>Bouquets Premium</span><span class="p">✦</span><span>باقات فاخرة</span>
+  <span class="p">✦</span><span>Fleurs by Liza</span><span class="p">✦</span><span>ورد مستورد طازج</span>
+  <span class="p">✦</span><span>Livraison 58 Wilayas</span><span class="p">✦</span><span>توصيل لكل الجزائر</span>
+  <span class="p">✦</span><span>Bouquets Premium</span><span class="p">✦</span><span>باقات فاخرة</span>
+</div></div>
+
+
+
+<section class="sec-wrap" id="products">
+  <div class="sec-head reveal">
+    <div class="sec-tag">✦ nos bouquets ✦</div>
+    <h2 class="sec-title">باقات <em>مختارة بعناية</em></h2>
+    <div class="sec-div"><span style="color:var(--pink)">🌹</span></div>
+  </div>
+  <div class="prod-grid" id="prodGrid"></div>
+</section>
+
+<section id="track">
+  <div class="track-box reveal">
+    <div class="sec-tag">✦ تتبع طلبك ✦</div>
+    <h2 class="sec-title" style="text-align:center">أين <em>طلبي؟</em></h2>
+    <div class="track-row">
+      <input class="track-inp" id="trackQ" type="text" placeholder="رقم الهاتف أو رقم الطلب...">
+      <button class="track-btn" onclick="trackOrder()">🔍 بحث</button>
+    </div>
+    <div id="track-res"></div>
+  </div>
+</section>
+
+<section id="delivery">
+  <div class="sec-head reveal" style="position:relative;z-index:1;">
+    <div class="sec-tag" style="color:rgba(255,255,255,.5)">✦ livraison ✦</div>
+    <h2 class="sec-title" style="color:#fff">نوصّلوا <em style="color:var(--pink-l)">لكل الجزائر</em></h2>
+    <div class="sec-div"><span style="color:var(--pink)">🚚</span></div>
+  </div>
+  <div class="del-cards reveal" id="delCards"></div>
+  <div class="w-wrap reveal">
+    <div class="w-title">— 58 ولاية مشمولة بالتوصيل —</div>
+    <div class="w-search-row"><input class="w-search" type="text" placeholder="🔍 ابحثي عن ولايتك..." oninput="filterW(this.value)"></div>
+    <div class="w-grid" id="wGrid"></div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="about-grid">
+    <div class="about-boxes reveal">
+      <div class="abox full ab-pink"><span class="emo">🌹</span><span class="big">Fleur by Liza</span><span class="lbl">FLOWER SHOP — الجزائر</span></div>
+      <div class="abox ab-dark"><span class="big">89K</span><span class="lbl">Instagram</span></div>
+      <div class="abox ab-white"><span class="big" style="color:var(--pink)">5K+</span><span class="lbl">طلب موصّل</span></div>
+    </div>
+    <div class="reveal">
+      <div class="sec-tag" style="display:block">✦ notre histoire ✦</div>
+      <h2 class="sec-title">قصة <em>Fleur by Liza</em></h2>
+      <p style="font-size:.86rem;color:var(--muted);line-height:1.9;margin-top:1rem;font-weight:300;">منذ البداية كان الهدف واحد: إيصال الورود الأجمل إلى أيدي أحبائكم. نختار كل وردة بعناية، نصنع كل باقة بحب، ونوصّل كل طلب باحترافية.</p>
+      <div class="about-feats">
+        <div class="feat"><div class="feat-ico">🌿</div><div class="feat-text"><strong>ورد مستورد 100%</strong><span>جودة لا تضاهى — طازج يومياً</span></div></div>
+        <div class="feat"><div class="feat-ico">🎁</div><div class="feat-text"><strong>تغليف فاخر مجاني</strong><span>بطاقة هدية + تغليف سيلوفان أنيق</span></div></div>
+        <div class="feat"><div class="feat-ico">🚚</div><div class="feat-text"><strong>58 ولاية — كل الجزائر</strong><span>نصل إلى بابك أينما كنت</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec-wrap" id="reviews">
+  <div class="sec-head reveal">
+    <div class="sec-tag">✦ avis clients ✦</div>
+    <h2 class="sec-title">كلمات <em>عملائنا</em></h2>
+    <div class="sec-div"><span style="color:var(--pink)">💬</span></div>
+  </div>
+  <div class="rev-grid" id="revGrid"></div>
+</section>
+
+<section id="cta">
+  <div class="reveal" style="position:relative;z-index:1;">
+    <h2 class="sec-title">اطلبي باقتك <em>الآن</em></h2>
+    <p>ورود طازجة — تغليف فاخر — توصيل لكل الجزائر 🌹</p>
+    <button class="btn-white" onclick="goSec('products')">🌹 اطلبي الآن</button>
+    <div class="socials-row">
+      <a href="https://www.instagram.com/fleurs_byliza?igsh=ZjkxOXcxcGYyMWl0" class="soc-btn" target="_blank">📸 fleurs_byliza — تواصلي معنا</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-logo">Fleur<span>❀</span>by liza</div>
+  <div class="f-links">
+    <a href="#">سياسة الخصوصية</a>
+    <a href="admin.html">🔐 Admin</a>
+  </div>
+  <div>© 2025 Fleurs by Liza</div>
+</footer>
+
+<div id="cart-ov" onclick="closeCart()"></div>
+<div id="cart-side">
+  <div class="c-hdr"><h3>🛒 السلة</h3><button class="c-x" onclick="closeCart()">✕</button></div>
+  <div class="c-items" id="cartItems"></div>
+  <div class="c-ftr">
+    <div class="c-total-row"><span class="c-total-lbl">المجموع</span><span class="c-total-val" id="cartTotal">0 دج</span></div>
+    <button class="btn-checkout" onclick="checkoutCart()">إتمام الطلب 🌹</button>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SK='flz_store';
+function load(){try{const r=localStorage.getItem(SK);if(r)return JSON.parse(r);}catch(e){}return def();}
+function def(){return{products:[
+  {id:'p1',name:'Bouquet Rouge Classique',desc:'12 وردة حمراء مستوردة مع تغليف فاخر وشريط ساتان. مثالية للتعبير عن الحب.',price:1500,oldPrice:2000,emoji:'🌹',badge:'الأكثر طلباً',badgeType:'pink',bg:'linear-gradient(135deg,#fce4f3,#f8bbd0)',colors:['#e91e8c','#c62828','#fff9fb'],images:['🌹','🌹','💐'],active:true,occasion:'حب'},
+  {id:'p2',name:'Bouquet Rose Romantique',desc:'مزيج رومانسي من الورود الوردية الناعمة مع زهور صغيرة معطرة وورق هدايا أنيق.',price:1300,oldPrice:0,emoji:'🌸',badge:'Nouveau',badgeType:'black',bg:'linear-gradient(135deg,#fce4f3,#f48fb1)',colors:['#f48fb1','#fff','#e91e8c'],images:['🌸','🌸','💮'],active:true,occasion:'هدية'},
+  {id:'p3',name:'Bouquet Mariage Doré',desc:'مزيج فاخر من الورود البيضاء والذهبية مع إكسسوارات لامعة، صممت خصيصاً للأعراس.',price:2200,oldPrice:3000,emoji:'💐',badge:'',badgeType:'',bg:'linear-gradient(135deg,#fff9c4,#ffe0b2)',colors:['#fff','#d4af37','#f48fb1'],images:['💐','🌸','🌼'],active:true,occasion:'أعراس'},
+  {id:'p4',name:'Bouquet Violet Mystère',desc:'ورود بنفسجية نادرة مستوردة مع خضرة طبيعية طازجة — لمن تحب شيئاً مختلفاً.',price:1800,oldPrice:0,emoji:'💜',badge:'Exclusif',badgeType:'pink',bg:'linear-gradient(135deg,#f3e5f5,#e1bee7)',colors:['#9c27b0','#e91e8c','#fff'],images:['💜','🌸','🌺'],active:true,occasion:'هدية'},
+  {id:'p5',name:'Bouquet Blanc Élégant',desc:'ورود بيضاء خالصة في صندوق فاخر أسود — أناقة راقية لا تُنسى.',price:1600,oldPrice:0,emoji:'🤍',badge:'',badgeType:'',bg:'linear-gradient(135deg,#fafafa,#f0f0f0)',colors:['#fff','#f5f5f5','#e91e8c'],images:['🤍','🌸','💮'],active:true,occasion:'عيد ميلاد'},
+  {id:'p6',name:'Bouquet Arc-en-Ciel',desc:'مزيج ملوّن من أجمل ورود الموسم — بهجة وسعادة في باقة واحدة.',price:1400,oldPrice:0,emoji:'🌺',badge:'',badgeType:'',bg:'linear-gradient(135deg,#fce4f3,#ffcdd2,#fff9c4)',colors:['#e91e8c','#ff6f00','#9c27b0'],images:['🌺','🌸','🌹'],active:true,occasion:'مناسبات'}
+],delivery:{north_home:400,north_office:300,center_home:600,center_office:450,south_home:900,south_office:700},
+promos:[{code:'LIZA10',type:'percent',value:10,desc:'خصم 10%',active:true},{code:'WELCOME',type:'fixed',value:200,desc:'خصم 200 دج',active:true}],
+orders:[],
+reviews:[{name:'سارة — الجزائر العاصمة',text:'طلبت باقة لعيد ميلاد أمي وكانت أجمل من كل توقعاتي! الورود طازجة جداً والتغليف راقي بزاف.',stars:5,date:'منذ يومين'},{name:'أحمد — وهران',text:'خدمة ممتازة والتوصيل وصل لوهران في الوقت المحدد. زوجتي فرحت كثيراً!',stars:5,date:'منذ أسبوع'},{name:'ليلى — قسنطينة',text:'أحسن محل ورود في الجزائر! ما توقعتش يوصلوا لقسنطينة بهاذ السرعة.',stars:5,date:'منذ أسبوعين'}]};}
+
+const store=load();
+const WILAYAS=[{n:1,name:"أدرار",zone:"south"},{n:2,name:"الشلف",zone:"north"},{n:3,name:"الأغواط",zone:"center"},{n:4,name:"أم البواقي",zone:"north"},{n:5,name:"باتنة",zone:"north"},{n:6,name:"بجاية",zone:"north"},{n:7,name:"بسكرة",zone:"center"},{n:8,name:"بشار",zone:"south"},{n:9,name:"البليدة",zone:"north"},{n:10,name:"البويرة",zone:"north"},{n:11,name:"تمنراست",zone:"south"},{n:12,name:"تبسة",zone:"north"},{n:13,name:"تلمسان",zone:"north"},{n:14,name:"تيارت",zone:"center"},{n:15,name:"تيزي وزو",zone:"north"},{n:16,name:"الجزائر",zone:"north"},{n:17,name:"الجلفة",zone:"center"},{n:18,name:"جيجل",zone:"north"},{n:19,name:"سطيف",zone:"north"},{n:20,name:"سعيدة",zone:"north"},{n:21,name:"سكيكدة",zone:"north"},{n:22,name:"سيدي بلعباس",zone:"north"},{n:23,name:"عنابة",zone:"north"},{n:24,name:"قالمة",zone:"north"},{n:25,name:"قسنطينة",zone:"north"},{n:26,name:"المدية",zone:"center"},{n:27,name:"مستغانم",zone:"north"},{n:28,name:"المسيلة",zone:"center"},{n:29,name:"معسكر",zone:"north"},{n:30,name:"ورقلة",zone:"south"},{n:31,name:"وهران",zone:"north"},{n:32,name:"البيض",zone:"south"},{n:33,name:"إليزي",zone:"south"},{n:34,name:"برج بوعريريج",zone:"north"},{n:35,name:"بومرداس",zone:"north"},{n:36,name:"الطارف",zone:"north"},{n:37,name:"تيندوف",zone:"south"},{n:38,name:"تيسمسيلت",zone:"center"},{n:39,name:"الوادي",zone:"south"},{n:40,name:"خنشلة",zone:"north"},{n:41,name:"سوق أهراس",zone:"north"},{n:42,name:"تيبازة",zone:"north"},{n:43,name:"ميلة",zone:"north"},{n:44,name:"عين الدفلى",zone:"north"},{n:45,name:"النعامة",zone:"south"},{n:46,name:"عين تموشنت",zone:"north"},{n:47,name:"غرداية",zone:"south"},{n:48,name:"غليزان",zone:"north"},{n:49,name:"تيميمون",zone:"south"},{n:50,name:"برج باجي مختار",zone:"south"},{n:51,name:"أولاد جلال",zone:"south"},{n:52,name:"بني عباس",zone:"south"},{n:53,name:"عين صالح",zone:"south"},{n:54,name:"عين قزام",zone:"south"},{n:55,name:"تقرت",zone:"south"},{n:56,name:"جانت",zone:"south"},{n:57,name:"المغير",zone:"south"},{n:58,name:"المنيعة",zone:"south"}];
+const ZN={north:'الشمال',center:'الوسط',south:'الجنوب'};
+const OCCS=[{name:'الكل',emoji:'🌹'},{name:'حب',emoji:'❤️'},{name:'عيد ميلاد',emoji:'🎂'},{name:'أعراس',emoji:'💍'},{name:'هدية',emoji:'🎁'},{name:'عيد الأم',emoji:'👩'},{name:'مناسبات',emoji:'🎉'},{name:'تهنئة',emoji:'🌟'}];
+let cart=[],activeOcc='الكل';
+
+const cur=document.getElementById('cur');
+document.addEventListener('mousemove',e=>{cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';});
+document.querySelectorAll('a,button,input,select').forEach(el=>{el.addEventListener('mouseenter',()=>cur.classList.add('big'));el.addEventListener('mouseleave',()=>cur.classList.remove('big'));});
+
+const revEls=document.querySelectorAll('.reveal');
+const ro=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('vis'),i*65);ro.unobserve(e.target);}});},{threshold:0.1});
+revEls.forEach(r=>ro.observe(r));
+
+function goSec(id){document.getElementById(id).scrollIntoView({behavior:'smooth'});}
+
+function closePopup(){document.getElementById('pop-ov').classList.remove('open');}
+function copyCode(){const c=document.getElementById('popCode').textContent;navigator.clipboard.writeText(c).catch(()=>{});showToast('✅ تم نسخ الكود: '+c);}
+
+function initPopup(){
+  const a=store.promos.filter(p=>p.active);
+  if(!a.length||sessionStorage.getItem('ps'))return;
+  const p=a[0];
+  document.getElementById('popCode').textContent=p.code;
+  document.getElementById('popDesc').textContent='استخدمي كود '+p.code+' واحصلي على '+p.desc+' 🌹';
+  setTimeout(()=>document.getElementById('pop-ov').classList.add('open'),2500);
+  sessionStorage.setItem('ps','1');
+}
+
+function initPromoBar(){
+  const a=store.promos.filter(p=>p.active);
+  if(!a.length)return;
+  const p=a[0];
+  const b=document.getElementById('promo-bar');
+  b.innerHTML='🎁 عرض خاص! <strong>'+p.code+'</strong> — '+p.desc;
+  b.classList.add('on');
+}
+const SUPABASE_URL = "https://vlgoldztzcflwhgyyxpl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_l9EJ9f8s6MujxjlKs2zhGw_uMJ-qucO";
+
+const supabase = window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+function generateOrderId(){
+return "FBL-" + Math.floor(100000 + Math.random() * 900000);
+}
+
+async function sendOrder(data){
+
+const order = {
+id: generateOrderId(),
+created_at: new Date(),
+name: data.name,
+phone: data.phone,
+wilaya: data.wilaya,
+commune: data.commune,
+product: data.product,
+price: data.price,
+payment: data.payment,
+status: "جديد",
+tracking: "",
+receipt: data.receipt || ""
+};
+
+const { error } = await supabase
+.from("orders")
+.insert([order]);
+
+if(error){
+alert("خطأ في إرسال الطلب");
+return;
+}
+
+showToast("✅ تم إرسال الطلب بنجاح");
+
+}
+function renderOccs(){
+  document.getElementById('occGrid').innerHTML=OCCS.map(o=>`<div class="occ-card ${o.name===activeOcc?'active':''}" onclick="filterOcc('${o.name}')"><span class="occ-emoji">${o.emoji}</span><div class="occ-name">${o.name}</div></div>`).join('');
+}
+function filterOcc(n){activeOcc=n;renderOccs();renderProds();}
+
+function renderProds(){
+  const list=store.products.filter(p=>p.active&&(activeOcc==='الكل'||p.occasion===activeOcc));
+  document.getElementById('prodGrid').innerHTML=list.length?list.map(p=>{
+    const hasImg=p.realImages&&p.realImages.length>0;
+    const imgEl=hasImg
+      ?`<img src="${p.realImages[0]}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">`
+      :`<span style="font-size:5rem">${p.emoji}</span>`;
+    return `<div class="prod-card reveal" onclick="goProduct('${p.id}')">
+      <div class="prod-img" style="background:${hasImg?'#f8f8f8':p.bg};padding:0;overflow:hidden;">${imgEl}
+        ${p.badge?`<span class="prod-badge badge-${p.badgeType}">${p.badge}</span>`:''}
+      </div>
+      <div class="prod-body">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-desc">${p.desc.substring(0,65)}...</div>
+        <div class="color-dots">${(p.colors||[]).map(c=>`<div class="color-dot" style="background:${c}"></div>`).join('')}</div>
+        <div class="prod-foot">
+          <div class="prod-price">${p.price.toLocaleString()} دج ${p.oldPrice?`<del>${p.oldPrice.toLocaleString()}</del>`:''}</div>
+          <button class="view-btn" onclick="event.stopPropagation();goProduct('${p.id}')">التفاصيل</button>
+        </div>
+      </div>
+    </div>`}).join(''):'<p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:3rem">لا توجد باقات لهذه المناسبة</p>';
+  document.querySelectorAll('.prod-card.reveal:not(.vis)').forEach(r=>ro.observe(r));
+}
+function goProduct(id){window.location.href='product.html?id='+id;}
+
+function renderDel(){
+  const d=store.delivery;
+  document.getElementById('delCards').innerHTML=`
+    <div class="del-card"><span class="del-icon">🏙️</span><div class="del-title">الشمال — منزل</div><div class="del-desc">الجزائر، وهران، قسنطينة...</div><span class="del-price">${d.north_home.toLocaleString()} دج</span></div>
+    <div class="del-card"><span class="del-icon">📮</span><div class="del-title">الشمال — مكتب</div><div class="del-desc">أقرب مكتب بريد</div><span class="del-price">${d.north_office.toLocaleString()} دج</span></div>
+    <div class="del-card"><span class="del-icon">🏘️</span><div class="del-title">الوسط — منزل</div><div class="del-desc">المسيلة، البويرة، المدية...</div><span class="del-price">${d.center_home.toLocaleString()} دج</span></div>
+    <div class="del-card"><span class="del-icon">📮</span><div class="del-title">الوسط — مكتب</div><div class="del-desc">أقرب مكتب بريد</div><span class="del-price">${d.center_office.toLocaleString()} دج</span></div>
+    <div class="del-card"><span class="del-icon">🏜️</span><div class="del-title">الجنوب — منزل</div><div class="del-desc">غرداية، ورقلة، تمنراست...</div><span class="del-price">${d.south_home.toLocaleString()} دج</span></div>
+    <div class="del-card"><span class="del-icon">📮</span><div class="del-title">الجنوب — مكتب</div><div class="del-desc">أقرب مكتب بريد</div><span class="del-price">${d.south_office.toLocaleString()} دج</span></div>`;
+}
+
+function renderW(list){document.getElementById('wGrid').innerHTML=list.map(w=>`<div class="w-pill"><span class="w-num">${String(w.n).padStart(2,'0')}</span>${w.name}<span class="w-zone">${ZN[w.zone]}</span></div>`).join('');}
+function filterW(q){renderW(WILAYAS.filter(w=>w.name.includes(q)||String(w.n).includes(q)));}
+
+function renderRevs(){
+  document.getElementById('revGrid').innerHTML=store.reviews.map(r=>`<div class="rev-card reveal"><div class="rev-stars">${'★'.repeat(r.stars)}</div><p class="rev-body">"${r.text}"</p><div class="rev-author"><div class="rev-av">👩</div><div><div class="rev-name">${r.name}</div><div class="rev-date">${r.date}</div></div></div></div>`).join('');
+  document.querySelectorAll('.rev-card.reveal:not(.vis)').forEach(r=>ro.observe(r));
+}
+
+async function trackOrder(){
+
+const q = document.getElementById("trackQ").value.trim();
+if(!q){
+showToast("ادخل رقم الطلب");
+return;
+}
+
+const { data, error } = await supabase
+.from("orders")
+.select("*")
+.eq("id", q)
+.single();
+
+const res = document.getElementById("track-res");
+res.style.display="block";
+
+if(error || !data){
+res.innerHTML="<div class='track-card'>الطلب غير موجود</div>";
+return;
+}
+
+const steps = ["موصل","خرج للتوصيل","قيد التنفيذ","جديد"];
+  const idx = steps.indexOf(data.status);
+
+res.innerHTML = `
+<div class="track-card">
+<div><strong>#${data.id}</strong></div>
+<div>${data.product}</div>
+<br>
+
+<div class="track-steps">
+${steps.map((s,i)=>`
+<div class="track-step">
+<div class="ts-dot ${i<=idx?'done':''}">${i+1}</div>
+<div class="ts-lbl">${s}</div>
+</div>
+`).join("")}
+</div>
+
+</div>
+`;
+
+}
+function openCart(){renderCart();document.getElementById('cart-side').classList.add('open');document.getElementById('cart-ov').classList.add('open');}
+function closeCart(){document.getElementById('cart-side').classList.remove('open');document.getElementById('cart-ov').classList.remove('open');}
+function renderCart(){
+  const el=document.getElementById('cartItems');
+  if(!cart.length){el.innerHTML='<div class="c-empty">🌹 السلة فارغة</div>';document.getElementById('cartTotal').textContent='0 دج';return;}
+  el.innerHTML=cart.map(c=>`<div class="ci"><span class="ci-emo">${c.emoji}</span><div class="ci-info"><div class="ci-name">${c.name}</div><div class="ci-price">${c.price.toLocaleString()} دج</div><div class="ci-qty"><button class="qty-btn" onclick="chQty('${c.id}',-1)">−</button><span>${c.qty}</span><button class="qty-btn" onclick="chQty('${c.id}',1)">+</button></div></div><button class="ci-rm" onclick="rmCart('${c.id}')">🗑️</button></div>`).join('');
+  document.getElementById('cartTotal').textContent=cart.reduce((s,c)=>s+c.price*c.qty,0).toLocaleString()+' دج';
+}
+function chQty(id,d){const i=cart.find(c=>c.id===id);if(!i)return;i.qty+=d;if(i.qty<=0)cart=cart.filter(c=>c.id!==id);renderCart();updBadge();}
+function rmCart(id){cart=cart.filter(c=>c.id!==id);renderCart();updBadge();}
+function updBadge(){document.getElementById('cartCount').textContent=cart.reduce((s,c)=>s+c.qty,0);}
+function checkoutCart(){
+
+if(!cart.length){
+showToast("السلة فارغة");
+return;
+}
+
+const name = prompt("الاسم الكامل");
+if(!name) return;
+
+const phone = prompt("رقم الهاتف");
+if(!phone) return;
+
+const wilaya = prompt("الولاية");
+if(!wilaya) return;
+
+const commune = prompt("البلدية");
+if(!commune) return;
+
+const payment = prompt(
+"طريقة الدفع:\n1- الدفع عند الاستلام\n2- CCP\n3- BaridiMob"
+);
+
+const product = cart.map(c=>c.name).join(" , ");
+const price = cart.reduce((s,c)=>s+(c.price*c.qty),0);
+
+sendOrder({
+name,
+phone,
+wilaya,
+commune,
+product,
+price,
+payment
+});
+
+cart=[];
+renderCart();
+updBadge();
+
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+function init(){initPromoBar();initPopup();renderProds();renderDel();renderW(WILAYAS);renderRevs();}
+init();
+</script>
+</body>
+</html>
