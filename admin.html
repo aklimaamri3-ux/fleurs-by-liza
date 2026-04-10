@@ -389,10 +389,10 @@ tr:hover td{background:rgba(233,30,140,.02);}
 </div>
 </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+
 const SUPABASE_URL = "https://vlgoldztzcflwhgyyxpl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_l9EJ9f8s6MujxjlKs2zhGw_uMJ-qucO";
 
@@ -401,6 +401,7 @@ SUPABASE_URL,
 SUPABASE_KEY
 );
 
+// LOGIN
 async function doLogin(){
 
 const pass = document.getElementById("loginPass").value;
@@ -424,10 +425,53 @@ document.getElementById("app").classList.add("show");
 
 }
 
+// LOGOUT
 function logout(){
 location.reload();
 }
+
+// NAVIGATION
+function showPage(id,el){
+
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.getElementById("page-"+id).classList.add("active");
+
+document.querySelectorAll(".sb-item").forEach(i=>i.classList.remove("active"));
+if(el) el.classList.add("active");
+
+}
+
+// PRODUCTS
+function openProductModal(){
+alert("إضافة منتج");
+}
+
+// PROMOS
+function openPromoModal(){
+alert("إضافة كود تخفيض");
+}
+
+// REVIEWS
+function openReviewModal(){
+alert("إضافة تقييم");
+}
+
+// DELIVERY
+function saveDelivery(){
+alert("تم حفظ الأسعار");
+}
+
+// ORDERS
+function renderOrdersTable(){}
+
+// EXPORT
+function exportCSV(){
+alert("تصدير CSV");
+}
+
 </script>
+
+
 
 </body>
 </html>
