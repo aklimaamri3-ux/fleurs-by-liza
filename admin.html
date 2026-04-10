@@ -392,85 +392,245 @@ tr:hover td{background:rgba(233,30,140,.02);}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-
+/* ========================
+SUPABASE
+======================== */
 const SUPABASE_URL = "https://vlgoldztzcflwhgyyxpl.supabase.co";
 const SUPABASE_KEY = "sb_publishable_l9EJ9f8s6MujxjlKs2zhGw_uMJ-qucO";
 
-const supabase = window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_KEY
-);
+const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-// LOGIN
+/* ========================
+LOGIN
+======================== */
 async function doLogin(){
-
 const pass = document.getElementById("loginPass").value;
 
-const { data } = await supabase
+const {data,error} = await supabase
 .from("admin")
-.select("*");
+.select("*")
+.eq("password",pass)
+.single();
 
-if(!data || data.length === 0){
-alert("لا يوجد admin");
-return;
-}
-
-if(pass !== data[0].password){
-document.getElementById("loginErr").style.display="block";
-return;
-}
-
+if(data){
 document.getElementById("login-screen").classList.add("hidden");
 document.getElementById("app").classList.add("show");
 
+loadDashboard();
+loadOrders();
+loadProducts();
+
+}else{
+document.getElementById("loginErr").style.display="block";
+}
 }
 
-// LOGOUT
 function logout(){
-location.reload();
+document.getElementById("app").classList.remove("show");
+document.getElementById("login-screen").classList.remove("hidden");
 }
 
-// NAVIGATION
+/* ========================
+NAVIGATION
+======================== */
 function showPage(id,el){
-
 document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
 document.getElementById("page-"+id).classList.add("active");
 
 document.querySelectorAll(".sb-item").forEach(i=>i.classList.remove("active"));
 if(el) el.classList.add("active");
+}
+
+/* ========================
+DASHBOARD
+======================== */
+async function loadDashboard(){
+
+const {data} = await supabase
+.from("orders")
+.select("*");
+
+document.getElementById("statsGrid").innerHTML = `
+<div class="stat-card">
+<div>📦</div>
+<div>
+<div class="stat-num">${data.length}</div>
+<div class="stat-lbl">الطلبات</div>
+</div>
+</div>
+`;
 
 }
 
-// PRODUCTS
+/* ========================
+ORDERS
+======================== */
+async function loadOrders(){
+
+const {data} = await supabase
+.from("orders")
+.select("*")
+.order("id",{ascending:false});
+
+renderOrdersTable(data)
+
+}
+
+function renderOrdersTable(data){
+
+let html = `
+<tr>
+<th>الاسم</th>
+<th>الهاتف</th>
+<th>المنتج</th>
+<th>السعر</th>
+<th>الحالة</th>
+<th></th>
+</tr>
+`;
+
+data.forEach(o=>{
+
+html+=`
+<tr>
+<td>${o.name||""}</td>
+<td>${o.phone||""}</td>
+<td>${o.product||""}</td>
+<td>${o.price||""}</td>
+
+<td>
+<select onchange="updateStatus(${o.id},this.value)">
+<option ${o.status=="جديد"?"selected":""}>جديد</option>
+<option ${o.status=="قيد التنفيذ"?"selected":""}>قيد التنفيذ</option>
+<option ${o.status=="موصل"?"selected":""}>موصل</option>
+<option ${o.status=="ملغي"?"selected":""}>ملغي</option>
+</select>
+</td>
+
+<td>
+<button onclick="deleteOrder(${o.id})">حذف</button>
+</td>
+
+</tr>
+`
+})
+
+document.getElementById("ordersTable").innerHTML = html
+
+}
+
+async function updateStatus(id,status){
+
+await supabase
+.from("orders")
+.update({status:status})
+.eq("id",id)
+
+loadOrders()
+}
+
+async function deleteOrder(id){
+
+await supabase
+.from("orders")
+.delete()
+.eq("id",id)
+
+loadOrders()
+}
+
+/* ========================
+PRODUCTS
+======================== */
+async function loadProducts(){
+
+const {data} = await supabase
+.from("products")
+.select("*")
+.order("id",{ascending:false});
+
+let html="";
+
+data.forEach(p=>{
+
+html+=`
+<div class="prod-admin-card">
+<div class="pac-img">${p.emoji||"🌹"}</div>
+
+<div class="pac-body">
+<div class="pac-name">${p.name}</div>
+<div class="pac-price">${p.price} دج</div>
+
+<div class="pac-actions">
+<button onclick="deleteProduct(${p.id})">حذف</button>
+</div>
+
+</div>
+</div>
+`
+})
+
+document.getElementById("prodAdminGrid").innerHTML = html
+
+}
+
 function openProductModal(){
-alert("إضافة منتج");
+
+const name = prompt("اسم المنتج");
+const price = prompt("السعر");
+const emoji = prompt("emoji");
+
+addProduct(name,price,emoji)
+
 }
 
-// PROMOS
-function openPromoModal(){
-alert("إضافة كود تخفيض");
+async function addProduct(name,price,emoji){
+
+await supabase
+.from("products")
+.insert([
+{
+name:name,
+price:price,
+emoji:emoji
+}
+])
+
+loadProducts()
 }
 
-// REVIEWS
-function openReviewModal(){
-alert("إضافة تقييم");
+async function deleteProduct(id){
+
+await supabase
+.from("products")
+.delete()
+.eq("id",id)
+
+loadProducts()
 }
 
-// DELIVERY
+/* ========================
+DELIVERY
+======================== */
 function saveDelivery(){
-alert("تم حفظ الأسعار");
+alert("تم حفظ الأسعار")
 }
 
-// ORDERS
-function renderOrdersTable(){}
+/* ========================
+PROMO
+======================== */
+function openPromoModal(){
+alert("قريبا")
+}
 
-// EXPORT
-function exportCSV(){
-alert("تصدير CSV");
+/* ========================
+REVIEWS
+======================== */
+function openReviewModal(){
+alert("قريبا")
 }
 
 </script>
-
 
 
 </body>
