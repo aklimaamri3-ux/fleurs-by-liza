@@ -389,16 +389,29 @@ tr:hover td{background:rgba(233,30,140,.02);}
 </div>
 </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 
-let ADMIN_PASS = "Liza202510";
+const SUPABASE_URL = "https://vlgoldztzcflwhgyyxpl.supabase.co";
+const SUPABASE_KEY = "sb_publishable_l9EJ9f8s6MujxjlKs2zhGw_uMJ-qucO";
 
-function doLogin(){
+const supabase = window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_KEY
+);
+
+async function doLogin(){
 
 const pass = document.getElementById("loginPass").value;
 
-if(pass !== ADMIN_PASS){
+const { data } = await supabase
+.from("admin")
+.select("*")
+.eq("password", pass)
+.single();
+
+if(!data){
 document.getElementById("loginErr").style.display="block";
 return;
 }
@@ -422,17 +435,15 @@ if(el) el.classList.add("active");
 
 }
 
-function changePassword(){
+async function changePassword(){
 
 const current = document.getElementById("currentPass").value;
 const newPass = document.getElementById("newPass").value;
 
-if(current !== ADMIN_PASS){
-alert("كلمة السر الحالية خاطئة");
-return;
-}
-
-ADMIN_PASS = newPass;
+await supabase
+.from("admin")
+.update({password:newPass})
+.eq("password", current);
 
 alert("تم تغيير كلمة السر");
 
