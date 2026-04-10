@@ -1,1 +1,305 @@
+<!DOCTYPE html>  <html lang="ar" dir="rtl">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>Fleurs by Liza — تفاصيل الباقة</title>  
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">  
+<style>  
+:root{--pink:#e91e8c;--pink-l:#f48fb1;--pink-pale:#fce4f3;--black:#111;--white:#fff;--gray:#f7f7f7;--text:#222;--muted:#888;--green:#27ae60;--red:#e74c3c;}  
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}  
+body{font-family:'Tajawal',sans-serif;background:#fff;color:var(--text);overflow-x:hidden;cursor:none;}  
+#cur{width:12px;height:12px;background:var(--pink);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s;mix-blend-mode:multiply;}  
+#cur.big{width:34px;height:34px;opacity:.5;}  
+/* NAV */  
+nav{position:fixed;top:0;width:100%;z-index:500;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(233,30,140,.1);display:flex;align-items:center;justify-content:space-between;padding:.85rem 2.5rem;}  
+.logo-wrap{text-decoration:none;display:flex;flex-direction:column;line-height:1;}  
+.logo-main{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.3rem;color:var(--black);}  
+.logo-main span{color:var(--pink);}  
+.logo-sub{font-family:'Montserrat',sans-serif;font-weight:300;font-size:.5rem;letter-spacing:.3em;color:var(--muted);text-transform:uppercase;margin-top:2px;}  
+.nav-back{display:flex;align-items:center;gap:.4rem;text-decoration:none;color:var(--muted);font-size:.82rem;transition:color .2s;}  
+.nav-back:hover{color:var(--pink);}  
+.btn-cart{background:var(--pink);color:#fff;border:none;padding:.5rem 1.1rem;border-radius:2rem;font-family:'Tajawal',sans-serif;font-size:.76rem;cursor:none;transition:background .3s;position:relative;}  
+.btn-cart:hover{background:var(--black);}  
+.cart-badge{position:absolute;top:-7px;left:-7px;background:var(--black);color:#fff;width:18px;height:18px;border-radius:50%;font-size:.6rem;display:flex;align-items:center;justify-content:center;}  
+/* WA FLOAT */  
+#wa-float{position:fixed;bottom:1.5rem;right:1.5rem;width:50px;height:50px;background:#25d366;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:none;z-index:400;box-shadow:0 4px 20px rgba(37,211,102,.4);text-decoration:none;transition:transform .3s;}  
+#wa-float:hover{transform:scale(1.1);}  
+.wa-p{position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(37,211,102,.4);animation:waPulse 2s ease-out infinite;}  
+/* PRODUCT PAGE */  
+#prod-page{padding:5.5rem 2.5rem 3rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;max-width:1100px;margin:0 auto;}  
+/* GALLERY */  
+.gallery{position:sticky;top:5.5rem;}  
+.gallery-main{height:420px;border-radius:1.5rem;display:flex;align-items:center;justify-content:center;font-size:12rem;position:relative;overflow:hidden;box-shadow:0 12px 48px rgba(233,30,140,.12);}  
+.gallery-main .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10rem;transition:all .45s cubic-bezier(.4,0,.2,1);opacity:0;transform:scale(.9);}  
+.gallery-main .slide.active{opacity:1;transform:scale(1);}  
+.gallery-thumbs{display:flex;gap:.7rem;margin-top:.8rem;}  
+.thumb{width:72px;height:72px;border-radius:.9rem;display:flex;align-items:center;justify-content:center;font-size:2.2rem;cursor:none;border:2px solid transparent;transition:all .25s;background:var(--gray);}  
+.thumb.active,.thumb:hover{border-color:var(--pink);background:var(--pink-pale);}  
+.gallery-nav{position:absolute;bottom:.8rem;left:50%;transform:translateX(-50%);display:flex;gap:.4rem;z-index:2;}  
+.g-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.4);cursor:none;transition:background .2s,transform .2s;}  
+.g-dot.active{background:#fff;transform:scale(1.3);}  
+.gallery-arrows{display:flex;gap:.5rem;justify-content:center;margin-top:.6rem;}  
+.g-arrow{width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(0,0,0,.12);background:#fff;cursor:none;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}  
+.g-arrow:hover{border-color:var(--pink);color:var(--pink);}  
+/* PRODUCT INFO */  
+.prod-info{}  
+.breadcrumb{display:flex;align-items:center;gap:.4rem;font-size:.73rem;color:var(--muted);margin-bottom:1rem;}  
+.breadcrumb a{color:var(--muted);text-decoration:none;transition:color .2s;}  
+.breadcrumb a:hover{color:var(--pink);}  
+.prod-badge-wrap{margin-bottom:.8rem;}  
+.pbadge{display:inline-block;padding:.22rem .75rem;border-radius:2rem;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}  
+.pbadge-pink{background:var(--pink);color:#fff;}.pbadge-black{background:var(--black);color:#fff;}  
+.prod-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:clamp(1.5rem,2.8vw,2.2rem);color:var(--black);line-height:1.2;margin-bottom:.6rem;}  
+.prod-rating{display:flex;align-items:center;gap:.5rem;margin-bottom:1.2rem;}  
+.stars-row{color:#f9a825;font-size:.9rem;}  
+.rating-count{font-size:.78rem;color:var(--muted);}  
+.prod-desc-full{font-size:.9rem;color:var(--muted);line-height:1.85;margin-bottom:1.5rem;font-weight:300;}  
+/* PRICE */  
+.price-row{display:flex;align-items:center;gap:.8rem;margin-bottom:1.5rem;}  
+.price-main{font-family:'Montserrat',sans-serif;font-weight:700;font-size:2rem;color:var(--pink);}  
+.price-old{font-family:'Montserrat',sans-serif;font-size:1rem;color:#ccc;text-decoration:line-through;font-weight:400;}  
+.price-save{background:rgba(39,174,96,.1);color:var(--green);font-size:.75rem;font-weight:700;padding:.2rem .65rem;border-radius:2rem;}  
+/* COLORS */  
+.opt-label{font-weight:700;font-size:.83rem;color:var(--black);margin-bottom:.6rem;display:flex;align-items:center;gap:.4rem;}  
+.opt-label span{font-weight:400;color:var(--muted);}  
+.color-opts{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.3rem;}  
+.color-opt{width:36px;height:36px;border-radius:50%;border:3px solid transparent;cursor:none;transition:all .25s;position:relative;}  
+.color-opt:hover{transform:scale(1.15);}  
+.color-opt.sel{border-color:var(--pink);box-shadow:0 0 0 2px white,0 0 0 4px var(--pink);}  
+.color-opt.sel::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.3);}  
+/* QTY */  
+.qty-row{display:flex;align-items:center;gap:.8rem;margin-bottom:1.4rem;}  
+.qty-box{display:flex;align-items:center;gap:0;border:1.5px solid rgba(0,0,0,.12);border-radius:2rem;overflow:hidden;}  
+.qty-btn{width:38px;height:38px;border:none;background:none;font-size:1.1rem;cursor:none;transition:background .2s;display:flex;align-items:center;justify-content:center;}  
+.qty-btn:hover{background:var(--pink-pale);}  
+.qty-num{width:42px;text-align:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;color:var(--black);}  
+/* FORM */  
+.order-form{background:var(--gray);border-radius:1.3rem;padding:1.5rem;margin-bottom:1.3rem;}  
+.form-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.95rem;color:var(--black);margin-bottom:1.1rem;display:flex;align-items:center;gap:.4rem;}  
+.fg{margin-bottom:.9rem;}  
+.fl{display:block;font-size:.76rem;font-weight:600;color:var(--text);margin-bottom:.3rem;letter-spacing:.03em;}  
+.fi,.fs,.fta{width:100%;padding:.65rem .95rem;border:1.5px solid rgba(0,0,0,.1);border-radius:.75rem;font-family:'Tajawal',sans-serif;font-size:.88rem;color:var(--text);background:#fff;outline:none;transition:border-color .25s;}  
+.fi:focus,.fs:focus,.fta:focus{border-color:var(--pink);}  
+.fta{resize:vertical;min-height:75px;}  
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}  
+/* PROMO */  
+.promo-row{display:flex;gap:.5rem;}  
+.promo-row .fi{flex:1;}  
+.btn-promo{background:var(--black);color:#fff;border:none;padding:.65rem 1.1rem;border-radius:.75rem;font-family:'Tajawal',sans-serif;font-size:.8rem;cursor:none;transition:background .3s;white-space:nowrap;}  
+.btn-promo:hover{background:var(--pink);}  
+.promo-ok{font-size:.75rem;color:var(--green);margin-top:.3rem;display:none;}  
+.promo-err{font-size:.75rem;color:var(--red);margin-top:.3rem;display:none;}  
+/* TOTAL BOX */  
+.total-box{background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:1rem;padding:1.1rem;margin-bottom:1rem;}  
+.trow{display:flex;justify-content:space-between;font-size:.83rem;padding:.22rem 0;border-bottom:1px solid rgba(0,0,0,.04);}  
+.trow:last-child{border:none;font-weight:700;font-size:.95rem;color:var(--pink);padding-top:.5rem;}  
+.trow .tl{color:var(--muted);}  
+/* SUBMIT */  
+.btn-order{width:100%;background:var(--pink);color:#fff;border:none;padding:.92rem;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:none;transition:all .3s;box-shadow:0 6px 20px rgba(233,30,140,.25);margin-bottom:.6rem;}  
+.btn-order:hover{background:var(--black);transform:translateY(-2px);}  
+.btn-wa{width:100%;background:#25d366;color:#fff;border:none;padding:.8rem;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.88rem;font-weight:600;cursor:none;transition:all .3s;box-shadow:0 4px 16px rgba(37,211,102,.25);}  
+.btn-wa:hover{background:#128c7e;}  
+/* DELIVERY CALC */  
+.del-calc{background:var(--pink-pale);border:1px solid rgba(233,30,140,.15);border-radius:1rem;padding:1rem;margin-bottom:1rem;display:none;}  
+.del-calc.show{display:block;}  
+.del-calc-title{font-size:.8rem;font-weight:700;color:var(--pink);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem;}  
+/* FEATURES */  
+.prod-features{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.3rem;}  
+.pf{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--muted);}  
+.pf span{font-size:1rem;}  
+/* SHARE */  
+.share-row{display:flex;align-items:center;gap:.6rem;margin-top:.8rem;}  
+.share-lbl{font-size:.75rem;color:var(--muted);}  
+.share-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid rgba(0,0,0,.1);background:#fff;cursor:none;display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:all .2s;text-decoration:none;}  
+.share-btn:hover{border-color:var(--pink);background:var(--pink-pale);}  
+/* SUGGESTIONS */  
+#suggestions{padding:3rem 2.5rem;background:var(--gray);}  
+.sug-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.1rem;}  
+.sug-card{background:#fff;border-radius:1.1rem;overflow:hidden;border:1px solid rgba(0,0,0,.06);cursor:none;transition:transform .3s,box-shadow .3s;}  
+.sug-card:hover{transform:translateY(-5px);box-shadow:0 10px 30px rgba(233,30,140,.08);}  
+.sug-img{height:130px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;}  
+.sug-body{padding:.75rem .9rem;}  
+.sug-name{font-weight:600;font-size:.82rem;color:var(--black);margin-bottom:.2rem;}  
+.sug-price{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.88rem;color:var(--pink);}  
+/* SUCCESS */  
+#succ-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}  
+#succ-ov.open{display:flex;}  
+#succ-box{background:#fff;border-radius:1.5rem;padding:2.2rem;width:min(420px,92vw);text-align:center;animation:popIn .35s cubic-bezier(.34,1.56,.64,1) both;}  
+.succ-ico{font-size:3.8rem;margin-bottom:.8rem;display:block;}  
+.succ-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.2rem;color:var(--black);margin-bottom:.5rem;}  
+.succ-num{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.4rem;color:var(--pink);background:var(--pink-pale);border-radius:.8rem;padding:.5rem 1.3rem;display:inline-block;margin-bottom:1rem;letter-spacing:.06em;}  
+.succ-msg{font-size:.87rem;color:var(--muted);line-height:1.7;margin-bottom:1.3rem;}  
+/* TOAST */  
+#toast{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--black);color:#fff;padding:.65rem 1.4rem;border-radius:3rem;font-size:.8rem;z-index:950;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.2);}  
+#toast.show{transform:translateX(-50%) translateY(0);}  
+/* ANIMATIONS */  
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}  
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}  
+@keyframes waPulse{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.5);opacity:0}}  
+@media(max-width:860px){  
+  nav{padding:.8rem 1rem;}  
+  #prod-page{grid-template-columns:1fr;padding:5rem .9rem 2.5rem;gap:2rem;}  
+  .gallery{position:static;}  
+  .frow{grid-template-columns:1fr;}  
+  #suggestions{padding:2.5rem .9rem;}  
+}  
+</style>  
+</head>  
+<body>  
+<div id="cur"></div>  
+<a id="wa-float" href="https://wa.me/213556382694" target="_blank"><div class="wa-p"></div>💬</a>  <nav>  
+  <a class="logo-wrap" href="index.html">  
+    <div class="logo-main">Fleur<span>❀</span>by liza</div>  
+    <div class="logo-sub">Flower Shop</div>  
+  </a>  
+  <a class="nav-back" href="index.html">← العودة للباقات</a>  
+  <button class="btn-cart" onclick="history.back()">🛒</button>  
+</nav>  <div id="prod-page">  
+  <!-- GALLERY -->  
+  <div class="gallery" id="galleryWrap">  
+    <div class="gallery-main" id="galleryMain"></div>  
+    <div class="gallery-arrows">  
+      <button class="g-arrow" onclick="prevSlide()">›</button>  
+      <button class="g-arrow" onclick="nextSlide()">‹</button>  
+    </div>  
+    <div class="gallery-thumbs" id="galleryThumbs"></div>  
+  </div>    <!-- INFO -->    <div class="prod-info" id="prodInfo">  
+    <div class="breadcrumb">  
+      <a href="index.html">الرئيسية</a> <span>›</span>  
+      <a href="index.html#products">الباقات</a> <span>›</span>  
+      <span id="breadName"></span>  
+    </div>  
+    <div class="prod-badge-wrap" id="badgeWrap"></div>  
+    <h1 class="prod-title" id="prodTitle"></h1>  
+    <div class="prod-rating">  
+      <div class="stars-row">★★★★★</div>  
+      <div class="rating-count">(+120 تقييم)</div>  
+    </div>  
+    <p class="prod-desc-full" id="prodDesc"></p>  
+    <div class="price-row" id="priceRow"></div>  <!-- COLORS -->  
+<div id="colorsWrap">  
+  <div class="opt-label">🎨 اللون <span id="selColorName"></span></div>  
+  <div class="color-opts" id="colorOpts"></div>  
+</div>  
 
+<!-- FEATURES -->  
+<div class="prod-features">  
+  <div class="pf"><span>🌿</span> ورد مستورد طازج</div>  
+  <div class="pf"><span>🎁</span> تغليف فاخر مجاني</div>  
+  <div class="pf"><span>🚚</span> توصيل لكل الجزائر</div>  
+  <div class="pf"><span>📝</span> بطاقة هدية مجانية</div>  
+</div>  
+
+<!-- QTY -->  
+<div class="qty-row">  
+  <div class="opt-label" style="margin:0">الكمية</div>  
+  <div class="qty-box">  
+    <button class="qty-btn" onclick="chQty(-1)">−</button>  
+    <div class="qty-num" id="qtyNum">1</div>  
+    <button class="qty-btn" onclick="chQty(1)">+</button>  
+  </div>  
+</div>  
+
+<!-- ORDER FORM -->  
+<div class="order-form">  
+  <div class="form-title">📋 بيانات التوصيل</div>  
+
+  <div class="frow">  
+    <div class="fg">  
+      <label class="fl">الاسم الكامل *</label>  
+      <input class="fi" id="oName" type="text" placeholder="سارة بن علي">  
+    </div>  
+    <div class="fg">  
+      <label class="fl">رقم الهاتف *</label>  
+      <input class="fi" id="oPhone" type="tel" placeholder="07XXXXXXXX">  
+    </div>  
+  </div>  
+
+  <div class="frow">  
+    <div class="fg">  
+      <label class="fl">الولاية *</label>  
+      <select class="fs" id="oWilaya" onchange="onWilaya()">  
+        <option value="">— اختاري —</option>  
+      </select>  
+    </div>  
+    <div class="fg">  
+      <label class="fl">البلدية *</label>  
+      <select class="fs" id="oCommune" onchange="calcTotal()">  
+        <option value="">— اختاري أولاً الولاية —</option>  
+      </select>  
+    </div>  
+  </div>  
+
+  <div class="fg">  
+    <label class="fl">نوع التوصيل *</label>  
+    <select class="fs" id="oDelType" onchange="calcTotal()">  
+      <option value="">— اختاري —</option>  
+      <option value="home">🏠 توصيل للمنزل</option>  
+      <option value="office">🏢 توصيل لمكتب البريد</option>  
+    </select>  
+  </div>  
+
+  <div class="fg">  
+    <label class="fl">العنوان التفصيلي</label>  
+    <input class="fi" id="oAddr" type="text" placeholder="الحي، الشارع، رقم البناية...">  
+  </div>  
+
+  <div class="fg">  
+    <label class="fl">📝 الرسالة على بطاقة الهدية</label>  
+    <textarea class="fta" id="oNote" placeholder="مثلاً: كل عام وأنت بخير يا أمي 🌹 أحبك كثيراً..."></textarea>  
+  </div>  
+
+  <!-- PROMO -->  
+  <div class="fg">  
+    <label class="fl">🎁 كود الترويج</label>  
+    <div class="promo-row">  
+      <input class="fi" id="oPromo" type="text" placeholder="LIZA10">  
+      <button class="btn-promo" onclick="applyPromo()">تطبيق</button>  
+    </div>  
+    <div class="promo-ok" id="promoOk"></div>  
+    <div class="promo-err" id="promoErr">❌ كود غير صحيح أو منتهي الصلاحية</div>  
+  </div>  
+</div>  
+
+<!-- DELIVERY CALC -->  
+<div class="del-calc" id="delCalc">  
+  <div class="del-calc-title">🚚 تفاصيل التكلفة</div>  
+  <div class="total-box">  
+    <div class="trow"><span class="tl">سعر الباقة</span><span id="tProd">—</span></div>  
+    <div class="trow"><span class="tl">الكمية</span><span id="tQty">—</span></div>  
+    <div class="trow"><span class="tl">التوصيل</span><span id="tDel">—</span></div>  
+    <div class="trow"><span class="tl">الخصم</span><span id="tDisc" style="color:var(--green)">—</span></div>  
+    <div class="trow"><span class="tl">المجموع الكلي</span><span id="tTotal">—</span></div>  
+  </div>  
+</div>  
+
+<button class="btn-order" onclick="submitOrder()">✅ تأكيد الطلب الآن</button>  
+<button class="btn-wa" onclick="orderViaWA()">💬 طلب عبر واتساب</button>  
+
+<div class="share-row">  
+  <span class="share-lbl">شاركي:</span>  
+  <a class="share-btn" onclick="shareWA()" title="واتساب">💬</a>  
+  <a class="share-btn" onclick="shareIG()" title="إنستقرام">📸</a>  
+  <a class="share-btn" onclick="copyLink()" title="نسخ الرابط">🔗</a>  
+</div>
+
+  </div>  
+</div>  <!-- SUGGESTIONS -->  <section id="suggestions">  
+  <div style="text-align:center;margin-bottom:2rem;">  
+    <div style="font-size:.67rem;letter-spacing:.18em;text-transform:uppercase;color:var(--pink);margin-bottom:.4rem;">✦ قد يعجبك أيضاً ✦</div>  
+    <h2 style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.5rem;color:var(--black);">باقات <em style="font-family:'Playfair Display',serif;font-style:italic;color:var(--pink);font-weight:400">مقترحة</em></h2>  
+  </div>  
+  <div class="sug-grid" id="sugGrid"></div>  
+</section>  <!-- SUCCESS -->  <div id="succ-ov">  
+  <div id="succ-box">  
+    <span class="succ-ico">🌹</span>  
+    <div class="succ-title">تم استلام طلبك!</div>  
+    <div class="succ-num" id="succNum">#FBL-0000</div>  
+    <div class="succ-msg">سنتواصل معك قريباً لتأكيد التوصيل.<br>شكراً لثقتك في <strong>Fleurs by Liza</strong> 🌹</div>  
+    <button class="btn-order" style="margin:0" onclick="closeSucc()">رائع، شكراً! 🌹</button>  
+  </div>  
+</div>  <div id="toast"></div>  <script>  
+const SK='flz_store';  
+function load(){try{const r=localStorage.getItem(SK);if(r)return JSON.parse(r);}catch(e){}return def();}  
+function def(){return{products:[  
+  {id:'p1',name:'Bouquet Rouge Classique',desc:'12 وردة حمراء مستوردة مع تغليف فاخر وشريط ساتان. مثالية للتعبير عن الحب والمشاعر الصادقة. كل وردة تُختار بعناية لضمان الطزاجة والجمال.',price:1500,oldPrice:2000,emoji:'🌹',badge:'الأكثر طلباً',badgeType:'pink',bg:'linear-gradient(135deg,#fce4f3,#f8bbd0)',colors:['#e91e8c',
