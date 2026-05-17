@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleurs by Liza — رفع إيصال الدفع</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--pk:#e91e8c;--pkl:#f48fb1;--pkp:#fce4f3;--bk:#111;--gr:#f7f7f7;--tx:#222;--mt:#888;--gn:#27ae60;--rd:#e74c3c;--or:#f39c12;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Tajawal',sans-serif;background:#fff;color:var(--tx);min-height:100vh;overflow-x:hidden;}
+
+/* ── CURSOR ── */
+#cur{width:11px;height:11px;background:var(--pk);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .15s,height .15s;mix-blend-mode:multiply;}
+#cur.big{width:28px;height:28px;opacity:.45;}
+
+/* ── LOADING ── */
+#ld{position:fixed;inset:0;background:#fff;z-index:2000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;transition:opacity .5s;}
+#ld.hide{opacity:0;pointer-events:none;}
+.ld-logo{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.7rem;color:var(--bk);}
+.ld-logo span{color:var(--pk);}
+.ld-dots{display:flex;gap:.4rem;}
+.ld-dots i{width:8px;height:8px;background:var(--pk);border-radius:50%;animation:ldp 1.2s ease-in-out infinite;}
+.ld-dots i:nth-child(2){animation-delay:.2s;}
+.ld-dots i:nth-child(3){animation-delay:.4s;}
+@keyframes ldp{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;width:100%;z-index:500;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid rgba(233,30,140,.1);display:flex;align-items:center;justify-content:space-between;padding:.85rem 2.5rem;}
+.logo-a{text-decoration:none;display:flex;flex-direction:column;line-height:1;}
+.logo-m{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.2rem;color:var(--bk);}
+.logo-m span{color:var(--pk);}
+.logo-s{font-family:'Montserrat',sans-serif;font-weight:300;font-size:.44rem;letter-spacing:.3em;color:var(--mt);text-transform:uppercase;margin-top:2px;}
+.nav-back{text-decoration:none;color:var(--mt);font-size:.8rem;transition:color .2s;}
+.nav-back:hover{color:var(--pk);}
+
+/* ── MAIN ── */
+main{padding:5.5rem 1.2rem 3rem;max-width:620px;margin:0 auto;}
+
+/* ── STEP SYSTEM ── */
+.steps-bar{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:2.5rem;}
+.step-item{display:flex;flex-direction:column;align-items:center;gap:.3rem;flex:1;position:relative;}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:16px;right:-50%;width:100%;height:2px;background:rgba(0,0,0,.08);z-index:0;}
+.step-item.done:not(:last-child)::after{background:var(--pk);}
+.step-num{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.07);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--mt);position:relative;z-index:1;transition:all .3s;}
+.step-item.active .step-num{background:var(--pk);color:#fff;box-shadow:0 0 0 4px rgba(233,30,140,.18);}
+.step-item.done .step-num{background:var(--gn);color:#fff;}
+.step-lbl{font-size:.62rem;color:var(--mt);text-align:center;}
+.step-item.active .step-lbl{color:var(--pk);font-weight:700;}
+.step-item.done .step-lbl{color:var(--gn);}
+
+/* ── PANELS ── */
+.panel{display:none;animation:fadeUp .4s ease both;}
+.panel.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PANEL 1 ── */
+.p1-header{text-align:center;margin-bottom:2rem;}
+.p1-tag{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--pk);margin-bottom:.4rem;}
+.p1-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.7rem;color:var(--bk);margin-bottom:.35rem;}
+.p1-title em{font-style:italic;color:var(--pk);}
+.p1-sub{font-size:.85rem;color:var(--mt);line-height:1.6;}
+.search-box{background:var(--gr);border-radius:1.2rem;padding:1.6rem;margin-top:1.8rem;}
+.sb-lbl{font-size:.75rem;font-weight:700;color:var(--bk);margin-bottom:.5rem;display:block;}
+.sb-row{display:flex;gap:.55rem;}
+.sb-inp{flex:1;padding:.72rem 1rem;border:1.5px solid rgba(0,0,0,.1);border-radius:.75rem;font-family:'Tajawal',sans-serif;font-size:.95rem;outline:none;transition:border-color .25s;background:#fff;}
+.sb-inp:focus{border-color:var(--pk);}
+.sb-btn{background:var(--pk);color:#fff;border:none;padding:.72rem 1.4rem;border-radius:.75rem;font-family:'Tajawal',sans-serif;font-size:.87rem;font-weight:600;cursor:pointer;transition:all .3s;white-space:nowrap;}
+.sb-btn:hover{background:var(--bk);}
+.sb-err{color:var(--rd);font-size:.78rem;margin-top:.55rem;display:none;}
+
+/* ── ORDER CARD ── */
+.order-card{background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:1.2rem;padding:1.3rem;margin-top:1.5rem;box-shadow:0 4px 18px rgba(0,0,0,.05);}
+.oc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid rgba(0,0,0,.06);}
+.oc-id{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.97rem;color:var(--pk);}
+.oc-status{display:inline-flex;align-items:center;gap:.3rem;padding:.22rem .65rem;border-radius:2rem;font-size:.66rem;font-weight:700;}
+.st-pending{background:rgba(243,156,18,.12);color:var(--or);}
+.st-waiting{background:rgba(52,152,219,.12);color:#3498db;}
+.st-paid{background:rgba(39,174,96,.12);color:var(--gn);}
+.st-rejected{background:rgba(231,76,60,.1);color:var(--rd);}
+.oc-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.28rem 0;}
+.oc-lbl{color:var(--mt);}
+.oc-val{font-weight:600;color:var(--bk);}
+.oc-total{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.15rem;color:var(--pk);}
+.pm-badge{display:inline-flex;align-items:center;gap:.3rem;background:var(--pkp);color:var(--pk);padding:.2rem .65rem;border-radius:2rem;font-size:.7rem;font-weight:700;}
+
+/* ── PANEL 2 — UPLOAD ── */
+.p2-notice{display:flex;gap:.75rem;align-items:flex-start;background:var(--pkp);border-radius:1rem;padding:1rem 1.1rem;margin-bottom:1.5rem;border-right:3px solid var(--pk);}
+.p2-notice-ico{font-size:1.3rem;flex-shrink:0;}
+.p2-notice-txt{font-size:.8rem;line-height:1.65;color:var(--bk);}
+.p2-notice-txt strong{color:var(--pk);}
+
+/* Pay info boxes */
+.paybox{border-radius:1rem;padding:1.1rem 1.2rem;margin-bottom:1.2rem;}
+.paybox-ccp{background:linear-gradient(135deg,#0d2010,#1a3520);border:1px solid rgba(39,174,96,.2);}
+.paybox-iban{background:linear-gradient(135deg,#0a1628,#1a2e4a);border:1px solid rgba(99,179,237,.2);}
+.pb-title{font-weight:700;font-size:.82rem;margin-bottom:.75rem;}
+.pb-title.g{color:#2ecc71;}.pb-title.b{color:#63b3ed;}
+.pb-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;}
+.pb-lbl{font-size:.68rem;color:rgba(255,255,255,.38);width:72px;flex-shrink:0;}
+.pb-val{font-family:'Montserrat',sans-serif;font-weight:600;font-size:.8rem;color:#fff;flex:1;word-break:break-all;}
+.pb-copy{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:none;border-radius:.45rem;padding:.18rem .5rem;font-size:.6rem;cursor:pointer;transition:background .2s;white-space:nowrap;}
+.pb-copy:hover{background:rgba(255,255,255,.22);}
+.pb-note{font-size:.66rem;color:rgba(255,255,255,.35);margin-top:.55rem;line-height:1.55;}
+
+/* Upload zone */
+.upload-zone{border:2px dashed rgba(233,30,140,.3);border-radius:1.2rem;padding:2.2rem 1.5rem;text-align:center;cursor:pointer;transition:all .3s;background:var(--gr);position:relative;margin-bottom:1.2rem;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--pk);background:var(--pkp);}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.uz-ico{font-size:2.5rem;margin-bottom:.6rem;}
+.uz-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.95rem;color:var(--bk);margin-bottom:.25rem;}
+.uz-sub{font-size:.75rem;color:var(--mt);}
+.uz-limit{font-size:.68rem;color:var(--mt);margin-top:.3rem;}
+
+/* Preview */
+.img-preview{display:none;border-radius:1rem;overflow:hidden;border:2px solid rgba(233,30,140,.2);position:relative;margin-bottom:1.2rem;}
+.img-preview img{width:100%;max-height:280px;object-fit:contain;background:#f0f0f0;display:block;}
+.img-preview video{width:100%;max-height:280px;display:block;background:#000;}
+.prev-rm{position:absolute;top:.5rem;left:.5rem;background:rgba(0,0,0,.55);color:#fff;border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;}
+.prev-name{background:rgba(0,0,0,.55);color:#fff;font-size:.7rem;padding:.3rem .7rem;text-align:center;}
+
+/* Msg field */
+.fg{margin-bottom:1rem;}
+.fl{display:block;font-size:.75rem;font-weight:700;color:var(--bk);margin-bottom:.3rem;}
+.fi,.fta{width:100%;padding:.65rem 1rem;border:1.5px solid rgba(0,0,0,.1);border-radius:.75rem;font-family:'Tajawal',sans-serif;font-size:.87rem;color:var(--tx);background:#fff;outline:none;transition:border-color .25s;}
+.fi:focus,.fta:focus{border-color:var(--pk);}
+.fta{resize:vertical;min-height:80px;}
+
+/* Progress bar */
+.progress-wrap{display:none;margin-bottom:1rem;}
+.progress-wrap.show{display:block;}
+.progress-bar{height:6px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;margin-top:.4rem;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--pk),#c2185b);border-radius:3px;width:0%;transition:width .3s;}
+.progress-lbl{font-size:.72rem;color:var(--mt);}
+
+/* Submit btn */
+.btn-submit{width:100%;background:var(--pk);color:#fff;border:none;padding:.9rem;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;box-shadow:0 6px 20px rgba(233,30,140,.25);}
+.btn-submit:hover{background:var(--bk);transform:translateY(-2px);}
+.btn-submit:disabled{opacity:.55;transform:none;cursor:not-allowed;}
+
+/* ── PANEL 3 — STATUS ── */
+.status-card{background:#fff;border-radius:1.4rem;padding:2rem;text-align:center;box-shadow:0 8px 32px rgba(233,30,140,.1);border:1px solid rgba(233,30,140,.1);}
+.status-ico{font-size:4rem;margin-bottom:.7rem;display:block;}
+.status-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.25rem;margin-bottom:.5rem;}
+.status-msg{font-size:.87rem;color:var(--mt);line-height:1.7;margin-bottom:1.5rem;}
+.status-order-num{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.3rem;color:var(--pk);background:var(--pkp);border-radius:.75rem;padding:.5rem 1.4rem;display:inline-block;margin-bottom:1rem;}
+.status-steps{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.5rem;text-align:right;}
+.sstep{display:flex;align-items:center;gap:.75rem;padding:.6rem .9rem;border-radius:.75rem;font-size:.82rem;}
+.sstep.done{background:rgba(39,174,96,.08);color:var(--gn);}
+.sstep.active{background:rgba(233,30,140,.08);color:var(--pk);font-weight:600;}
+.sstep.pending{background:var(--gr);color:var(--mt);}
+.sstep-ico{font-size:1rem;flex-shrink:0;}
+.btn-back{display:inline-flex;align-items:center;gap:.4rem;background:var(--gr);color:var(--bk);border:none;padding:.68rem 1.5rem;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.87rem;cursor:pointer;transition:all .3s;margin-top:.5rem;}
+.btn-back:hover{background:var(--pkp);color:var(--pk);}
+.btn-new{display:inline-flex;align-items:center;gap:.4rem;background:var(--pk);color:#fff;border:none;padding:.68rem 1.5rem;border-radius:3rem;font-family:'Tajawal',sans-serif;font-size:.87rem;cursor:pointer;transition:all .3s;margin-top:.5rem;}
+.btn-new:hover{background:var(--bk);}
+
+/* Already uploaded notice */
+.already-box{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);border-radius:1rem;padding:1rem 1.1rem;margin-bottom:1.2rem;display:none;}
+.already-box.show{display:block;}
+.already-img{width:100%;max-height:160px;object-fit:contain;border-radius:.65rem;margin-top:.6rem;border:1px solid rgba(0,0,0,.07);}
+
+/* Toast */
+#toast{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bk);color:#fff;padding:.6rem 1.4rem;border-radius:3rem;font-size:.8rem;z-index:950;transition:transform .4s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;max-width:90vw;text-align:center;}
+#toast.on{transform:translateX(-50%) translateY(0);}
+
+/* Responsive */
+@media(max-width:600px){
+  nav{padding:.8rem 1rem;}
+  main{padding:5rem .9rem 2.5rem;}
+  .p1-title{font-size:1.4rem;}
+}
+</style>
+</head>
+<body>
+
+<div id="ld">
+  <div class="ld-logo">Fleur<span>❀</span>by liza</div>
+  <div class="ld-dots"><i></i><i></i><i></i></div>
+</div>
+<div id="cur"></div>
+
+<nav>
+  <a class="logo-a" href="index.html">
+    <div class="logo-m">Fleur<span>❀</span>by liza</div>
+    <div class="logo-s">Flower Shop</div>
+  </a>
+  <a class="nav-back" href="index.html">← العودة للرئيسية</a>
+</nav>
+
+<main>
+
+  <!-- STEPS BAR -->
+  <div class="steps-bar" id="stepsBar">
+    <div class="step-item active" id="step1">
+      <div class="step-num">1</div>
+      <div class="step-lbl">الطلب</div>
+    </div>
+    <div class="step-item" id="step2">
+      <div class="step-num">2</div>
+      <div class="step-lbl">الإيصال</div>
+    </div>
+    <div class="step-item" id="step3">
+      <div class="step-num">3</div>
+      <div class="step-lbl">التأكيد</div>
+    </div>
+  </div>
+
+  <!-- ══ PANEL 1: FIND ORDER ══ -->
+  <div class="panel active" id="panel1">
+    <div class="p1-header">
+      <div class="p1-tag">✦ رفع إيصال الدفع ✦</div>
+      <h1 class="p1-title">أرسلي <em>إيصالك</em></h1>
+      <p class="p1-sub">بعد إتمام التحويل البنكي، ارفعي صورة الإيصال هنا<br>ليتم تأكيد دفعك وتجهيز طلبك 🌹</p>
+    </div>
+
+    <div class="search-box">
+      <span class="sb-lbl">🔍 ابحثي عن طلبك</span>
+      <div class="sb-row">
+        <input class="sb-inp" id="orderIdInp" placeholder="FBL-XXXXXX" maxlength="20" oninput="clearErr()">
+        <button class="sb-btn" onclick="findOrder()">بحث</button>
+      </div>
+      <div class="sb-err" id="searchErr"></div>
+    </div>
+
+    <div id="orderPreview" style="display:none">
+      <div class="order-card" id="orderCard"></div>
+      <div style="margin-top:1.2rem;text-align:center;">
+        <button class="btn-submit" style="max-width:280px" onclick="goToUpload()">📤 ارفعي الإيصال الآن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PANEL 2: UPLOAD ══ -->
+  <div class="panel" id="panel2">
+    <div class="p2-notice">
+      <span class="p2-notice-ico">ℹ️</span>
+      <div class="p2-notice-txt">
+        ارفعي <strong>صورة واضحة</strong> لإيصال التحويل البنكي. تأكدي أن رقم العملية والمبلغ ظاهران بوضوح.
+        <br>سيتم مراجعة الإيصال خلال <strong>24 ساعة</strong> وستُبلّغين بالنتيجة.
+      </div>
+    </div>
+
+    <!-- Pay info will be injected here -->
+    <div id="payInfoBox"></div>
+
+    <!-- Already uploaded notice -->
+    <div class="already-box" id="alreadyBox">
+      <div style="font-weight:700;font-size:.83rem;color:var(--gn)">✅ لديكِ إيصال مرفوع سابقاً</div>
+      <div style="font-size:.75rem;color:var(--mt);margin-top:.2rem;">يمكنك رفع إيصال جديد ليحل محله</div>
+      <img id="alreadyImg" class="already-img" src="" alt="الإيصال السابق" onerror="this.style.display='none'">
+    </div>
+
+    <!-- Upload Zone -->
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInp" accept="image/*,application/pdf" onchange="onFileSelect(this)">
+      <div class="uz-ico">📎</div>
+      <div class="uz-title">اضغطي أو اسحبي الإيصال هنا</div>
+      <div class="uz-sub">صورة أو ملف PDF للإيصال</div>
+      <div class="uz-limit">الحجم الأقصى: 5 MB</div>
+    </div>
+
+    <!-- Preview -->
+    <div class="img-preview" id="imgPreview">
+      <img id="prevImg" src="" alt="معاينة الإيصال">
+      <div class="prev-name" id="prevName"></div>
+      <button class="prev-rm" onclick="clearFile()">✕</button>
+    </div>
+
+    <!-- Optional note -->
+    <div class="fg">
+      <label class="fl">💬 ملاحظة (اختياري)</label>
+      <textarea class="fta" id="receiptNote" placeholder="مثلاً: التحويل عبر Baridimob برقم العملية 123456..." maxlength="300"></textarea>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progressWrap">
+      <span class="progress-lbl" id="progressLbl">جاري الرفع...</span>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <button class="btn-submit" id="uploadBtn" onclick="uploadReceipt()">📤 إرسال الإيصال</button>
+    <button class="btn-back" style="width:100%;justify-content:center;margin-top:.6rem;" onclick="goBack()">← رجوع</button>
+  </div>
+
+  <!-- ══ PANEL 3: SUCCESS / STATUS ══ -->
+  <div class="panel" id="panel3">
+    <div class="status-card" id="statusCard"></div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ══ CONFIG ══
+const SB_URL='https://vlgoldztzcflwhgyyxpl.supabase.co';
+const SB_KEY='sb_publishable_l9EJ9f8s6MujxjlKs2zhGw_uMJ-qucO';
+const SB_H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+const BUCKET='receipts';
+const EDGE=SB_URL+'/functions/v1/fleurs-api';
+const EDGE_URL=EDGE;
+const CONFIG={supabase:{url:SB_URL,key:SB_KEY},edge:EDGE};
+const SB={
+  async get(t,q=''){try{const r=await fetch(SB_URL+'/rest/v1/'+t+q,{headers:SB_H});if(!r.ok)return[];return r.json();}catch{return[];}},
+  async getSetting(k){try{const r=await this.get('settings','?key=eq.'+k+'&select=value');return r[0]?.value??null;}catch{return null;}}
+};
+
+// ══ STATE ══
+let currentOrder = null;
+let selectedFile  = null;
+let payInfo       = {};
+
+// ══ CURSOR ══
+const cur = document.getElementById('cur');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+document.querySelectorAll('a,button,input,select,textarea').forEach(el => {
+  el.addEventListener('mouseenter', () => cur.classList.add('big'));
+  el.addEventListener('mouseleave', () => cur.classList.remove('big'));
+});
+
+// ══ UTILS ══
+function sanitize(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+function toast(msg, dur = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), dur);
+}
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('step'+i);
+    el.classList.remove('active','done');
+    if (i < n)  el.classList.add('done');
+    if (i === n) el.classList.add('active');
+  });
+}
+function showPanel(n) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel'+n).classList.add('active');
+  setStep(n);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══ SUPABASE HELPERS ══
+async function sbGet(table, query = '') {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}${query}`, { headers: SB_H });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPatch(table, filter, data) {
+  const r = await fetch(`${SB_URL}/rest/v1/${table}?${filter}`, {
+    method: 'PATCH', headers: SB_H, body: JSON.stringify(data)
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function getSetting(k) {
+  try {
+    const r = await sbGet('settings', `?key=eq.${k}&select=value`);
+    return r[0]?.value ?? null;
+  } catch { return null; }
+}
+
+// ══ STORAGE UPLOAD ══
+async function uploadToStorage(file, path) {
+  const formData = new FormData();
+  formData.append('', file);
+  const r = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'x-upsert': 'true'
+    },
+    body: formData
+  });
+  if (!r.ok) {
+    const err = await r.text();
+    throw new Error(err);
+  }
+  return `${SB_URL}/storage/v1/object/public/${BUCKET}/${path}`;
+}
+
+// ══ PAY STATUS LABELS ══
+const PAY_STATUS = {
+  pending:        { cls: 'st-pending', label: '⏳ في انتظار الإيصال' },
+  waiting_review: { cls: 'st-waiting', label: '👀 قيد المراجعة' },
+  paid:           { cls: 'st-paid',    label: '✅ تم تأكيد الدفع' },
+  rejected:       { cls: 'st-rejected',label: '❌ مرفوض — تواصلي معنا' },
+};
+const PAY_METHOD_LABEL = {
+  ccp:     '🏦 CCP / Baridimob',
+  iban:    '🌍 تحويل IBAN دولي',
+  cod:     '💵 دفع عند الاستلام',
+  cib:     '💳 CIB بطاقة بنكية',
+  dahabia: '💚 Dahabia',
+};
+
+// ══ FIND ORDER ══
+function clearErr() { document.getElementById('searchErr').style.display = 'none'; }
+
+async function findOrder() {
+  const raw = document.getElementById('orderIdInp').value.trim().toUpperCase();
+  const id  = raw.startsWith('FBL-') ? raw : 'FBL-' + raw.replace(/^FBL-?/i,'');
+  const err = document.getElementById('searchErr');
+
+  if (!raw) { err.textContent = '⚠️ أدخلي رقم الطلب'; err.style.display = 'block'; return; }
+
+  const btn = document.querySelector('.sb-btn');
+  btn.textContent = '⏳...'; btn.disabled = true;
+
+  try {
+    const res = await sbGet('orders', `?id=eq.${encodeURIComponent(id)}&limit=1`);
+    if (!res || !res.length) {
+      err.textContent = '❌ لم يتم العثور على الطلب — تحققي من الرقم';
+      err.style.display = 'block';
+      document.getElementById('orderPreview').style.display = 'none';
+      return;
+    }
+    currentOrder = res[0];
+    renderOrderCard(currentOrder);
+    document.getElementById('orderPreview').style.display = 'block';
+    err.style.display = 'none';
+  } catch(e) {
+    err.textContent = '⚠️ خطأ في الاتصال — حاولي مجدداً';
+    err.style.display = 'block';
+  } finally {
+    btn.textContent = 'بحث'; btn.disabled = false;
+  }
+}
+
+function renderOrderCard(o) {
+  const ps = PAY_STATUS[o.payment_status] || PAY_STATUS.pending;
+  const pm = PAY_METHOD_LABEL[o.payment_method] || o.payment_method || '—';
+  document.getElementById('orderCard').innerHTML = `
+    <div class="oc-header">
+      <span class="oc-id">#${sanitize(o.id)}</span>
+      <span class="oc-status ${ps.cls}">${ps.label}</span>
+    </div>
+    <div class="oc-row"><span class="oc-lbl">الاسم</span><span class="oc-val">${sanitize(o.name)}</span></div>
+    <div class="oc-row"><span class="oc-lbl">المنتج</span><span class="oc-val">${sanitize(o.product_emoji||'🌹')} ${sanitize(o.product)}</span></div>
+    <div class="oc-row"><span class="oc-lbl">الولاية</span><span class="oc-val">${sanitize(o.wilaya)}</span></div>
+    <div class="oc-row"><span class="oc-lbl">طريقة الدفع</span><span class="oc-val"><span class="pm-badge">${pm}</span></span></div>
+    <div class="oc-row"><span class="oc-lbl">التاريخ</span><span class="oc-val">${sanitize(o.date||'—')}</span></div>
+    <div class="oc-row"><span class="oc-lbl">المجموع</span><span class="oc-total">${(o.total||0).toLocaleString()} دج</span></div>
+  `;
+}
+
+function goToUpload() {
+  if (!currentOrder) return;
+
+  // Check if COD — no receipt needed
+  if (currentOrder.payment_method === 'cod') {
+    toast('💵 طلبك بالدفع عند الاستلام — لا يلزمك رفع إيصال!', 4000);
+    return;
+  }
+  // Check if already paid
+  if (currentOrder.payment_status === 'paid') {
+    showSuccessStatus('paid');
+    showPanel(3);
+    return;
+  }
+
+  // Build pay info box
+  buildPayInfoBox(currentOrder.payment_method);
+
+  // Show previous receipt if exists
+  const alreadyBox = document.getElementById('alreadyBox');
+  const alreadyImg = document.getElementById('alreadyImg');
+  if (currentOrder.receipt_url) {
+    alreadyBox.classList.add('show');
+    alreadyImg.src = currentOrder.receipt_url;
+  } else {
+    alreadyBox.classList.remove('show');
+  }
+
+  showPanel(2);
+}
+
+function buildPayInfoBox(method) {
+  const box = document.getElementById('payInfoBox');
+  if (method === 'ccp') {
+    box.innerHTML = `
+      <div class="paybox paybox-ccp">
+        <div class="pb-title g">🏦 معلومات التحويل — CCP / Baridimob</div>
+        <div class="pb-row"><span class="pb-lbl">الاسم</span><span class="pb-val" id="pi-holder">—</span></div>
+        <div class="pb-row"><span class="pb-lbl">CCP</span><span class="pb-val" id="pi-ccp">—</span><button class="pb-copy" onclick="cpv('pi-ccp')">نسخ</button></div>
+        <div class="pb-row"><span class="pb-lbl">RIP</span><span class="pb-val" id="pi-rip">—</span><button class="pb-copy" onclick="cpv('pi-rip')">نسخ</button></div>
+        <div class="pb-row"><span class="pb-lbl">Baridimob</span><span class="pb-val" id="pi-bm">—</span><button class="pb-copy" onclick="cpv('pi-bm')">نسخ</button></div>
+        <div class="pb-note">⚠️ تحويلي المبلغ ثم ارفعي صورة الإيصال أدناه</div>
+      </div>`;
+    // Load live values
+    getSetting('payment_info').then(info => {
+      if (!info) return;
+      document.getElementById('pi-holder').textContent = info.holder || 'M.MAAMRI AKLI YAZID';
+      document.getElementById('pi-ccp').textContent    = info.ccp    || '44049636 Clé 54';
+      document.getElementById('pi-rip').textContent    = info.rip    || '00799999004404963624';
+      document.getElementById('pi-bm').textContent     = info.baridimob || '00799999004404963624';
+    });
+  } else if (method === 'iban') {
+    box.innerHTML = `
+      <div class="paybox paybox-iban">
+        <div class="pb-title b">🌍 تحويل بنكي دولي — Dukascopy</div>
+        <div class="pb-row"><span class="pb-lbl">الاسم</span><span class="pb-val" id="pi-iholder">—</span></div>
+        <div class="pb-row"><span class="pb-lbl">IBAN</span><span class="pb-val" id="pi-iban" style="font-size:.74rem">—</span><button class="pb-copy" onclick="cpv('pi-iban')" style="background:rgba(99,179,237,.2);color:#63b3ed">نسخ</button></div>
+        <div class="pb-row"><span class="pb-lbl">BIC/SWIFT</span><span class="pb-val" id="pi-swift">—</span><button class="pb-copy" onclick="cpv('pi-swift')" style="background:rgba(99,179,237,.2);color:#63b3ed">نسخ</button></div>
+        <div class="pb-row"><span class="pb-lbl">Bank</span><span class="pb-val" style="font-size:.74rem">Dukascopy Bank SA — Geneva 🇨🇭</span></div>
+        <div class="pb-note">⚠️ التحويل الدولي يستغرق 1-3 أيام — ارفعي الإيصال بعد الإرسال</div>
+      </div>`;
+    getSetting('payment_info').then(info => {
+      if (!info) return;
+      document.getElementById('pi-iholder').textContent = info.iban_holder || 'AKLI YAZID Maamri';
+      document.getElementById('pi-iban').textContent    = info.iban  || 'CH3108843142507621070';
+      document.getElementById('pi-swift').textContent   = info.swift || 'DUBACHGG';
+    });
+  } else {
+    box.innerHTML = '';
+  }
+}
+
+function cpv(id) {
+  const v = document.getElementById(id)?.textContent;
+  if (v) navigator.clipboard.writeText(v).then(() => toast('✅ تم النسخ')).catch(() => toast('📋 ' + v));
+}
+
+// ══ FILE HANDLING ══
+function onFileSelect(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('⚠️ الملف أكبر من 5 MB — اختاري ملفاً أصغر'); inp.value=''; return; }
+
+  selectedFile = file;
+  const zone    = document.getElementById('uploadZone');
+  const preview = document.getElementById('imgPreview');
+  const prevImg = document.getElementById('prevImg');
+  const prevName= document.getElementById('prevName');
+
+  prevName.textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+  zone.style.display   = 'none';
+  preview.style.display= 'block';
+
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => { prevImg.src = e.target.result; prevImg.style.display='block'; };
+    reader.readAsDataURL(file);
+  } else {
+    prevImg.style.display = 'none';
+    prevName.textContent  = '📄 ' + file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+  }
+}
+
+function clearFile() {
+  selectedFile = null;
+  document.getElementById('fileInp').value = '';
+  document.getElementById('uploadZone').style.display = 'block';
+  document.getElementById('imgPreview').style.display = 'none';
+}
+
+// Drag & Drop
+const uz = document.getElementById('uploadZone');
+uz.addEventListener('dragover',  e => { e.preventDefault(); uz.classList.add('drag'); });
+uz.addEventListener('dragleave', ()=> uz.classList.remove('drag'));
+uz.addEventListener('drop', e => {
+  e.preventDefault(); uz.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) { const dt = new DataTransfer(); dt.items.add(file); document.getElementById('fileInp').files = dt.files; onFileSelect(document.getElementById('fileInp')); }
+});
+
+// ══ UPLOAD RECEIPT ══
+async function uploadReceipt() {
+  if (!selectedFile) { toast('⚠️ اختاري صورة الإيصال أولاً'); return; }
+  if (!currentOrder) return;
+
+  const btn  = document.getElementById('uploadBtn');
+  const prog = document.getElementById('progressWrap');
+  const fill = document.getElementById('progressFill');
+  const lbl  = document.getElementById('progressLbl');
+
+  btn.disabled = true; btn.textContent = '⏳ جاري الرفع...';
+  prog.classList.add('show'); fill.style.width = '15%';
+
+  try {
+    lbl.textContent = 'جاري رفع الإيصال...';
+    fill.style.width = '35%';
+
+    // Build storage path: receipts/FBL-XXXXXX/timestamp.ext
+    const ext  = selectedFile.name.split('.').pop() || 'jpg';
+    const path = `${currentOrder.id}/${Date.now()}.${ext}`;
+    const url  = await uploadToStorage(selectedFile, path);
+
+    fill.style.width = '70%'; lbl.textContent = 'جاري حفظ البيانات...';
+
+    const note = document.getElementById('receiptNote').value.trim();
+
+    // Update order in Supabase
+    await sbPatch('orders', `id=eq.${encodeURIComponent(currentOrder.id)}`, {
+      receipt_url:       url,
+      receipt_note:      note,
+      receipt_uploaded_at: new Date().toISOString(),
+      payment_status:    'waiting_review',
+    });
+
+    fill.style.width = '100%'; lbl.textContent = 'تم! ✅';
+
+    currentOrder.payment_status = 'waiting_review';
+    currentOrder.receipt_url    = url;
+
+    setTimeout(() => {
+      showSuccessStatus('uploaded');
+      showPanel(3);
+    }, 600);
+
+  } catch(e) {
+    console.error(e);
+    toast('❌ خطأ في الرفع — تحققي من الاتصال وحاولي مجدداً');
+    btn.disabled = false; btn.textContent = '📤 إرسال الإيصال';
+    prog.classList.remove('show'); fill.style.width = '0%';
+  }
+}
+
+// ══ STATUS DISPLAY ══
+function showSuccessStatus(type) {
+  const card = document.getElementById('statusCard');
+  const ordId = currentOrder ? '#' + currentOrder.id : '';
+
+  if (type === 'uploaded') {
+    card.innerHTML = `
+      <span class="status-ico">🌹</span>
+      <div class="status-title" style="color:var(--pk)">تم استلام إيصالك!</div>
+      <div class="status-order-num">${ordId}</div>
+      <div class="status-steps">
+        <div class="sstep done"><span class="sstep-ico">✅</span> تم إرسال الطلب</div>
+        <div class="sstep done"><span class="sstep-ico">📤</span> تم رفع الإيصال</div>
+        <div class="sstep active"><span class="sstep-ico">👀</span> قيد المراجعة من الإدارة</div>
+        <div class="sstep pending"><span class="sstep-ico">✅</span> تأكيد الدفع</div>
+        <div class="sstep pending"><span class="sstep-ico">🌹</span> تجهيز الطلب</div>
+        <div class="sstep pending"><span class="sstep-ico">🚚</span> التوصيل</div>
+      </div>
+      <p class="status-msg">
+        سيتم مراجعة إيصالك <strong>خلال 24 ساعة</strong> وستتلقين إشعاراً بتأكيد الدفع.
+        <br><br>شكراً لثقتك في <strong>Fleurs by Liza</strong> 🌹
+      </p>
+      <div style="display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center;">
+        <button class="btn-new" onclick="resetAll()">📤 رفع إيصال آخر</button>
+        <button class="btn-back" onclick="location.href='index.html'">🏠 الرئيسية</button>
+      </div>`;
+  } else if (type === 'paid') {
+    card.innerHTML = `
+      <span class="status-ico">💚</span>
+      <div class="status-title" style="color:var(--gn)">تم تأكيد دفعك!</div>
+      <div class="status-order-num">${ordId}</div>
+      <div class="status-steps">
+        <div class="sstep done"><span class="sstep-ico">✅</span> تم إرسال الطلب</div>
+        <div class="sstep done"><span class="sstep-ico">✅</span> تم تأكيد الدفع</div>
+        <div class="sstep active"><span class="sstep-ico">🌹</span> جاري التجهيز</div>
+        <div class="sstep pending"><span class="sstep-ico">🚚</span> التوصيل</div>
+      </div>
+      <p class="status-msg">دفعك مؤكد ✅ طلبك قيد التجهيز الآن.</p>
+      <button class="btn-back" onclick="location.href='index.html'">🏠 الرئيسية</button>`;
+  }
+}
+
+function goBack() { showPanel(1); clearFile(); }
+function resetAll() {
+  currentOrder = null; selectedFile = null;
+  document.getElementById('orderIdInp').value = '';
+  document.getElementById('orderPreview').style.display = 'none';
+  document.getElementById('receiptNote').value = '';
+  clearFile();
+  showPanel(1);
+}
+
+// ══ INIT ══
+window.addEventListener('load', () => {
+  // Auto-fill from URL param ?order=FBL-XXXXX
+  const params = new URLSearchParams(location.search);
+  const oid = params.get('order') || params.get('id');
+  if (oid) {
+    document.getElementById('orderIdInp').value = oid.toUpperCase();
+    findOrder();
+  }
+  setTimeout(() => document.getElementById('ld').classList.add('hide'), 800);
+});
+</script>
+</body>
+</html>
