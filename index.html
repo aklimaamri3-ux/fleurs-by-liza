@@ -451,20 +451,33 @@ function renderProds(list){
   if(!list.length){
     const _pg=document.getElementById('prodGrid');
     if(_pg) _pg.innerHTML='<div style="text-align:center;padding:3rem;color:#999;grid-column:1/-1">⏳ جاري تحميل المنتجات...</div>';
-    // products retry on empty — auto-retry after 2s
-    setTimeout(async()=>{
+    const SBU='https://ogtyvzqmifhkdoetumag.supabase.co';
+    const SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM';
+    const _doRetry=async(attempt)=>{
       try{
-        const _r=await fetch('https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/products?order=sort_order.asc',{
-          headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM'}
-        });
+        const _r=await fetch(SBU+'/rest/v1/products?order=sort_order.asc',{headers:{'apikey':SBK,'Authorization':'Bearer '+SBK}});
         if(_r.ok){
           const _d=await _r.json();
-          console.log('🔄 Retry products:',_d.length,'items');
-          if(_d.length){allProds=_d;renderProds(_d);}
-          else if(_pg) _pg.innerHTML='<div style="text-align:center;padding:3rem;color:#bbb;grid-column:1/-1">لا توجد منتجات بعد — أضيفي من Admin 🌹</div>';
+          console.log('🔄 Retry #'+attempt+' products:',_d.length,'items');
+          if(_d.length){allProds=_d;renderProds(_d);return;}
+        } else {
+          console.error('🔄 Retry #'+attempt+' HTTP error:',_r.status, await _r.text().catch(()=>''));
         }
-      }catch(_e){console.error('Retry failed:',_e);}
-    },2000);
+        if(attempt<3){
+          setTimeout(()=>_doRetry(attempt+1), 2500);
+        } else if(_pg){
+          _pg.innerHTML=`<div style="text-align:center;padding:3rem;grid-column:1/-1;color:#e74c3c;font-size:.85rem;">
+            ⚠️ لا توجد منتجات أو خطأ في الاتصال بقاعدة البيانات<br>
+            <small style="color:#999">تحققي من RLS policies في Supabase — جدول products</small><br>
+            <button onclick="location.reload()" style="margin-top:.75rem;padding:.4rem 1.1rem;border:1px solid #e91e8c;border-radius:2rem;background:none;color:#e91e8c;cursor:pointer;">🔄 إعادة المحاولة</button>
+          </div>`;
+        }
+      }catch(_e){
+        console.error('Retry #'+attempt+' failed:',_e);
+        if(attempt<3) setTimeout(()=>_doRetry(attempt+1), 2500);
+      }
+    };
+    setTimeout(()=>_doRetry(1), 1500);
     return;
   }
   document.getElementById('prodGrid').innerHTML=list.map(p=>{
@@ -498,7 +511,12 @@ function filterFlower(type,el){
   curFilter=type;
   document.querySelectorAll('.ftype-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
-  const list=type==='all'?allProds:allProds.filter(p=>p.flower_type===type);
+  let list = type==='all' ? allProds : allProds.filter(p=>p.flower_type===type || p.occasion===type);
+  // Safety: if filter returns nothing but products exist, fall back to all
+  if(!list.length && allProds.length){
+    console.warn('Filter "'+type+'" matched 0 products — showing all instead');
+    list = allProds;
+  }
   renderProds(list);
 }
 
@@ -569,8 +587,19 @@ async function init(){
     const _H={apikey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM'};
     const _prodR=await fetch('https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/products?order=sort_order.asc,created_at.asc',{headers:_H});
     const prodsRaw=_prodR.ok?await _prodR.json():[];
-    if(!_prodR.ok)console.error('❌ Products HTTP',_prodR.status,await _prodR.text().catch(()=>''));
-    else console.log('✅ Products loaded:',prodsRaw.length,'items',prodsRaw.map(p=>p.name));
+    if(!_prodR.ok){
+      const errText = await _prodR.text().catch(()=>'');
+      console.error('❌ Products HTTP',_prodR.status, errText);
+      // Show error on page
+      const pg = document.getElementById('prodGrid');
+      if(pg) pg.innerHTML = `<div style="text-align:center;padding:2rem;grid-column:1/-1;color:#e74c3c;font-size:.85rem;">
+        ❌ خطأ في تحميل المنتجات (${_prodR.status})<br>
+        <small style="color:#999">${errText.slice(0,100)}</small><br>
+        <button onclick="location.reload()" style="margin-top:.75rem;padding:.4rem 1rem;border:1px solid #e74c3c;border-radius:2rem;background:none;color:#e74c3c;cursor:pointer;">🔄 إعادة المحاولة</button>
+      </div>`;
+    } else {
+      console.log('✅ Products loaded:',prodsRaw.length,'items',prodsRaw.map(p=>p.name));
+    }
 
     const _wilR=await fetch('https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/delivery_prices?order=wilaya_id.asc',{headers:_H});
     const wilayasRaw=_wilR.ok?await _wilR.json():[];
