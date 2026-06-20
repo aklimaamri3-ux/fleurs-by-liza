@@ -235,7 +235,7 @@ footer{background:var(--bk);color:rgba(255,255,255,.38);padding:1.8rem 2.5rem;di
   const log = (msg) => { dbg.style.display='block'; dbg.textContent += msg + '\n'; };
   try{
     log('🔍 Testing Supabase connection...');
-    const url = 'https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/products?select=id,name,active';
+    const url = 'https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/products?order=sort_order.asc,created_at.asc';
     const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM';
     log('URL: ' + url);
     const r = await fetch(url, { headers: { apikey: key, Authorization: 'Bearer ' + key } });
@@ -605,7 +605,12 @@ async function init(){
   try{
     // Direct fetch for products with full error logging
     const _H={apikey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM','Authorization':'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM'};
-    const _prodR=await fetch('https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/products?order=sort_order.asc,created_at.asc',{headers:_H});
+    let _prodR=await fetch('https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/products?order=sort_order.asc,created_at.asc',{headers:_H});
+    if(!_prodR.ok){
+      // sort_order column might not exist — retry without ordering
+      console.warn('⚠️ First products query failed, retrying without order...');
+      _prodR=await fetch('https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/products',{headers:_H});
+    }
     const prodsRaw=_prodR.ok?await _prodR.json():[];
     if(!_prodR.ok){
       const errText = await _prodR.text().catch(()=>'');
