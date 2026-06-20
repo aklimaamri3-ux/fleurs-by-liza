@@ -227,26 +227,6 @@ footer{background:var(--bk);color:rgba(255,255,255,.38);padding:1.8rem 2.5rem;di
 </style>
 </head>
 <body>
-<!-- ══ DEBUG BANNER (مؤقت) ══ -->
-<div id="debugBanner" style="background:#000;color:#0f0;font-family:monospace;font-size:11px;padding:8px;white-space:pre-wrap;direction:ltr;text-align:left;display:none;"></div>
-<script>
-(async function(){
-  const dbg = document.getElementById('debugBanner');
-  const log = (msg) => { dbg.style.display='block'; dbg.textContent += msg + '\n'; };
-  try{
-    log('🔍 Testing Supabase connection...');
-    const url = 'https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/products?order=sort_order.asc,created_at.asc';
-    const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM';
-    log('URL: ' + url);
-    const r = await fetch(url, { headers: { apikey: key, Authorization: 'Bearer ' + key } });
-    log('Status: ' + r.status + ' ' + r.statusText);
-    const txt = await r.text();
-    log('Response: ' + txt.slice(0, 500));
-  }catch(e){
-    log('❌ FETCH ERROR: ' + e.message);
-  }
-})();
-</script>
 <!-- ══ ANNOUNCEMENT BAR ══ -->
 <div id="annBar" style="display:none;width:100%;padding:.45rem 1rem;text-align:center;font-size:.82rem;font-family:'Tajawal',sans-serif;position:sticky;top:0;z-index:600;overflow:hidden;">
   <div style="display:inline-flex;align-items:center;gap:.5rem;">
@@ -409,6 +389,7 @@ footer{background:var(--bk);color:rgba(255,255,255,.38);padding:1.8rem 2.5rem;di
     <a href="#" onclick="window.open('admin.html','_blank');return false;" style="opacity:.3;font-size:.65rem;">Admin</a>
   </div>
   <div>Fleurs by Liza © 2025</div>
+  <div style="opacity:.4;font-size:.6rem;margin-top:.3rem;">build: V2026-FIX-A</div>
 </footer>
 <div id="toast"></div>
 
@@ -501,28 +482,37 @@ function renderProds(list){
     return;
   }
   document.getElementById('prodGrid').innerHTML=list.map(p=>{
+    try{
     const img=p.media_items?.find(m=>m.type==='image')?.src||p.real_images?.[0];
+    const _price=Number(p.price)||0;
+    const _oldPrice=Number(p.old_price)||0;
+    const _colors=Array.isArray(p.colors)?p.colors:[];
+    const _desc=(p.description||'').toString().substring(0,60);
     return `<div class="pcard reveal" onclick="location.href='product.html?id=${p.id}'">
       <div class="pcard-img" style="background:${img?'#fff8f8':p.bg||'linear-gradient(135deg,#fce4f3,#f8bbd0)'}">
         ${img?`<img src="${img}" alt="${sanitize(p.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">`:''}
         <span class="ef" style="${img?'display:none':'display:block'}">${p.emoji||'🌹'}</span>
-        ${p.badge?`<span class="pbadge pb-${p.badge_type}">${sanitize(p.badge)}</span>`:''}
+        ${p.badge?`<span class="pbadge pb-${p.badge_type||'pink'}">${sanitize(p.badge)}</span>`:''}
         <span class="ftype-badge ${FTYPE_CSS[p.flower_type]||'ftb-imp'}">${FTYPE_LABELS[p.flower_type]||''}</span>
       </div>
       <div class="pcard-body">
-        <div class="pcard-name">${sanitize(p.name)}</div>
-        <div class="pcard-desc">${sanitize((p.description||'').substring(0,60))}...</div>
-        <div class="cdots">${(p.colors||[]).map(c=>`<div class="cdot" style="background:${c}"></div>`).join('')}</div>
+        <div class="pcard-name">${sanitize(p.name||'بدون اسم')}</div>
+        <div class="pcard-desc">${sanitize(_desc)}...</div>
+        <div class="cdots">${_colors.map(c=>`<div class="cdot" style="background:${c}"></div>`).join('')}</div>
         <div class="pcard-foot">
           <div class="pcard-price">
-            ${p.price.toLocaleString()} دج
-            ${p.old_price?`<del style="font-size:.75em;opacity:.5">${p.old_price.toLocaleString()}</del>`:''}
-            <span class="eur-price" style="display:block;font-size:.68rem;color:var(--mt)">${window.eurRate?(p.price/window.eurRate).toFixed(0)+' €':''}</span>
+            ${_price.toLocaleString()} دج
+            ${_oldPrice?`<del style="font-size:.75em;opacity:.5">${_oldPrice.toLocaleString()}</del>`:''}
+            <span class="eur-price" style="display:block;font-size:.68rem;color:var(--mt)">${window.eurRate?(_price/window.eurRate).toFixed(0)+' €':''}</span>
           </div>
           <button class="view-btn" onclick="event.stopPropagation();location.href='product.html?id=${p.id}'">التفاصيل</button>
         </div>
       </div>
     </div>`;
+    }catch(_err){
+      console.error('⚠️ Error rendering product:', p?.id, p?.name, _err);
+      return '';
+    }
   }).join('');
   document.querySelectorAll('.pcard.reveal:not(.vis)').forEach(r=>ro.observe(r));
 }
