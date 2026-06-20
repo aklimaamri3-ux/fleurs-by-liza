@@ -389,7 +389,7 @@ footer{background:var(--bk);color:rgba(255,255,255,.38);padding:1.8rem 2.5rem;di
     <a href="#" onclick="window.open('admin.html','_blank');return false;" style="opacity:.3;font-size:.65rem;">Admin</a>
   </div>
   <div>Fleurs by Liza © 2025</div>
-  <div style="opacity:.4;font-size:.6rem;margin-top:.3rem;">build: V2026-FIX-A</div>
+  <div style="opacity:.4;font-size:.6rem;margin-top:.3rem;">build: V2026-FIX-B</div>
 </footer>
 <div id="toast"></div>
 
@@ -616,20 +616,32 @@ async function init(){
       console.log('✅ Products loaded:',prodsRaw.length,'items',prodsRaw.map(p=>p.name));
     }
 
-    const _wilR=await fetch('https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/delivery_prices?order=wilaya_id.asc',{headers:_H});
-    const wilayasRaw=_wilR.ok?await _wilR.json():[];
-
-    const [promosSetting,reviewsSetting,socialStats,ordersDelivered]=await Promise.all([
-      SB.getSetting('promos'),
-      SB.getSetting('reviews'),
-      SB.getSetting('social_stats'),
-      SB.get('orders','?status=eq.delivered&select=id')
-    ]);
-
+    // Render products IMMEDIATELY — independent of anything else below
     allProds=prodsRaw||[];
-    wilayas=wilayasRaw||[];
-
     renderProds(allProds);
+
+    // Everything below is secondary — wrapped so failures don't hide products
+    let wilayasRaw=[],promosSetting=[],reviewsSetting=[],socialStats=null,ordersDelivered=[];
+    try{
+      const _wilR=await fetch('https://ogtyvzqmifhkdoetumag.supabase.co/rest/v1/delivery_prices?order=wilaya_id.asc',{headers:_H});
+      wilayasRaw=_wilR.ok?await _wilR.json():[];
+    }catch(e){console.error('Wilayas load failed:',e);}
+
+    try{
+      const results = await Promise.allSettled([
+        SB.getSetting('promos'),
+        SB.getSetting('reviews'),
+        SB.getSetting('social_stats'),
+        SB.get('orders','?status=eq.delivered&select=id')
+      ]);
+      promosSetting   = results[0].status==='fulfilled' ? results[0].value : [];
+      reviewsSetting  = results[1].status==='fulfilled' ? results[1].value : [];
+      socialStats     = results[2].status==='fulfilled' ? results[2].value : null;
+      ordersDelivered = results[3].status==='fulfilled' ? results[3].value : [];
+      results.forEach((r,i)=>{ if(r.status==='rejected') console.error('Secondary load #'+i+' failed:', r.reason); });
+    }catch(e){console.error('Secondary loads failed:',e);}
+
+    wilayas=wilayasRaw||[];
     renderRevs(reviewsSetting||[]);
 
     // Social stats
