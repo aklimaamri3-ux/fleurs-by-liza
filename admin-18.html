@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Fleurs by Liza</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--pink:#e91e8c;--pink-l:#f48fb1;--pink-pale:#fce4f3;--black:#111;--gray:#f4f4f6;--border:rgba(0,0,0,.08);--text:#1a1a2e;--muted:#888;--green:#27ae60;--red:#e74c3c;--orange:#f39c12;--blue:#3498db;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Tajawal',sans-serif;background:var(--gray);color:var(--text);min-height:100vh;}
+button,input,select,textarea{font-family:inherit;}
+button{cursor:pointer;border:none;}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:#fff;z-index:2000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;transition:opacity .3s;}
+#loading.hide{opacity:0;pointer-events:none;}
+.ll2{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.5rem;}
+.ll2 span{color:var(--pink);}
+.ld2{display:flex;gap:.4rem;}
+.ld2 span{width:8px;height:8px;border-radius:50%;background:var(--pink);animation:bounce 1.2s infinite;}
+.ld2 span:nth-child(2){animation-delay:.2s;}
+.ld2 span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,80%,100%{opacity:.3;transform:translateY(0);}40%{opacity:1;transform:translateY(-6px);}}
+
+/* LOGIN */
+#login{position:fixed;inset:0;background:linear-gradient(135deg,#111,#1a0808);display:flex;align-items:center;justify-content:center;padding:1.5rem;z-index:1500;}
+#login.h{display:none;}
+.lb{background:#fff;border-radius:1.5rem;padding:2.2rem;width:min(360px,92vw);text-align:center;}
+.lb-rose{font-size:2.8rem;margin-bottom:.5rem;}
+.ll{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.4rem;}
+.ll span{color:var(--pink);}
+.ls{font-size:.78rem;color:var(--muted);margin-bottom:1.5rem;letter-spacing:.05em;}
+.lf-group{text-align:right;margin-bottom:.85rem;}
+.lf-label{font-size:.7rem;font-weight:700;color:var(--muted);margin-bottom:.3rem;}
+.li{width:100%;padding:.76rem 1rem;border:1.5px solid var(--border);border-radius:.7rem;font-size:.88rem;}
+.li:focus{outline:none;border-color:var(--pink);}
+.lp-wrap{position:relative;}
+.lp-wrap .li{padding-left:2.5rem;}
+.lp-eye{position:absolute;left:.6rem;top:50%;transform:translateY(-50%);background:none;font-size:.95rem;}
+.lb-btn{width:100%;background:var(--pink);color:#fff;padding:.85rem;border-radius:2rem;font-weight:700;font-size:.92rem;margin-top:.5rem;}
+.lb-btn:disabled{opacity:.6;}
+.le{color:var(--red);font-size:.78rem;margin-top:.65rem;display:none;padding:.5rem .75rem;background:rgba(231,76,60,.08);border-radius:.5rem;}
+.lb-security{font-size:.62rem;color:var(--muted);margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border);}
+
+/* APP LAYOUT */
+#app{display:none;}
+#app.show{display:flex;min-height:100vh;}
+.sidebar{width:230px;background:#111;color:#fff;flex-shrink:0;padding:1.3rem 0;overflow-y:auto;}
+.sb-logo{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;text-align:center;margin-bottom:.2rem;}
+.sb-logo span{color:var(--pink);}
+.sb-sub{text-align:center;font-size:.6rem;color:rgba(255,255,255,.4);margin-bottom:1.3rem;}
+.sb-section{font-size:.62rem;color:rgba(255,255,255,.35);padding:.6rem 1.2rem .3rem;}
+.sb-it{padding:.7rem 1.2rem;font-size:.82rem;display:flex;align-items:center;gap:.6rem;cursor:pointer;color:rgba(255,255,255,.75);}
+.sb-it:hover,.sb-it.active{background:rgba(233,30,140,.15);color:#fff;border-right:3px solid var(--pink);}
+.sb-it .ico{font-size:1rem;}
+.sb-logout{margin:1rem 1.2rem;padding:.6rem;text-align:center;background:rgba(255,255,255,.08);border-radius:.6rem;font-size:.78rem;color:rgba(255,255,255,.7);}
+
+.main{flex:1;padding:1.5rem;overflow-x:hidden;min-width:0;}
+.page{display:none;}
+.page.active{display:block;}
+.page-title{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.1rem;margin-bottom:1.2rem;}
+
+.card{background:#fff;border-radius:1rem;padding:1.2rem;margin-bottom:1rem;}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.6rem;}
+.ct{font-weight:700;font-size:.92rem;}
+
+.btn{padding:.55rem 1.1rem;border-radius:.6rem;font-size:.8rem;font-weight:600;}
+.btn-p{background:var(--pink);color:#fff;}
+.btn-o{background:none;border:1.5px solid var(--border);color:var(--text);}
+.btn-sm{padding:.35rem .75rem;font-size:.74rem;}
+.btn-d{background:var(--red);color:#fff;}
+.btn-g{background:var(--green);color:#fff;}
+
+.fg{margin-bottom:.9rem;}
+.fl{display:block;font-size:.74rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;}
+.fi{width:100%;padding:.6rem .85rem;border:1.5px solid var(--border);border-radius:.6rem;font-size:.85rem;}
+.fi:focus{outline:none;border-color:var(--pink);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+
+.tgl{width:42px;height:24px;border-radius:2rem;background:#ddd;position:relative;cursor:pointer;transition:.2s;}
+.tgl.on{background:var(--green);}
+.tgl::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;right:3px;transition:.2s;}
+.tgl.on::after{right:21px;}
+
+.tbl{width:100%;border-collapse:collapse;font-size:.8rem;}
+.tbl th{text-align:right;padding:.5rem .6rem;color:var(--muted);font-size:.72rem;border-bottom:1px solid var(--border);}
+.tbl td{padding:.5rem .6rem;border-bottom:1px solid var(--border);}
+
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:1rem;font-size:.7rem;font-weight:600;}
+.badge-g{background:rgba(39,174,96,.12);color:var(--green);}
+.badge-r{background:rgba(231,76,60,.12);color:var(--red);}
+.badge-o{background:rgba(243,156,18,.12);color:var(--orange);}
+.badge-b{background:rgba(52,152,219,.12);color:var(--blue);}
+.badge-gray{background:rgba(0,0,0,.06);color:var(--muted);}
+
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.8rem;}
+.pcard-a{border:1px solid var(--border);border-radius:.8rem;overflow:hidden;}
+.pcard-a img{width:100%;aspect-ratio:1;object-fit:cover;}
+.pcard-a .ph{aspect-ratio:1;background:var(--pink-pale);display:flex;align-items:center;justify-content:center;font-size:2.2rem;}
+.pcard-a-body{padding:.6rem;}
+.pcard-a-name{font-weight:700;font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pcard-a-price{color:var(--pink);font-weight:700;font-size:.82rem;}
+.pcard-a-actions{display:flex;gap:.3rem;margin-top:.4rem;}
+.pcard-a-actions button{flex:1;padding:.3rem;border-radius:.4rem;font-size:.7rem;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-start;justify-content:center;z-index:1800;padding:1.5rem;overflow-y:auto;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:1rem;padding:1.5rem;max-width:520px;width:100%;margin-top:2rem;max-height:90vh;overflow-y:auto;}
+.modal-title{font-weight:700;font-size:1rem;margin-bottom:1rem;display:flex;justify-content:space-between;}
+.modal-close{font-size:1.2rem;cursor:pointer;color:var(--muted);}
+
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--black);color:#fff;padding:.7rem 1.4rem;border-radius:2rem;font-size:.82rem;display:none;z-index:3000;}
+
+@media(max-width:768px){
+  .sidebar{position:fixed;right:-230px;top:0;bottom:0;z-index:1000;transition:.3s;}
+  .sidebar.open{right:0;}
+  .main{padding:1rem;}
+  .frow{grid-template-columns:1fr;}
+}
+.menu-toggle{display:none;}
+@media(max-width:768px){.menu-toggle{display:block;background:#111;color:#fff;padding:.6rem 1rem;font-size:.85rem;}}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="ll2">Fleur<span>❀</span>by liza</div>
+  <div class="ld2"><span></span><span></span><span></span></div>
+</div>
+
+<div id="login">
+  <div class="lb">
+    <div class="lb-rose">🌹</div>
+    <div class="ll">Fleur<span>❀</span>by liza</div>
+    <div class="ls">ADMIN DASHBOARD</div>
+
+    <div class="lf-group">
+      <div class="lf-label">📧 البريد الإلكتروني</div>
+      <input class="li" type="email" id="lemail" placeholder="admin@example.com" autocomplete="email">
+    </div>
+    <div class="lf-group">
+      <div class="lf-label">🔒 كلمة السر</div>
+      <div class="lp-wrap">
+        <input class="li" type="password" id="lpass" placeholder="••••••••" autocomplete="current-password">
+        <button type="button" class="lp-eye" onclick="togglePwd()">👁</button>
+      </div>
+    </div>
+    <button class="lb-btn" id="loginBtn" onclick="doLogin()">دخول 🔑</button>
+    <div class="le" id="loginErr"></div>
+    <div class="lb-security">🔒 مدعوم بـ Supabase Auth</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo">Fleur<span>❀</span>by liza</div>
+    <div class="sb-sub">ADMIN PANEL</div>
+
+    <div class="sb-it active" data-page="dashboard"><span class="ico">📊</span>لوحة التحكم</div>
+    <div class="sb-it" data-page="products"><span class="ico">🌹</span>المنتجات</div>
+    <div class="sb-it" data-page="orders"><span class="ico">📦</span>الطلبات</div>
+    <div class="sb-it" data-page="receipts"><span class="ico">🧾</span>الإيصالات</div>
+
+    <div class="sb-section">الإعدادات</div>
+    <div class="sb-it" data-page="delivery"><span class="ico">🚚</span>التوصيل</div>
+    <div class="sb-it" data-page="payment"><span class="ico">💳</span>طرق الدفع</div>
+    <div class="sb-it" data-page="announcement"><span class="ico">📢</span>الإعلانات</div>
+    <div class="sb-it" data-page="promos"><span class="ico">🎟️</span>الكوبونات</div>
+    <div class="sb-it" data-page="reports"><span class="ico">📈</span>التقارير</div>
+    <div class="sb-it" data-page="settings"><span class="ico">⚙️</span>الإعدادات العامة</div>
+
+    <div class="sb-logout" onclick="doLogout()">🚪 تسجيل الخروج</div>
+  </div>
+
+  <div style="flex:1;min-width:0;">
+    <div class="menu-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">☰ القائمة</div>
+    <div class="main">
+
+      <div class="page active" id="page-dashboard">
+        <div class="page-title">📊 لوحة التحكم</div>
+        <div class="prod-grid" id="dashStats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));"></div>
+        <div class="card">
+          <div class="ch"><div class="ct">آخر الطلبات</div></div>
+          <div style="overflow-x:auto;"><table class="tbl" id="dashOrdersTable"></table></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-products">
+        <div class="page-title">🌹 المنتجات</div>
+        <button class="btn btn-p" style="margin-bottom:1rem;" onclick="openProductModal()">+ إضافة منتج</button>
+        <div class="prod-grid" id="productsGrid"></div>
+      </div>
+
+      <div class="page" id="page-orders">
+        <div class="page-title">📦 الطلبات</div>
+        <div class="card">
+          <div style="overflow-x:auto;"><table class="tbl" id="ordersTable"></table></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-receipts">
+        <div class="page-title">🧾 مراجعة الإيصالات</div>
+        <div id="receiptsGrid" class="prod-grid"></div>
+      </div>
+
+      <div class="page" id="page-delivery">
+        <div class="page-title">🚚 أسعار التوصيل — 58 ولاية</div>
+        <div class="card">
+          <input class="fi" id="delivSearch" placeholder="🔍 بحث عن ولاية..." style="margin-bottom:1rem;" oninput="renderDeliveryTable()">
+          <div style="overflow-x:auto;max-height:600px;overflow-y:auto;"><table class="tbl" id="deliveryTable"></table></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-payment">
+        <div class="page-title">💳 طرق الدفع</div>
+        <div class="card">
+          <div class="ch"><div class="ct">⚡ تفعيل / تعطيل طرق الدفع</div></div>
+          <div class="prod-grid" id="paymentToggles" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct">🏦 معلومات الدفع</div></div>
+          <div class="frow">
+            <div class="fg"><label class="fl">الاسم الكامل</label><input class="fi" id="piHolder"></div>
+            <div class="fg"><label class="fl">رقم CCP</label><input class="fi" id="piCCP"></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Baridimob</label><input class="fi" id="piBaridi"></div>
+            <div class="fg"><label class="fl">RIP (20 رقم)</label><input class="fi" id="piRIP"></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">IBAN صاحب الحساب</label><input class="fi" id="piIBANHolder"></div>
+            <div class="fg"><label class="fl">IBAN</label><input class="fi" id="piIBAN"></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">SWIFT/BIC</label><input class="fi" id="piSWIFT"></div>
+            <div class="fg"><label class="fl">سعر اليورو (دج)</label><input class="fi" id="piEURRate" type="number"></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Binance ID</label><input class="fi" id="piBinanceID"></div>
+            <div class="fg"><label class="fl">عنوان المحفظة USDT</label><input class="fi" id="piBinanceAddr"></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">واتساب (مع رمز الدولة)</label><input class="fi" id="piWhatsapp" placeholder="213555123456"></div>
+            <div class="fg"><label class="fl">إنستقرام</label><input class="fi" id="piInstagram"></div>
+          </div>
+          <div class="fg"><label class="fl">فيسبوك</label><input class="fi" id="piFacebook"></div>
+          <button class="btn btn-p" onclick="savePaymentInfo()">💾 حفظ كل المعلومات</button>
+        </div>
+      </div>
+
+      <div class="page" id="page-announcement">
+        <div class="page-title">📢 شريط الإعلانات</div>
+        <div class="card">
+          <div class="ch">
+            <div class="ct">⚡ الحالة</div>
+            <div class="tgl on" id="annEnabledTgl" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="fg"><label class="fl">📝 نص الإعلان</label><input class="fi" id="annTextInput" placeholder="🌹 مرحباً بكم في Fleurs by Liza"></div>
+          <div class="frow">
+            <div class="fg"><label class="fl">لون النص</label><input type="color" class="fi" id="annColorInput" value="#e91e8c" style="height:2.5rem;"></div>
+            <div class="fg"><label class="fl">لون الخلفية</label><input type="color" class="fi" id="annBgInput" value="#fce4f3" style="height:2.5rem;"></div>
+          </div>
+          <div class="fg"><label class="fl">👁 معاينة</label>
+            <div id="annPreviewBox" style="padding:.6rem 1rem;border-radius:.6rem;text-align:center;font-size:.85rem;background:#fce4f3;color:#e91e8c;"></div>
+          </div>
+          <button class="btn btn-p" onclick="saveAnnouncement()">💾 حفظ</button>
+        </div>
+      </div>
+
+      <div class="page" id="page-promos">
+        <div class="page-title">🎟️ أكواد الخصم</div>
+        <div class="card">
+          <div class="frow">
+            <div class="fg"><label class="fl">الكود</label><input class="fi" id="promoCode" placeholder="WELCOME10" style="text-transform:uppercase;"></div>
+            <div class="fg"><label class="fl">نوع الخصم</label>
+              <select class="fi" id="promoType"><option value="percent">نسبة %</option><option value="fixed">مبلغ ثابت (دج)</option></select>
+            </div>
+          </div>
+          <div class="fg"><label class="fl">القيمة</label><input class="fi" id="promoValue" type="number"></div>
+          <button class="btn btn-p" onclick="addPromo()">+ إضافة كود</button>
+        </div>
+        <div class="card">
+          <div style="overflow-x:auto;"><table class="tbl" id="promosTable"></table></div>
+        </div>
+      </div>
+
+      <div class="page" id="page-reports">
+        <div class="page-title">📈 التقارير والأرباح</div>
+        <div class="prod-grid" id="reportStats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));"></div>
+      </div>
+
+      <div class="page" id="page-settings">
+        <div class="page-title">⚙️ الإعدادات العامة</div>
+        <div class="card">
+          <div class="ch"><div class="ct">📱 إحصائيات السوشيال ميديا</div></div>
+          <div class="frow">
+            <div class="fg"><label class="fl">متابعين Instagram</label><input class="fi" id="setIG" type="number"></div>
+            <div class="fg"><label class="fl">متابعين Facebook</label><input class="fi" id="setFB" type="number"></div>
+          </div>
+          <button class="btn btn-p" onclick="saveSocialStats()">💾 حفظ</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal-overlay" id="productModal">
+  <div class="modal-box">
+    <div class="modal-title"><span id="productModalTitle">إضافة منتج</span><span class="modal-close" onclick="closeProductModal()">✕</span></div>
+    <input type="hidden" id="pId">
+    <div class="fg"><label class="fl">اسم المنتج *</label><input class="fi" id="pName"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">السعر (دج) *</label><input class="fi" id="pPrice" type="number"></div>
+      <div class="fg"><label class="fl">السعر القديم (اختياري)</label><input class="fi" id="pOldPrice" type="number"></div>
+    </div>
+    <div class="fg"><label class="fl">الوصف</label><textarea class="fi" id="pDesc" rows="2"></textarea></div>
+    <div class="fg"><label class="fl">الإيموجي</label><input class="fi" id="pEmoji" placeholder="🌹" value="🌹"></div>
+    <div class="fg"><label class="fl">رابط صورة (اختياري)</label><input class="fi" id="pImageUrl" placeholder="https://..."></div>
+    <div class="fg">
+      <label class="fl">نوع الزهور</label>
+      <select class="fi" id="pFlowerType">
+        <option value="natural_import">طبيعية مستوردة</option>
+        <option value="natural_local">طبيعية محلية</option>
+        <option value="artificial">اصطناعية</option>
+      </select>
+    </div>
+    <div class="fg" style="display:flex;align-items:center;gap:.6rem;">
+      <div class="tgl on" id="pActiveTgl" onclick="this.classList.toggle('on')"></div>
+      <span style="font-size:.85rem;">منتج نشط (يظهر في الموقع)</span>
+    </div>
+    <button class="btn btn-p" style="width:100%;" onclick="saveProduct()">💾 حفظ المنتج</button>
+  </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal-box">
+    <div class="modal-title"><span>تفاصيل الطلب</span><span class="modal-close" onclick="closeOrderModal()">✕</span></div>
+    <div id="orderModalBody"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// Fleurs by Liza — Shared Config
+// ═══════════════════════════════════════
+const SB_URL = 'https://ogtyvzqmifhkdoetumag.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM';
+const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY };
+
+async function sbGet(table, query) {
+  query = query || '';
+  const res = await fetch(SB_URL + '/rest/v1/' + table + query, { headers: SB_HEADERS });
+  if (!res.ok) {
+    const txt = await res.text().catch(function(){ return ''; });
+    throw new Error('GET ' + table + ' failed: ' + res.status + ' ' + txt);
+  }
+  return res.json();
+}
+
+async function sbPost(table, data) {
+  const headers = Object.assign({}, SB_HEADERS, {
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  });
+  const res = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbUpsert(table, data) {
+  const headers = Object.assign({}, SB_HEADERS, {
+    'Content-Type': 'application/json',
+    'Prefer': 'resolution=merge-duplicates,return=representation'
+  });
+  const res = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbPatch(table, filter, data) {
+  const headers = Object.assign({}, SB_HEADERS, { 'Content-Type': 'application/json' });
+  const res = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'PATCH', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function sbDelete(table, filter) {
+  const res = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'DELETE', headers: SB_HEADERS
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function getSetting(key) {
+  try {
+    const rows = await sbGet('settings', '?key=eq.' + key + '&select=value');
+    return rows && rows[0] ? rows[0].value : null;
+  } catch (e) {
+    console.error('getSetting(' + key + ') failed:', e);
+    return null;
+  }
+}
+
+async function setSetting(key, value) {
+  return sbUpsert('settings', { key: key, value: value, updated_at: new Date().toISOString() });
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtPrice(n) {
+  n = Number(n) || 0;
+  return n.toLocaleString('en-US');
+}
+
+function fmtCompact(n) {
+  n = Number(n) || 0;
+  if (n >= 1000) return (n/1000).toFixed(n%1000===0?0:1) + 'K';
+  return String(n);
+}
+
+
+// ═══════════════════════════════════════════════
+// Fleurs by Liza — Admin Logic
+// ═══════════════════════════════════════════════
+
+var SB_AUTH = SB_URL + '/auth/v1';
+var SEC = {
+  MAX_ATTEMPTS: 5,
+  LOCKOUT_MS: 15 * 60 * 1000,
+  SESSION_MS: 6 * 60 * 60 * 1000,
+  ATTEMPT_KEY: 'flz_attempts',
+  LOCKOUT_KEY: 'flz_lockout',
+  SESSION_KEY: 'flz_session',
+  TOKEN_KEY: 'flz_token'
+};
+
+// STATE
+var allProducts = [];
+var allOrders = [];
+var allWilayas = [];
+var enabledMethods = ['cod','ccp','cib','dahabia','iban','binance'];
+var currentPaymentInfo = {};
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 3000);
+}
+
+function togglePwd() {
+  var inp = document.getElementById('lpass');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ── SECURITY HELPERS ──
+function secGetAttempts(){ return parseInt(sessionStorage.getItem(SEC.ATTEMPT_KEY) || '0'); }
+function secSetAttempts(n){ sessionStorage.setItem(SEC.ATTEMPT_KEY, n); }
+function secIsLocked(){
+  var until = parseInt(sessionStorage.getItem(SEC.LOCKOUT_KEY) || '0');
+  if (!until) return false;
+  if (Date.now() < until) return true;
+  sessionStorage.removeItem(SEC.LOCKOUT_KEY);
+  return false;
+}
+function secSetLockout(){ sessionStorage.setItem(SEC.LOCKOUT_KEY, Date.now() + SEC.LOCKOUT_MS); }
+function secStartSession(){ sessionStorage.setItem(SEC.SESSION_KEY, Date.now()); }
+function secCheckSession(){
+  var start = parseInt(sessionStorage.getItem(SEC.SESSION_KEY) || '0');
+  if (!start) return false;
+  if (Date.now() - start > SEC.SESSION_MS) { sessionStorage.clear(); return false; }
+  return true;
+}
+
+// ── LOGIN ──
+async function doLogin() {
+  if (secIsLocked()) {
+    showLoginErr('🔒 الحساب مقفل مؤقتاً، حاولي لاحقاً');
+    return;
+  }
+  var email = document.getElementById('lemail').value.trim();
+  var pass = document.getElementById('lpass').value;
+  if (!email || !email.includes('@')) { showLoginErr('⚠️ أدخلي البريد الإلكتروني'); return; }
+  if (!pass || pass.length < 6) { showLoginErr('⚠️ كلمة السر قصيرة جداً'); return; }
+
+  var btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري التحقق...';
+  hideLoginErr();
+
+  try {
+    var res = await fetch(SB_AUTH + '/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SB_KEY },
+      body: JSON.stringify({ email: email, password: pass })
+    });
+    var data = await res.json();
+
+    if (res.ok && data.access_token) {
+      secSetAttempts(0);
+      sessionStorage.removeItem(SEC.LOCKOUT_KEY);
+      sessionStorage.setItem(SEC.TOKEN_KEY, data.access_token);
+      SB_HEADERS.Authorization = 'Bearer ' + data.access_token;
+      secStartSession();
+      enterApp();
+      return;
+    }
+
+    var attempts = secGetAttempts() + 1;
+    secSetAttempts(attempts);
+    if (attempts >= SEC.MAX_ATTEMPTS) {
+      secSetLockout();
+      showLoginErr('🔒 تم قفل الحساب 15 دقيقة بعد محاولات فاشلة كثيرة');
+    } else {
+      var errMsg = (data.error_description || data.msg || '').toLowerCase();
+      if (errMsg.includes('email not confirmed')) {
+        showLoginErr('⚠️ البريد غير مؤكد — أكّديه من Supabase Dashboard');
+      } else {
+        showLoginErr('❌ البريد أو كلمة السر خاطئة — ' + (SEC.MAX_ATTEMPTS - attempts) + ' محاولة متبقية');
+      }
+    }
+  } catch (e) {
+    showLoginErr('❌ خطأ في الاتصال — تحققي من الإنترنت');
+    console.error('Login error:', e);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'دخول 🔑';
+  }
+}
+
+function showLoginErr(msg) {
+  var el = document.getElementById('loginErr');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideLoginErr() {
+  document.getElementById('loginErr').style.display = 'none';
+}
+
+function enterApp() {
+  document.getElementById('login').classList.add('h');
+  document.getElementById('app').classList.add('show');
+  initAdminApp();
+}
+
+async function doLogout() {
+  var token = sessionStorage.getItem(SEC.TOKEN_KEY);
+  if (token) {
+    fetch(SB_AUTH + '/logout', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, apikey: SB_KEY }
+    }).catch(function(){});
+  }
+  sessionStorage.clear();
+  SB_HEADERS.Authorization = 'Bearer ' + SB_KEY;
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('login').classList.remove('h');
+  document.getElementById('lpass').value = '';
+}
+
+// ── NAVIGATION ──
+document.querySelectorAll('.sb-it').forEach(function(item){
+  item.addEventListener('click', function(){
+    var page = item.dataset.page;
+    document.querySelectorAll('.sb-it').forEach(function(i){ i.classList.remove('active'); });
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    item.classList.add('active');
+    var pageEl = document.getElementById('page-' + page);
+    if (pageEl) pageEl.classList.add('active');
+    document.getElementById('sidebar').classList.remove('open');
+    loadPageData(page);
+  });
+});
+
+function loadPageData(page) {
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'products') loadProducts();
+  if (page === 'orders') loadOrders();
+  if (page === 'receipts') loadReceipts();
+  if (page === 'delivery') loadDelivery();
+  if (page === 'payment') loadPaymentPage();
+  if (page === 'announcement') loadAnnouncementPage();
+  if (page === 'promos') loadPromos();
+  if (page === 'reports') loadReports();
+  if (page === 'settings') loadSettingsPage();
+}
+
+// ── BOOT ──
+document.addEventListener('DOMContentLoaded', function(){
+  var token = sessionStorage.getItem(SEC.TOKEN_KEY);
+  if (token && secCheckSession()) {
+    SB_HEADERS.Authorization = 'Bearer ' + token;
+    document.getElementById('login').classList.add('h');
+    document.getElementById('app').classList.add('show');
+    setTimeout(initAdminApp, 50);
+  } else {
+    sessionStorage.clear();
+  }
+  setTimeout(function(){
+    var ld = document.getElementById('loading');
+    if (ld) ld.classList.add('hide');
+  }, 300);
+});
+
+function initAdminApp() {
+  loadDashboard();
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+async function loadDashboard() {
+  var statsBox = document.getElementById('dashStats');
+  var tableBox = document.getElementById('dashOrdersTable');
+  try {
+    var orders = await sbGet('orders', '?order=created_at.desc&limit=200');
+    allOrders = orders || [];
+
+    var totalOrders = allOrders.length;
+    var newOrders = allOrders.filter(function(o){ return o.status === 'new'; }).length;
+    var revenue = allOrders.reduce(function(s,o){ return s + (Number(o.total)||0); }, 0);
+    var pending = allOrders.filter(function(o){ return o.payment_status === 'waiting_review'; }).length;
+
+    statsBox.innerHTML =
+      statCard('📦', totalOrders, 'إجمالي الطلبات') +
+      statCard('🆕', newOrders, 'طلبات جديدة') +
+      statCard('💰', fmtPrice(revenue) + ' دج', 'إجمالي الإيرادات') +
+      statCard('🧾', pending, 'إيصالات بانتظار المراجعة');
+
+    var last5 = allOrders.slice(0, 5);
+    if (!last5.length) {
+      tableBox.innerHTML = '<tr><td style="padding:1rem;color:#999;">لا توجد طلبات بعد</td></tr>';
+    } else {
+      var html = '<tr><th>رقم</th><th>الاسم</th><th>المنتج</th><th>المجموع</th><th>الحالة</th></tr>';
+      last5.forEach(function(o){
+        html += '<tr><td>#' + escapeHtml(o.id) + '</td><td>' + escapeHtml(o.name) + '</td><td>' +
+          escapeHtml(o.product||'') + '</td><td>' + fmtPrice(o.total) + ' دج</td><td>' + statusBadge(o.status) + '</td></tr>';
+      });
+      tableBox.innerHTML = html;
+    }
+  } catch (e) {
+    console.error('loadDashboard failed:', e);
+    statsBox.innerHTML = '<div style="color:#e74c3c;padding:1rem;">⚠️ خطأ: ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+function statCard(icon, value, label) {
+  return '<div class="card" style="text-align:center;"><div style="font-size:1.6rem;">' + icon + '</div>' +
+    '<div style="font-weight:800;font-size:1.2rem;margin:.3rem 0;">' + value + '</div>' +
+    '<div style="font-size:.72rem;color:#888;">' + label + '</div></div>';
+}
+
+function statusBadge(status) {
+  var map = {
+    new: ['badge-o','🆕 جديد'], confirmed: ['badge-b','✅ مؤكد'],
+    shipping: ['badge-b','🚚 توصيل'], delivered: ['badge-g','📦 وصل'],
+    cancelled: ['badge-r','❌ ملغى']
+  };
+  var m = map[status] || ['badge-gray', status || '—'];
+  return '<span class="badge ' + m[0] + '">' + m[1] + '</span>';
+}
+
+function payBadge(status) {
+  var map = {
+    pending: ['badge-o','⏳ معلق'], waiting_review: ['badge-o','🧾 مراجعة'],
+    paid: ['badge-g','✅ مدفوع'], rejected: ['badge-r','❌ مرفوض']
+  };
+  var m = map[status] || ['badge-gray', status || '—'];
+  return '<span class="badge ' + m[0] + '">' + m[1] + '</span>';
+}
+
+// ═══════════════════════════════════════════════
+// PRODUCTS
+// ═══════════════════════════════════════════════
+async function loadProducts() {
+  var grid = document.getElementById('productsGrid');
+  try {
+    var rows = await sbGet('products', '?order=created_at.desc');
+    allProducts = rows || [];
+    if (!allProducts.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#999;">لا توجد منتجات بعد</div>';
+      return;
+    }
+    var html = '';
+    allProducts.forEach(function(p){
+      var img = '';
+      if (p.media_items && p.media_items.length) {
+        for (var i=0;i<p.media_items.length;i++){ if(p.media_items[i] && p.media_items[i].type==='image'){ img=p.media_items[i].src; break; } }
+      }
+      html += '<div class="pcard-a">';
+      if (img) html += '<img src="' + img + '" alt="">';
+      else html += '<div class="ph">' + (p.emoji||'🌹') + '</div>';
+      html += '<div class="pcard-a-body">';
+      html += '<div class="pcard-a-name">' + escapeHtml(p.name) + '</div>';
+      html += '<div class="pcard-a-price">' + fmtPrice(p.price) + ' دج</div>';
+      html += '<div style="font-size:.68rem;color:' + (p.active!==false?'#27ae60':'#e74c3c') + ';">' + (p.active!==false?'✅ نشط':'⛔ معطل') + '</div>';
+      html += '<div class="pcard-a-actions">';
+      html += '<button class="btn-o btn-sm" onclick="editProduct(\'' + p.id + '\')">✏️</button>';
+      html += '<button class="btn-o btn-sm" onclick="toggleProductActive(\'' + p.id + '\',' + (p.active!==false) + ')">' + (p.active!==false?'⏸️':'▶️') + '</button>';
+      html += '<button class="btn-d btn-sm" onclick="deleteProduct(\'' + p.id + '\')">🗑️</button>';
+      html += '</div></div></div>';
+    });
+    grid.innerHTML = html;
+  } catch (e) {
+    console.error('loadProducts failed:', e);
+    grid.innerHTML = '<div style="grid-column:1/-1;color:#e74c3c;padding:1rem;">⚠️ ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+function openProductModal() {
+  document.getElementById('productModalTitle').textContent = 'إضافة منتج';
+  document.getElementById('pId').value = '';
+  document.getElementById('pName').value = '';
+  document.getElementById('pPrice').value = '';
+  document.getElementById('pOldPrice').value = '';
+  document.getElementById('pDesc').value = '';
+  document.getElementById('pEmoji').value = '🌹';
+  document.getElementById('pImageUrl').value = '';
+  document.getElementById('pFlowerType').value = 'natural_import';
+  document.getElementById('pActiveTgl').classList.add('on');
+  document.getElementById('productModal').classList.add('show');
+}
+function closeProductModal() {
+  document.getElementById('productModal').classList.remove('show');
+}
+function editProduct(id) {
+  var p = allProducts.find(function(x){ return x.id === id; });
+  if (!p) return;
+  document.getElementById('productModalTitle').textContent = 'تعديل منتج';
+  document.getElementById('pId').value = p.id;
+  document.getElementById('pName').value = p.name || '';
+  document.getElementById('pPrice').value = p.price || '';
+  document.getElementById('pOldPrice').value = p.old_price || '';
+  document.getElementById('pDesc').value = p.description || '';
+  document.getElementById('pEmoji').value = p.emoji || '🌹';
+  var img = '';
+  if (p.media_items && p.media_items[0]) img = p.media_items[0].src || '';
+  document.getElementById('pImageUrl').value = img;
+  document.getElementById('pFlowerType').value = p.flower_type || 'natural_import';
+  var tgl = document.getElementById('pActiveTgl');
+  if (p.active !== false) tgl.classList.add('on'); else tgl.classList.remove('on');
+  document.getElementById('productModal').classList.add('show');
+}
+
+async function saveProduct() {
+  var id = document.getElementById('pId').value || ('p' + Date.now());
+  var name = document.getElementById('pName').value.trim();
+  var price = parseInt(document.getElementById('pPrice').value) || 0;
+  if (!name) { showToast('⚠️ أدخلي اسم المنتج'); return; }
+  if (!price) { showToast('⚠️ أدخلي سعر صحيح'); return; }
+
+  var imageUrl = document.getElementById('pImageUrl').value.trim();
+  var data = {
+    id: id,
+    name: name,
+    price: price,
+    old_price: parseInt(document.getElementById('pOldPrice').value) || 0,
+    description: document.getElementById('pDesc').value.trim(),
+    emoji: document.getElementById('pEmoji').value.trim() || '🌹',
+    flower_type: document.getElementById('pFlowerType').value,
+    active: document.getElementById('pActiveTgl').classList.contains('on'),
+    media_items: imageUrl ? [{ type:'image', src: imageUrl }] : [],
+    created_at: new Date().toISOString()
+  };
+
+  try {
+    await sbUpsert('products', data);
+    showToast('✅ تم حفظ المنتج');
+    closeProductModal();
+    loadProducts();
+  } catch (e) {
+    console.error('saveProduct failed:', e);
+    showToast('❌ خطأ: ' + e.message);
+  }
+}
+
+async function toggleProductActive(id, currentlyActive) {
+  try {
+    await sbPatch('products', 'id=eq.' + encodeURIComponent(id), { active: !currentlyActive });
+    showToast(!currentlyActive ? '✅ تم التفعيل' : '⏸️ تم التعطيل');
+    loadProducts();
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+
+async function deleteProduct(id) {
+  if (!confirm('هل تريدين حذف هذا المنتج نهائياً؟')) return;
+  try {
+    await sbDelete('products', 'id=eq.' + encodeURIComponent(id));
+    showToast('🗑️ تم الحذف');
+    loadProducts();
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+
+// ═══════════════════════════════════════════════
+// ORDERS
+// ═══════════════════════════════════════════════
+async function loadOrders() {
+  var box = document.getElementById('ordersTable');
+  try {
+    var rows = await sbGet('orders', '?order=created_at.desc&limit=200');
+    allOrders = rows || [];
+    if (!allOrders.length) {
+      box.innerHTML = '<tr><td style="padding:1rem;color:#999;">لا توجد طلبات</td></tr>';
+      return;
+    }
+    var html = '<tr><th>رقم</th><th>الاسم</th><th>الهاتف</th><th>المنتج</th><th>المجموع</th><th>الدفع</th><th>الحالة</th><th></th></tr>';
+    allOrders.forEach(function(o){
+      html += '<tr style="cursor:pointer;" onclick="viewOrder(\'' + o.id + '\')">';
+      html += '<td>#' + escapeHtml(o.id) + '</td><td>' + escapeHtml(o.name) + '</td><td>' + escapeHtml(o.phone) + '</td>';
+      html += '<td>' + escapeHtml(o.product||'') + '</td><td>' + fmtPrice(o.total) + ' دج</td>';
+      html += '<td>' + payBadge(o.payment_status) + '</td><td>' + statusBadge(o.status) + '</td>';
+      html += '<td>👁️</td></tr>';
+    });
+    box.innerHTML = html;
+  } catch (e) {
+    console.error('loadOrders failed:', e);
+    box.innerHTML = '<tr><td style="color:#e74c3c;padding:1rem;">⚠️ ' + escapeHtml(e.message) + '</td></tr>';
+  }
+}
+
+function viewOrder(id) {
+  var o = allOrders.find(function(x){ return x.id === id; });
+  if (!o) return;
+  var html = '<div class="fg"><b>الاسم:</b> ' + escapeHtml(o.name) + '</div>';
+  html += '<div class="fg"><b>الهاتف:</b> ' + escapeHtml(o.phone) + '</div>';
+  html += '<div class="fg"><b>العنوان:</b> ' + escapeHtml(o.wilaya||'') + ' - ' + escapeHtml(o.commune||'') + ' - ' + escapeHtml(o.address||'') + '</div>';
+  html += '<div class="fg"><b>المنتج:</b> ' + escapeHtml(o.product||'') + ' ×' + (o.qty||1) + '</div>';
+  if (o.color) html += '<div class="fg"><b>اللون:</b> ' + escapeHtml(o.color) + '</div>';
+  html += '<div class="fg"><b>المجموع:</b> ' + fmtPrice(o.total) + ' دج</div>';
+  html += '<div class="fg"><b>طريقة الدفع:</b> ' + escapeHtml(o.payment_method||'') + ' — ' + payBadge(o.payment_status) + '</div>';
+  if (o.note) html += '<div class="fg"><b>ملاحظة:</b> ' + escapeHtml(o.note) + '</div>';
+  if (o.receipt_url) html += '<div class="fg"><b>الإيصال:</b><br><img src="' + o.receipt_url + '" style="max-width:100%;border-radius:.6rem;margin-top:.4rem;"></div>';
+
+  html += '<div class="fg"><label class="fl">تحديث الحالة</label><select class="fi" id="orderStatusSelect">';
+  ['new','confirmed','shipping','delivered','cancelled'].forEach(function(s){
+    html += '<option value="' + s + '"' + (o.status===s?' selected':'') + '>' + s + '</option>';
+  });
+  html += '</select></div>';
+  html += '<button class="btn btn-p" style="width:100%;" onclick="updateOrderStatus(\'' + o.id + '\')">💾 تحديث الحالة</button>';
+
+  document.getElementById('orderModalBody').innerHTML = html;
+  document.getElementById('orderModal').classList.add('show');
+}
+function closeOrderModal() { document.getElementById('orderModal').classList.remove('show'); }
+
+async function updateOrderStatus(id) {
+  var status = document.getElementById('orderStatusSelect').value;
+  try {
+    await sbPatch('orders', 'id=eq.' + encodeURIComponent(id), { status: status });
+    showToast('✅ تم تحديث الحالة');
+    closeOrderModal();
+    loadOrders();
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+
+// ═══════════════════════════════════════════════
+// RECEIPTS REVIEW
+// ═══════════════════════════════════════════════
+async function loadReceipts() {
+  var grid = document.getElementById('receiptsGrid');
+  try {
+    var rows = await sbGet('orders', '?payment_status=eq.waiting_review&order=created_at.desc');
+    if (!rows || !rows.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:#999;">لا توجد إيصالات بانتظار المراجعة 🎉</div>';
+      return;
+    }
+    var html = '';
+    rows.forEach(function(o){
+      html += '<div class="pcard-a">';
+      if (o.receipt_url) html += '<img src="' + o.receipt_url + '" alt="">';
+      else html += '<div class="ph">🧾</div>';
+      html += '<div class="pcard-a-body">';
+      html += '<div class="pcard-a-name">#' + escapeHtml(o.id) + '</div>';
+      html += '<div style="font-size:.75rem;">' + escapeHtml(o.name) + '</div>';
+      html += '<div class="pcard-a-price">' + fmtPrice(o.total) + ' دج</div>';
+      html += '<div class="pcard-a-actions">';
+      html += '<button class="btn-g btn-sm" onclick="approveReceipt(\'' + o.id + '\')">✅ قبول</button>';
+      html += '<button class="btn-d btn-sm" onclick="rejectReceipt(\'' + o.id + '\')">❌ رفض</button>';
+      html += '</div></div></div>';
+    });
+    grid.innerHTML = html;
+  } catch (e) {
+    console.error('loadReceipts failed:', e);
+    grid.innerHTML = '<div style="color:#e74c3c;padding:1rem;">⚠️ ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+async function approveReceipt(id) {
+  try {
+    await sbPatch('orders', 'id=eq.' + encodeURIComponent(id), { payment_status: 'paid', status: 'confirmed' });
+    showToast('✅ تم قبول الإيصال');
+    loadReceipts();
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+async function rejectReceipt(id) {
+  var reason = prompt('سبب الرفض (سيظهر للزبونة):') || 'الإيصال غير واضح';
+  try {
+    await sbPatch('orders', 'id=eq.' + encodeURIComponent(id), { payment_status: 'rejected', reject_reason: reason });
+    showToast('❌ تم رفض الإيصال');
+    loadReceipts();
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+
+// ═══════════════════════════════════════════════
+// DELIVERY — 58 WILAYAS
+// ═══════════════════════════════════════════════
+async function loadDelivery() {
+  var box = document.getElementById('deliveryTable');
+  try {
+    var rows = await sbGet('delivery_prices', '?order=wilaya_id.asc');
+    allWilayas = rows || [];
+    renderDeliveryTable();
+  } catch (e) {
+    console.error('loadDelivery failed:', e);
+    box.innerHTML = '<tr><td style="color:#e74c3c;padding:1rem;">⚠️ ' + escapeHtml(e.message) + '</td></tr>';
+  }
+}
+
+function renderDeliveryTable() {
+  var box = document.getElementById('deliveryTable');
+  var search = (document.getElementById('delivSearch').value || '').trim();
+  var list = allWilayas;
+  if (search) {
+    list = allWilayas.filter(function(w){ return w.wilaya_name.indexOf(search) !== -1 || String(w.wilaya_id).indexOf(search) !== -1; });
+  }
+  if (!list.length) { box.innerHTML = '<tr><td style="padding:1rem;color:#999;">لا توجد نتائج</td></tr>'; return; }
+
+  var html = '<tr><th>#</th><th>الولاية</th><th>سعر منزل</th><th>سعر مكتب</th><th></th></tr>';
+  list.forEach(function(w){
+    html += '<tr>';
+    html += '<td>' + String(w.wilaya_id).padStart(2,'0') + '</td>';
+    html += '<td>' + escapeHtml(w.wilaya_name) + '</td>';
+    html += '<td><input class="fi" style="width:80px;padding:.3rem .5rem;" id="dh_' + w.wilaya_id + '" type="number" value="' + (w.home_price||0) + '"></td>';
+    html += '<td><input class="fi" style="width:80px;padding:.3rem .5rem;" id="do_' + w.wilaya_id + '" type="number" value="' + (w.office_price||0) + '"></td>';
+    html += '<td><button class="btn-p btn-sm" onclick="saveWilayaPrice(' + w.wilaya_id + ')">💾</button></td>';
+    html += '</tr>';
+  });
+  box.innerHTML = html;
+}
+
+async function saveWilayaPrice(wid) {
+  var home = parseInt(document.getElementById('dh_' + wid).value) || 0;
+  var office = parseInt(document.getElementById('do_' + wid).value) || 0;
+  try {
+    await sbPatch('delivery_prices', 'wilaya_id=eq.' + wid, { home_price: home, office_price: office });
+    var w = allWilayas.find(function(x){ return x.wilaya_id === wid; });
+    if (w) { w.home_price = home; w.office_price = office; }
+    showToast('✅ تم الحفظ');
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+
+// ═══════════════════════════════════════════════
+// PAYMENT METHODS & INFO
+// ═══════════════════════════════════════════════
+var PAY_METHOD_LIST = [
+  { key:'cod', name:'الدفع عند الاستلام', icon:'💵' },
+  { key:'ccp', name:'CCP / Baridimob', icon:'🏦' },
+  { key:'cib', name:'بطاقة CIB', icon:'💳' },
+  { key:'dahabia', name:'بريد Dahabia', icon:'💚' },
+  { key:'iban', name:'IBAN دولي EUR', icon:'🌍' },
+  { key:'binance', name:'Binance / USDT', icon:'🟡' }
+];
+
+async function loadPaymentPage() {
+  try {
+    var info = await getSetting('payment_info');
+    if (info) {
+      currentPaymentInfo = info;
+      setVal('piHolder', info.holder); setVal('piCCP', info.ccp); setVal('piBaridi', info.baridimob);
+      setVal('piRIP', info.rip); setVal('piIBANHolder', info.iban_holder); setVal('piIBAN', info.iban);
+      setVal('piSWIFT', info.swift); setVal('piEURRate', info.eur_rate);
+      setVal('piBinanceID', info.binance_id); setVal('piBinanceAddr', info.binance_addr);
+      setVal('piWhatsapp', info.whatsapp); setVal('piInstagram', info.instagram); setVal('piFacebook', info.facebook);
+    }
+  } catch (e) { console.error('payment_info load failed:', e); }
+
+  try {
+    var methods = await getSetting('enabled_payment_methods');
+    if (Array.isArray(methods) && methods.length) enabledMethods = methods;
+  } catch (e) { console.error('enabled_payment_methods load failed:', e); }
+
+  renderPaymentToggles();
+}
+
+function setVal(id, val) {
+  var el = document.getElementById(id);
+  if (el && val !== undefined && val !== null) el.value = val;
+}
+
+function renderPaymentToggles() {
+  var box = document.getElementById('paymentToggles');
+  var html = '';
+  PAY_METHOD_LIST.forEach(function(m){
+    var on = enabledMethods.indexOf(m.key) !== -1;
+    html += '<div class="card" style="padding:.9rem;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+    html += '<span style="font-size:.85rem;font-weight:600;">' + m.icon + ' ' + m.name + '</span>';
+    html += '<div class="tgl' + (on?' on':'') + '" onclick="togglePaymentMethod(\'' + m.key + '\', this)"></div>';
+    html += '</div></div>';
+  });
+  box.innerHTML = html;
+}
+
+async function togglePaymentMethod(key, el) {
+  el.classList.toggle('on');
+  var isOn = el.classList.contains('on');
+  if (isOn) {
+    if (enabledMethods.indexOf(key) === -1) enabledMethods.push(key);
+  } else {
+    enabledMethods = enabledMethods.filter(function(k){ return k !== key; });
+  }
+  try {
+    await setSetting('enabled_payment_methods', enabledMethods);
+    showToast(isOn ? '✅ تم تفعيل الطريقة' : '⛔ تم تعطيل الطريقة');
+  } catch (e) {
+    showToast('❌ خطأ في الحفظ: ' + e.message);
+    el.classList.toggle('on'); // revert visually
+  }
+}
+
+async function savePaymentInfo() {
+  var data = {
+    holder: getVal('piHolder'), ccp: getVal('piCCP'), baridimob: getVal('piBaridi'), rip: getVal('piRIP'),
+    iban_holder: getVal('piIBANHolder'), iban: getVal('piIBAN'), swift: getVal('piSWIFT'),
+    eur_rate: parseInt(getVal('piEURRate')) || 270,
+    binance_id: getVal('piBinanceID'), binance_addr: getVal('piBinanceAddr'), binance_network: 'TRC20',
+    whatsapp: getVal('piWhatsapp'), instagram: getVal('piInstagram'), facebook: getVal('piFacebook')
+  };
+  try {
+    await setSetting('payment_info', data);
+    currentPaymentInfo = data;
+    showToast('✅ تم حفظ معلومات الدفع');
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+function getVal(id) {
+  var el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+// ═══════════════════════════════════════════════
+// ANNOUNCEMENT
+// ═══════════════════════════════════════════════
+async function loadAnnouncementPage() {
+  try {
+    var s = await getSetting('announcement');
+    if (s) {
+      setVal('annTextInput', s.text);
+      setVal('annColorInput', s.color || '#e91e8c');
+      setVal('annBgInput', s.bg || '#fce4f3');
+      var tgl = document.getElementById('annEnabledTgl');
+      if (s.enabled !== false) tgl.classList.add('on'); else tgl.classList.remove('on');
+    }
+    updateAnnPreview();
+  } catch (e) { console.error('loadAnnouncementPage failed:', e); }
+
+  ['annTextInput','annColorInput','annBgInput'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', updateAnnPreview);
+  });
+}
+function updateAnnPreview() {
+  var box = document.getElementById('annPreviewBox');
+  box.textContent = getVal('annTextInput') || '🌹 معاينة الإعلان';
+  box.style.color = getVal('annColorInput') || '#e91e8c';
+  box.style.background = getVal('annBgInput') || '#fce4f3';
+}
+async function saveAnnouncement() {
+  var data = {
+    text: getVal('annTextInput') || '🌹 مرحباً بكم في Fleurs by Liza',
+    color: getVal('annColorInput') || '#e91e8c',
+    bg: getVal('annBgInput') || '#fce4f3',
+    enabled: document.getElementById('annEnabledTgl').classList.contains('on')
+  };
+  try {
+    await setSetting('announcement', data);
+    showToast('✅ تم حفظ الإعلان');
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+
+// ═══════════════════════════════════════════════
+// PROMOS
+// ═══════════════════════════════════════════════
+async function loadPromos() {
+  var box = document.getElementById('promosTable');
+  try {
+    var promos = await getSetting('promos') || [];
+    if (!promos.length) { box.innerHTML = '<tr><td style="padding:1rem;color:#999;">لا توجد أكواد خصم بعد</td></tr>'; return; }
+    var html = '<tr><th>الكود</th><th>القيمة</th><th></th></tr>';
+    promos.forEach(function(p){
+      html += '<tr><td><b>' + escapeHtml(p.code) + '</b></td>';
+      html += '<td>' + (p.type==='percent' ? p.value+'%' : fmtPrice(p.value)+' دج') + '</td>';
+      html += '<td><button class="btn-d btn-sm" onclick="deletePromo(\'' + p.code + '\')">🗑️</button></td></tr>';
+    });
+    box.innerHTML = html;
+  } catch (e) {
+    console.error('loadPromos failed:', e);
+    box.innerHTML = '<tr><td style="color:#e74c3c;">⚠️ ' + escapeHtml(e.message) + '</td></tr>';
+  }
+}
+async function addPromo() {
+  var code = getVal('promoCode').toUpperCase();
+  var type = document.getElementById('promoType').value;
+  var value = parseInt(getVal('promoValue')) || 0;
+  if (!code) { showToast('⚠️ أدخلي الكود'); return; }
+  if (!value) { showToast('⚠️ أدخلي القيمة'); return; }
+  try {
+    var current = await getSetting('promos') || [];
+    current = current.filter(function(p){ return p.code !== code; });
+    current.push({ code: code, type: type, value: value, active: true });
+    await setSetting('promos', current);
+    showToast('✅ تم إضافة الكود');
+    document.getElementById('promoCode').value = '';
+    document.getElementById('promoValue').value = '';
+    loadPromos();
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+async function deletePromo(code) {
+  try {
+    var current = await getSetting('promos') || [];
+    current = current.filter(function(p){ return p.code !== code; });
+    await setSetting('promos', current);
+    showToast('🗑️ تم الحذف');
+    loadPromos();
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+
+// ═══════════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════════
+async function loadReports() {
+  var box = document.getElementById('reportStats');
+  try {
+    var orders = await sbGet('orders', '?order=created_at.desc&limit=500');
+    var delivered = orders.filter(function(o){ return o.status !== 'cancelled'; });
+    var revenue = delivered.reduce(function(s,o){ return s + (Number(o.total)||0); }, 0);
+    var avgOrder = delivered.length ? Math.round(revenue / delivered.length) : 0;
+    var now = new Date();
+    var thisMonth = delivered.filter(function(o){
+      var d = new Date(o.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    var monthRevenue = thisMonth.reduce(function(s,o){ return s + (Number(o.total)||0); }, 0);
+
+    box.innerHTML =
+      statCard('💰', fmtPrice(revenue) + ' دج', 'إجمالي الإيرادات') +
+      statCard('📅', fmtPrice(monthRevenue) + ' دج', 'إيرادات هذا الشهر') +
+      statCard('📦', delivered.length, 'إجمالي الطلبات') +
+      statCard('📊', fmtPrice(avgOrder) + ' دج', 'متوسط الطلب');
+  } catch (e) {
+    console.error('loadReports failed:', e);
+    box.innerHTML = '<div style="color:#e74c3c;padding:1rem;">⚠️ ' + escapeHtml(e.message) + '</div>';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// GENERAL SETTINGS
+// ═══════════════════════════════════════════════
+async function loadSettingsPage() {
+  try {
+    var s = await getSetting('social_stats');
+    if (s) { setVal('setIG', s.instagram); setVal('setFB', s.facebook); }
+  } catch (e) { console.error('loadSettingsPage failed:', e); }
+}
+async function saveSocialStats() {
+  var data = { instagram: parseInt(getVal('setIG'))||0, facebook: parseInt(getVal('setFB'))||0 };
+  try {
+    await setSetting('social_stats', data);
+    showToast('✅ تم الحفظ');
+  } catch (e) { showToast('❌ خطأ: ' + e.message); }
+}
+
+</script>
+</body>
+</html>
