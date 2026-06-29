@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleurs by Liza — باقات الورد الفاخرة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Montserrat:wght@400;600;700;800&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<style>
+:root{--pk:#e91e8c;--pkl:#f8bbd0;--pkp:#fce4f3;--blk:#111;--mt:#888;--bd:rgba(0,0,0,.08);--gn:#27ae60;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Tajawal',sans-serif;color:#1a1a2e;background:#fff;overflow-x:hidden;}
+img{max-width:100%;display:block;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--bd);flex-wrap:wrap;gap:.75rem;position:relative;z-index:50;background:#fff;}
+.logo{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;}
+.logo span{color:var(--pk);}
+.logo small{display:block;font-size:.55rem;letter-spacing:.2em;color:var(--mt);font-weight:400;}
+nav{display:flex;gap:1.2rem;font-size:.85rem;flex-wrap:wrap;}
+.social-link{background:var(--pkp);color:var(--pk);padding:.4rem .9rem;border-radius:2rem;font-size:.78rem;font-weight:700;}
+
+#annBar{display:none;text-align:center;padding:.55rem 1rem;font-size:.8rem;font-weight:600;position:relative;z-index:40;}
+
+.hero{position:relative;padding:4rem 1.5rem 5rem;text-align:center;background:radial-gradient(ellipse at top,#fff5fa 0%,#fce4f3 60%,#f8bbd0 100%);overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-100px;right:-100px;width:300px;height:300px;background:radial-gradient(circle,rgba(233,30,140,.12),transparent 70%);border-radius:50%;}
+.hero::after{content:'';position:absolute;bottom:-150px;left:-100px;width:350px;height:350px;background:radial-gradient(circle,rgba(248,187,208,.4),transparent 70%);border-radius:50%;}
+.hero-inner{position:relative;z-index:2;max-width:640px;margin:0 auto;}
+.hero-tag{color:var(--pk);font-size:.74rem;font-weight:700;letter-spacing:.2em;margin-bottom:1rem;}
+.hero-emoji-orb{width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,#fff,var(--pkl));display:flex;align-items:center;justify-content:center;font-size:4.5rem;margin:0 auto 1.5rem;box-shadow:0 20px 50px rgba(233,30,140,.25);position:relative;}
+.hero-badge{position:absolute;top:-10px;left:-10px;background:#fff;border-radius:1rem;padding:.5rem .8rem;font-size:.7rem;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.1);}
+.hero-badge2{position:absolute;bottom:-10px;right:-30px;background:#fff;border-radius:1rem;padding:.55rem .9rem;font-size:.72rem;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.1);text-align:right;}
+.hero h1{font-family:'Montserrat',sans-serif;font-weight:800;font-size:2rem;line-height:1.3;margin-bottom:.7rem;}
+.hero h1 em{font-style:normal;color:var(--pk);}
+.hero p{color:#555;font-size:.92rem;margin-bottom:1.8rem;line-height:1.7;}
+.hero-btns{display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem;}
+.hero-btn{background:var(--pk);color:#fff;padding:.9rem 2.1rem;border-radius:2rem;font-weight:700;font-size:.92rem;box-shadow:0 12px 30px rgba(233,30,140,.3);}
+.hero-btn-o{background:#fff;color:var(--pk);border:1.5px solid var(--pk);padding:.9rem 1.6rem;border-radius:2rem;font-weight:700;font-size:.85rem;}
+.hero-stats{display:flex;justify-content:center;gap:2.2rem;flex-wrap:wrap;}
+.hstat{text-align:center;}
+.hstat b{display:block;font-family:'Montserrat',sans-serif;font-size:1.5rem;color:var(--pk);font-weight:800;}
+.hstat span{font-size:.72rem;color:var(--mt);}
+
+.marquee{background:var(--blk);color:#fff;padding:.7rem 0;overflow:hidden;white-space:nowrap;position:relative;}
+.marquee-track{display:inline-flex;gap:3rem;animation:scroll 22s linear infinite;}
+.marquee-track span{font-size:.78rem;font-weight:600;letter-spacing:.05em;display:inline-flex;align-items:center;gap:.6rem;}
+@keyframes scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+.section{padding:3rem 1.5rem;}
+.section-tag{text-align:center;color:var(--pk);font-size:.72rem;font-weight:700;letter-spacing:.18em;margin-bottom:.5rem;}
+.section-title{text-align:center;font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.6rem;margin-bottom:.5rem;}
+.divider{display:flex;align-items:center;justify-content:center;gap:.7rem;margin-bottom:2rem;}
+.divider span{width:40px;height:1px;background:var(--bd);}
+
+.filters{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem;}
+.fbtn{padding:.55rem 1.15rem;border:1.5px solid var(--bd);border-radius:2rem;font-size:.8rem;font-weight:600;background:#fff;transition:.2s;}
+.fbtn.active{background:var(--pk);color:#fff;border-color:var(--pk);box-shadow:0 8px 20px rgba(233,30,140,.25);}
+
+#prodGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1.1rem;}
+.pcard{border-radius:1.2rem;overflow:hidden;background:#fff;transition:.25s;box-shadow:0 2px 16px rgba(0,0,0,.05);border:1px solid var(--bd);}
+.pcard:active{transform:scale(.97);}
+.pcard-img{aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--pkp),var(--pkl));}
+.pcard-img img{width:100%;height:100%;object-fit:cover;}
+.pcard-img .emoji{font-size:3.2rem;}
+.pcard-badge{position:absolute;top:.6rem;right:.6rem;background:var(--pk);color:#fff;font-size:.62rem;font-weight:700;padding:.25rem .6rem;border-radius:1rem;}
+.pcard-body{padding:.9rem;}
+.pcard-name{font-weight:700;font-size:.88rem;margin-bottom:.4rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pcard-price-row{display:flex;align-items:baseline;gap:.4rem;}
+.pcard-price{font-family:'Montserrat',sans-serif;font-weight:800;color:var(--pk);font-size:1rem;}
+.pcard-old{text-decoration:line-through;color:var(--mt);font-size:.74rem;font-weight:400;}
+.pcard-eur{font-size:.68rem;color:var(--mt);margin-top:.15rem;}
+.empty-msg{grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--mt);font-size:.85rem;}
+.err-msg{grid-column:1/-1;text-align:center;padding:3rem 1rem;color:#e74c3c;font-size:.85rem;}
+.retry-btn{margin-top:.85rem;padding:.45rem 1.2rem;border:1px solid var(--pk);border-radius:2rem;background:none;color:var(--pk);font-size:.8rem;}
+
+.track-section{background:linear-gradient(135deg,#fafafa,var(--pkp) 200%);}
+.track-box{background:#fff;border-radius:1.5rem;padding:2.2rem 1.8rem;text-align:center;max-width:520px;margin:0 auto;box-shadow:0 10px 40px rgba(0,0,0,.06);}
+.track-row{display:flex;gap:.6rem;max-width:420px;margin:1.2rem auto 0;}
+.track-row input{flex:1;padding:.75rem 1.1rem;border-radius:2rem;border:1.5px solid var(--bd);font-size:.85rem;}
+.track-row input:focus{outline:none;border-color:var(--pk);}
+.track-row button{background:var(--pk);color:#fff;padding:.75rem 1.5rem;border-radius:2rem;font-weight:700;font-size:.85rem;white-space:nowrap;}
+#trackResult{margin-top:1.2rem;font-size:.85rem;text-align:right;}
+
+.story-section{background:linear-gradient(180deg,#fff,var(--pkp));padding:3.5rem 1.5rem;}
+.story-grid{display:grid;gap:2rem;max-width:1000px;margin:0 auto;}
+.story-text p{color:#555;font-size:.88rem;line-height:1.8;margin-bottom:1.2rem;}
+.feature-list{display:flex;flex-direction:column;gap:.8rem;}
+.feature-item{background:#fff;border-radius:1rem;padding:1rem 1.2rem;display:flex;align-items:center;gap:.9rem;box-shadow:0 4px 16px rgba(0,0,0,.04);}
+.feature-item .ico{width:42px;height:42px;background:var(--pkp);border-radius:.8rem;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.feature-item b{display:block;font-size:.85rem;}
+.feature-item span{font-size:.74rem;color:var(--mt);}
+.story-card{background:linear-gradient(135deg,var(--pk),#c2185b);border-radius:1.5rem;padding:2rem;color:#fff;text-align:center;position:relative;overflow:hidden;}
+.story-card .rose{font-size:2.5rem;margin-bottom:.6rem;}
+.story-card h3{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:.3rem;}
+.story-card small{opacity:.8;font-size:.75rem;}
+.story-mini-stats{display:flex;gap:.8rem;margin-top:1.5rem;}
+.mini-stat{flex:1;background:#fff;border-radius:1rem;padding:1rem;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.04);}
+.mini-stat.dark{background:var(--blk);color:#fff;}
+.mini-stat b{display:block;font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.3rem;}
+.mini-stat span{font-size:.68rem;color:var(--mt);}
+.mini-stat.dark span{color:rgba(255,255,255,.6);}
+
+.rev-grid{display:grid;gap:1rem;max-width:700px;margin:0 auto;}
+.rev-card{background:#fafafa;border-radius:1.1rem;padding:1.3rem;}
+.rev-stars{color:#f5a623;font-size:.85rem;margin-bottom:.5rem;}
+.rev-text{font-size:.85rem;color:#444;margin-bottom:.6rem;line-height:1.6;}
+.rev-name{font-weight:700;font-size:.78rem;}
+
+.cta-section{background:linear-gradient(135deg,var(--pk),#c2185b);padding:3.5rem 1.5rem;text-align:center;color:#fff;}
+.cta-section h2{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.6rem;margin-bottom:.6rem;}
+.cta-section p{opacity:.85;font-size:.85rem;margin-bottom:1.5rem;}
+.cta-btn{background:#fff;color:var(--pk);padding:.9rem 2.2rem;border-radius:2rem;font-weight:700;font-size:.92rem;display:inline-block;}
+
+footer{background:var(--blk);color:#fff;text-align:center;padding:2.5rem 1.5rem;}
+footer .f-logo{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:.8rem;}
+footer .f-logo span{color:var(--pk);}
+.f-links{display:flex;justify-content:center;gap:1.2rem;margin-bottom:1rem;font-size:.8rem;flex-wrap:wrap;}
+.f-links a{opacity:.7;}
+footer small{opacity:.4;font-size:.65rem;}
+
+#loadingScreen{position:fixed;inset:0;background:#fff;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;transition:opacity .3s;}
+#loadingScreen.hide{opacity:0;pointer-events:none;}
+.ld-logo{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;}
+.ld-logo span{color:var(--pk);}
+.ld-dots{display:flex;gap:.4rem;}
+.ld-dots span{width:8px;height:8px;border-radius:50%;background:var(--pk);animation:bounce 1.2s infinite;}
+.ld-dots span:nth-child(2){animation-delay:.2s;}
+.ld-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,80%,100%{opacity:.3;transform:translateY(0);}40%{opacity:1;transform:translateY(-6px);}}
+
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--blk);color:#fff;padding:.7rem 1.4rem;border-radius:2rem;font-size:.82rem;display:none;z-index:1000;}
+
+@media(min-width:768px){.story-grid{grid-template-columns:1.1fr .9fr;align-items:center;}}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen">
+  <div class="ld-logo">Fleur<span>❀</span>by liza</div>
+  <div class="ld-dots"><span></span><span></span><span></span></div>
+</div>
+
+<div id="annBar"></div>
+
+<header>
+  <div class="logo">Fleur<span>❀</span>by liza<small>FLOWER SHOP</small></div>
+  <nav>
+    <a href="#products">الباقات</a>
+    <a href="#story">قصتنا</a>
+    <a href="#reviews">التقييمات</a>
+    <a href="#track">تتبع الطلب</a>
+  </nav>
+  <a class="social-link" href="https://instagram.com/fleurs_byliza" target="_blank">fleurs_byliza 📸</a>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">✦ FRAÎCHEUR &amp; ÉLÉGANCE ✦</div>
+    <div class="hero-emoji-orb">
+      🌹
+      <div class="hero-badge">⭐ 5/4.9</div>
+      <div class="hero-badge2">🚚 توصيل سريع — 58 ولاية</div>
+    </div>
+    <h1>باقات الورد <em>الفاخرة</em> لكل مناسبة</h1>
+    <p>ورود طازجة مستوردة، تغليف أنيق، وتوصيل سريع لكل الجزائر</p>
+    <div class="hero-btns">
+      <a href="#products" class="hero-btn">🌹 اكتشفي الباقات</a>
+      <a href="#track" class="hero-btn-o">تتبعي طلبك</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hstat"><b id="statOrders">5K+</b><span>طلب ناجح</span></div>
+      <div class="hstat"><b id="statFB">44K</b><span>Facebook</span></div>
+      <div class="hstat"><b id="statIG">118K</b><span>Instagram</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee">
+  <div class="marquee-track">
+    <span>🌹 FLEURS BY LIZA</span><span>✦</span>
+    <span>ورد مستورد طازج</span><span>✦</span>
+    <span>توصيل سريع</span><span>✦</span>
+    <span>🌹 FLEURS BY LIZA</span><span>✦</span>
+    <span>ورد مستورد طازج</span><span>✦</span>
+    <span>توصيل سريع</span><span>✦</span>
+  </div>
+</div>
+
+<section class="section" id="products">
+  <div class="section-tag">✦ NOS BOUQUETS ✦</div>
+  <div class="section-title">باقات مختارة بعناية</div>
+  <div class="divider"><span></span>🌹<span></span></div>
+  <div class="filters" id="filterBar">
+    <button class="fbtn active" data-f="all">🌹 الكل</button>
+    <button class="fbtn" data-f="natural_import">🌹 طبيعية مستوردة</button>
+    <button class="fbtn" data-f="natural_local">🌿 طبيعية محلية</button>
+    <button class="fbtn" data-f="artificial">🎀 اصطناعية</button>
+  </div>
+  <div id="prodGrid">
+    <div class="empty-msg">⏳ جاري تحميل المنتجات...</div>
+  </div>
+</section>
+
+<section class="section track-section" id="track">
+  <div class="track-box">
+    <div class="section-tag">✦ تتبع طلبك ✦</div>
+    <div class="section-title" style="margin-bottom:.3rem;">أين طلبي؟</div>
+    <div class="track-row">
+      <input type="text" id="trackInput" placeholder="رقم الهاتف أو رقم الطلب...">
+      <button onclick="trackOrder()">🔍 بحث</button>
+    </div>
+    <div id="trackResult"></div>
+  </div>
+</section>
+
+<section class="story-section" id="story">
+  <div class="section-tag">✦ NOTRE HISTOIRE ✦</div>
+  <div class="section-title" style="font-family:'Playfair Display',serif;font-style:italic;font-weight:400;">Fleur by Liza قصة</div>
+  <div class="story-grid" style="margin-top:2rem;">
+    <div class="story-text">
+      <p>منذ البداية كان الهدف واحد: إيصال الورود الأجمل إلى أيدي أحبائكم بجودة لا تضاهى وتوصيل سريع.</p>
+      <div class="feature-list">
+        <div class="feature-item"><div class="ico">🌿</div><div><b>100% ورد مستورد</b><span>جودة لا تضاهى — طازج يومياً</span></div></div>
+        <div class="feature-item"><div class="ico">🎁</div><div><b>تغليف فاخر مجاني</b><span>بطاقة هدية + تغليف سيلوفان أنيق</span></div></div>
+        <div class="feature-item"><div class="ico">🚚</div><div><b>توصيل سريع</b><span>توصيل سريع لكل الجزائر</span></div></div>
+        <div class="feature-item"><div class="ico">💳</div><div><b>طرق دفع متعددة</b><span>COD / CCP / CIB / Dahabia / IBAN</span></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="story-card">
+        <div class="rose">🌹</div>
+        <h3>Fleur by Liza</h3>
+        <small>الجزائر — FLOWER SHOP</small>
+      </div>
+      <div class="story-mini-stats">
+        <div class="mini-stat"><b id="statOrders2">5K+</b><span>طلب ناجح</span></div>
+        <div class="mini-stat dark"><b id="statIG2">118K</b><span>Instagram</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="reviews">
+  <div class="section-tag">✦ AVIS CLIENTS ✦</div>
+  <div class="section-title">كلمات عملائنا</div>
+  <div class="divider"><span></span>💬<span></span></div>
+  <div class="rev-grid" id="revGrid"></div>
+</section>
+
+<section class="cta-section">
+  <h2>اطلبي باقتك الآن</h2>
+  <p>🌹 ورود طازجة — تغليف فاخر — توصيل سريع</p>
+  <a href="#products" class="cta-btn">🌹 اطلبي الآن</a>
+</section>
+
+<footer>
+  <div class="f-logo">Fleur<span>❀</span>by liza</div>
+  <div class="f-links">
+    <a href="index.html">الرئيسية</a>
+    <a href="#" onclick="window.open('admin.html','_blank');return false;" style="opacity:.35;">Admin</a>
+  </div>
+  <div style="opacity:.5;font-size:.75rem;">Fleurs by Liza © 2025</div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// Fleurs by Liza — Shared Config
+// ═══════════════════════════════════════
+const SB_URL = 'https://ogtyvzqmifhkdoetumag.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM';
+const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY };
+
+async function sbGet(table, query) {
+  query = query || '';
+  const res = await fetch(SB_URL + '/rest/v1/' + table + query, { headers: SB_HEADERS });
+  if (!res.ok) {
+    const txt = await res.text().catch(function(){ return ''; });
+    throw new Error('GET ' + table + ' failed: ' + res.status + ' ' + txt);
+  }
+  return res.json();
+}
+
+async function sbPost(table, data) {
+  const headers = Object.assign({}, SB_HEADERS, {
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  });
+  const res = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbUpsert(table, data) {
+  const headers = Object.assign({}, SB_HEADERS, {
+    'Content-Type': 'application/json',
+    'Prefer': 'resolution=merge-duplicates,return=representation'
+  });
+  const res = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbPatch(table, filter, data) {
+  const headers = Object.assign({}, SB_HEADERS, { 'Content-Type': 'application/json' });
+  const res = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'PATCH', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function sbDelete(table, filter) {
+  const res = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'DELETE', headers: SB_HEADERS
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function getSetting(key) {
+  try {
+    const rows = await sbGet('settings', '?key=eq.' + key + '&select=value');
+    return rows && rows[0] ? rows[0].value : null;
+  } catch (e) {
+    console.error('getSetting(' + key + ') failed:', e);
+    return null;
+  }
+}
+
+async function setSetting(key, value) {
+  return sbUpsert('settings', { key: key, value: value, updated_at: new Date().toISOString() });
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtPrice(n) {
+  n = Number(n) || 0;
+  return n.toLocaleString('en-US');
+}
+
+function fmtCompact(n) {
+  n = Number(n) || 0;
+  if (n >= 1000) return (n/1000).toFixed(n%1000===0?0:1) + 'K';
+  return String(n);
+}
+
+</script>
+<script>
+var allProducts = [];
+var currentFilter = 'all';
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 3000);
+}
+
+function renderProducts(list) {
+  var grid = document.getElementById('prodGrid');
+  if (!grid) return;
+
+  if (!list || list.length === 0) {
+    grid.innerHTML = '<div class="empty-msg">لا توجد منتجات في هذا التصنيف حالياً 🌹</div>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    try {
+      var p = list[i];
+      var img = '';
+      if (p.media_items && p.media_items.length) {
+        for (var j = 0; j < p.media_items.length; j++) {
+          if (p.media_items[j] && p.media_items[j].type === 'image') { img = p.media_items[j].src; break; }
+        }
+      }
+      if (!img && p.real_images && p.real_images.length) img = p.real_images[0];
+
+      var price = Number(p.price) || 0;
+      var oldPrice = Number(p.old_price) || 0;
+      var name = escapeHtml(p.name || 'منتج بدون اسم');
+      var emoji = p.emoji || '🌹';
+      var id = escapeHtml(p.id || '');
+
+      html += '<a class="pcard" href="product.html?id=' + encodeURIComponent(id) + '">';
+      html += '<div class="pcard-img">';
+      if (img) {
+        html += '<img src="' + img + '" alt="' + name + '" loading="lazy" onerror="this.style.display=\'none\'">';
+      } else {
+        html += '<span class="emoji">' + emoji + '</span>';
+      }
+      if (oldPrice > price) html += '<span class="pcard-badge">خصم</span>';
+      html += '</div>';
+      html += '<div class="pcard-body">';
+      html += '<div class="pcard-name">' + name + '</div>';
+      html += '<div class="pcard-price-row">';
+      html += '<span class="pcard-price">' + fmtPrice(price) + ' دج</span>';
+      if (oldPrice > price) html += '<span class="pcard-old">' + fmtPrice(oldPrice) + '</span>';
+      html += '</div>';
+      html += '<div class="pcard-eur" id="eurPrice_' + i + '"></div>';
+      html += '</div></a>';
+    } catch (err) {
+      console.error('Error rendering product at index ' + i + ':', err);
+    }
+  }
+
+  grid.innerHTML = html || '<div class="empty-msg">لا توجد منتجات حالياً 🌹</div>';
+}
+
+function applyFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.fbtn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.f === f);
+  });
+  var list = allProducts;
+  if (f !== 'all') {
+    list = allProducts.filter(function(p){ return p.flower_type === f || p.occasion === f; });
+    if (list.length === 0) list = allProducts;
+  }
+  renderProducts(list);
+  loadEurRate();
+}
+
+document.getElementById('filterBar').addEventListener('click', function(e){
+  var btn = e.target.closest('.fbtn');
+  if (btn) applyFilter(btn.dataset.f);
+});
+
+async function loadProducts() {
+  try {
+    var rows = await sbGet('products', '?order=created_at.desc');
+    allProducts = rows || [];
+    console.log('Products loaded:', allProducts.length);
+    renderProducts(allProducts);
+  } catch (e) {
+    console.error('loadProducts failed:', e);
+    var grid = document.getElementById('prodGrid');
+    if (grid) {
+      grid.innerHTML = '<div class="err-msg">⚠️ تعذر تحميل المنتجات<br><small>' +
+        escapeHtml(e.message) + '</small><br>' +
+        '<button class="retry-btn" onclick="loadProducts()">🔄 إعادة المحاولة</button></div>';
+    }
+  }
+}
+
+async function loadAnnouncement() {
+  try {
+    var s = await getSetting('announcement');
+    if (!s || s.enabled === false) return;
+    var bar = document.getElementById('annBar');
+    bar.style.display = 'block';
+    bar.style.background = s.bg || '#fce4f3';
+    bar.style.color = s.color || '#e91e8c';
+    bar.textContent = s.text || '🌹 مرحباً بكم في Fleurs by Liza';
+  } catch (e) { console.error('loadAnnouncement failed:', e); }
+}
+
+async function loadEurRate() {
+  try {
+    var info = await getSetting('payment_info');
+    var rate = (info && info.eur_rate) ? Number(info.eur_rate) : 270;
+    sessionStorage.setItem('fl_eur_rate', rate);
+    document.querySelectorAll('[id^="eurPrice_"]').forEach(function(el, idx){
+      var p = allProducts[idx];
+      if (p) {
+        var eur = (Number(p.price||0) / rate).toFixed(0);
+        el.textContent = '≈ ' + eur + ' €';
+      }
+    });
+  } catch (e) { console.error('loadEurRate failed:', e); }
+}
+
+async function loadSocialStats() {
+  try {
+    var s = await getSetting('social_stats');
+    if (s) {
+      if (s.instagram) {
+        document.getElementById('statIG').textContent = fmtCompact(s.instagram);
+        document.getElementById('statIG2').textContent = fmtCompact(s.instagram);
+      }
+      if (s.facebook) document.getElementById('statFB').textContent = fmtCompact(s.facebook);
+    }
+  } catch (e) { console.error('loadSocialStats failed:', e); }
+}
+
+async function loadReviews() {
+  try {
+    var reviews = await getSetting('reviews');
+    var grid = document.getElementById('revGrid');
+    if (!reviews || !reviews.length) { grid.innerHTML = ''; return; }
+    var html = '';
+    for (var i = 0; i < Math.min(reviews.length, 6); i++) {
+      var r = reviews[i];
+      var stars = '⭐'.repeat(Math.min(5, Number(r.rating)||5));
+      html += '<div class="rev-card"><div class="rev-stars">' + stars + '</div>';
+      html += '<div class="rev-text">' + escapeHtml(r.text||'') + '</div>';
+      html += '<div class="rev-name">' + escapeHtml(r.name||'عميل') + '</div></div>';
+    }
+    grid.innerHTML = html;
+  } catch (e) { console.error('loadReviews failed:', e); }
+}
+
+async function trackOrder() {
+  var q = document.getElementById('trackInput').value.trim();
+  var result = document.getElementById('trackResult');
+  if (!q) { showToast('⚠️ أدخلي رقم الهاتف أو رقم الطلب'); return; }
+  result.innerHTML = '⏳ جاري البحث...';
+  try {
+    var rows = await sbGet('orders', '?or=(phone.eq.' + encodeURIComponent(q) + ',id.eq.' + encodeURIComponent(q) + ')&order=created_at.desc&limit=5');
+    if (!rows || !rows.length) {
+      result.innerHTML = '<div style="color:#e74c3c;">لم يتم العثور على طلب بهذا الرقم</div>';
+      return;
+    }
+    var statusLabels = { new:'🆕 جديد', confirmed:'✅ مؤكد', shipping:'🚚 قيد التوصيل', delivered:'📦 تم التوصيل', cancelled:'❌ ملغى' };
+    var html = '';
+    rows.forEach(function(o){
+      html += '<div style="background:var(--pkp);border-radius:.8rem;padding:1rem;margin-top:.6rem;">';
+      html += '<div style="font-weight:700;">#' + escapeHtml(o.id) + '</div>';
+      html += '<div style="font-size:.8rem;color:#666;margin-top:.3rem;">' + escapeHtml(o.product||'') + ' — ' + fmtPrice(o.total) + ' دج</div>';
+      html += '<div style="font-size:.8rem;margin-top:.3rem;">' + (statusLabels[o.status]||o.status) + '</div>';
+      html += '</div>';
+    });
+    result.innerHTML = html;
+  } catch (e) {
+    result.innerHTML = '<div style="color:#e74c3c;">⚠️ خطأ في البحث</div>';
+    console.error(e);
+  }
+}
+
+async function init() {
+  var hideLoading = function(){
+    var ls = document.getElementById('loadingScreen');
+    if (ls) ls.classList.add('hide');
+  };
+  var safetyTimer = setTimeout(hideLoading, 4000);
+
+  await loadProducts();
+  clearTimeout(safetyTimer);
+  hideLoading();
+
+  loadAnnouncement();
+  loadEurRate();
+  loadSocialStats();
+  loadReviews();
+}
+
+init();
+</script>
+</body>
+</html>
