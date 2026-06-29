@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleurs by Liza — تفاصيل الباقة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--pk:#e91e8c;--pkl:#f8bbd0;--pkp:#fce4f3;--blk:#111;--mt:#888;--bd:rgba(0,0,0,.08);--gn:#27ae60;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Tajawal',sans-serif;color:#1a1a2e;}
+img{max-width:100%;display:block;}
+a{text-decoration:none;color:inherit;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--bd);}
+.back-btn{font-size:1.3rem;width:38px;height:38px;border-radius:50%;background:var(--pkp);display:flex;align-items:center;justify-content:center;}
+.logo{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;}
+.logo span{color:var(--pk);}
+
+.gallery{aspect-ratio:1;background:linear-gradient(135deg,var(--pkp),var(--pkl));display:flex;align-items:center;justify-content:center;position:relative;}
+.gallery img{width:100%;height:100%;object-fit:cover;}
+.gallery .emoji{font-size:5.5rem;}
+.gallery-badge{position:absolute;top:1rem;right:1rem;background:var(--pk);color:#fff;font-size:.7rem;font-weight:700;padding:.35rem .8rem;border-radius:1rem;}
+
+.content{padding:1.6rem 1.5rem;max-width:600px;margin:0 auto;}
+.pname{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.45rem;margin-bottom:.5rem;}
+.pdesc{color:var(--mt);font-size:.85rem;line-height:1.7;margin-bottom:1.3rem;}
+
+.price-row{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.2rem;}
+.price-main{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.7rem;color:var(--pk);}
+.price-old{text-decoration:line-through;color:var(--mt);font-size:1rem;}
+.price-eur{font-size:.78rem;color:var(--mt);margin-bottom:1.4rem;}
+
+.opt-block{margin-bottom:1.4rem;}
+.opt-label{font-weight:700;font-size:.85rem;margin-bottom:.7rem;}
+.color-opts{display:flex;gap:.65rem;flex-wrap:wrap;}
+.color-dot{width:36px;height:36px;border-radius:50%;border:2.5px solid var(--bd);cursor:pointer;transition:.2s;}
+.color-dot.sel{border-color:var(--pk);box-shadow:0 0 0 3px var(--pkl);transform:scale(1.1);}
+
+.qty-row{display:flex;align-items:center;}
+.qbox{display:flex;align-items:center;border:1.5px solid var(--bd);border-radius:2rem;overflow:hidden;}
+.qbtn{width:40px;height:40px;background:var(--pkp);font-size:1.15rem;display:flex;align-items:center;justify-content:center;color:var(--pk);font-weight:700;}
+.qnum{width:46px;text-align:center;font-weight:700;font-size:1rem;}
+
+.total-box{background:linear-gradient(135deg,var(--pkp),#fff);border:1px solid var(--pkl);border-radius:1.1rem;padding:1.1rem 1.3rem;margin:1.4rem 0;}
+.total-row{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.4rem;}
+.total-row.final{font-weight:800;font-size:1.1rem;color:var(--pk);border-top:1px solid rgba(0,0,0,.08);padding-top:.6rem;margin-top:.5rem;}
+
+.order-btn{width:100%;background:linear-gradient(135deg,var(--pk),#c2185b);color:#fff;padding:1.05rem;border-radius:2rem;font-weight:700;font-size:1rem;box-shadow:0 12px 30px rgba(233,30,140,.3);}
+
+.trust-row{display:flex;gap:.8rem;margin-top:1.3rem;flex-wrap:wrap;}
+.trust-item{flex:1;min-width:90px;text-align:center;font-size:.68rem;color:var(--mt);}
+.trust-item .ico{font-size:1.3rem;display:block;margin-bottom:.3rem;}
+
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--blk);color:#fff;padding:.7rem 1.4rem;border-radius:2rem;font-size:.82rem;display:none;z-index:1000;}
+#loadingScreen{position:fixed;inset:0;background:#fff;z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1rem;transition:opacity .3s;}
+#loadingScreen.hide{opacity:0;pointer-events:none;}
+.ld-logo{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.4rem;}
+.ld-logo span{color:var(--pk);}
+</style>
+</head>
+<body>
+
+<div id="loadingScreen">
+  <div class="ld-logo">Fleur<span>❀</span>by liza</div>
+</div>
+
+<header>
+  <a href="index.html" class="back-btn">→</a>
+  <div class="logo">Fleur<span>❀</span>by liza</div>
+  <div style="width:38px;"></div>
+</header>
+
+<div class="gallery" id="gallery">
+  <span class="emoji">🌹</span>
+</div>
+
+<div class="content">
+  <div class="pname" id="pName">جاري التحميل...</div>
+  <div class="pdesc" id="pDesc"></div>
+
+  <div class="price-row">
+    <span class="price-main" id="priceMain">—</span>
+    <span class="price-old" id="priceOld"></span>
+  </div>
+  <div class="price-eur" id="priceEur"></div>
+
+  <div class="opt-block" id="colorBlock" style="display:none;">
+    <div class="opt-label">🎨 اللون: <span id="selColorName"></span></div>
+    <div class="color-opts" id="colorOpts"></div>
+  </div>
+
+  <div class="opt-block">
+    <div class="opt-label">الكمية</div>
+    <div class="qty-row">
+      <div class="qbox">
+        <button class="qbtn" onclick="changeQty(-1)">−</button>
+        <span class="qnum" id="qtyNum">1</span>
+        <button class="qbtn" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="total-box">
+    <div class="total-row"><span>السعر</span><span id="tPrice">—</span></div>
+    <div class="total-row final"><span>المجموع</span><span id="tTotal">—</span></div>
+  </div>
+
+  <button class="order-btn" onclick="goToCheckout()">🛒 إتمام الطلب والدفع</button>
+
+  <div class="trust-row">
+    <div class="trust-item"><span class="ico">🌿</span>ورد طازج</div>
+    <div class="trust-item"><span class="ico">🎁</span>تغليف فاخر</div>
+    <div class="trust-item"><span class="ico">🚚</span>توصيل سريع</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// Fleurs by Liza — Shared Config
+// ═══════════════════════════════════════
+const SB_URL = 'https://ogtyvzqmifhkdoetumag.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM';
+const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY };
+
+async function sbGet(table, query) {
+  query = query || '';
+  const res = await fetch(SB_URL + '/rest/v1/' + table + query, { headers: SB_HEADERS });
+  if (!res.ok) {
+    const txt = await res.text().catch(function(){ return ''; });
+    throw new Error('GET ' + table + ' failed: ' + res.status + ' ' + txt);
+  }
+  return res.json();
+}
+
+async function sbPost(table, data) {
+  const headers = Object.assign({}, SB_HEADERS, {
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  });
+  const res = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbUpsert(table, data) {
+  const headers = Object.assign({}, SB_HEADERS, {
+    'Content-Type': 'application/json',
+    'Prefer': 'resolution=merge-duplicates,return=representation'
+  });
+  const res = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbPatch(table, filter, data) {
+  const headers = Object.assign({}, SB_HEADERS, { 'Content-Type': 'application/json' });
+  const res = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'PATCH', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function sbDelete(table, filter) {
+  const res = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'DELETE', headers: SB_HEADERS
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function getSetting(key) {
+  try {
+    const rows = await sbGet('settings', '?key=eq.' + key + '&select=value');
+    return rows && rows[0] ? rows[0].value : null;
+  } catch (e) {
+    console.error('getSetting(' + key + ') failed:', e);
+    return null;
+  }
+}
+
+async function setSetting(key, value) {
+  return sbUpsert('settings', { key: key, value: value, updated_at: new Date().toISOString() });
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtPrice(n) {
+  n = Number(n) || 0;
+  return n.toLocaleString('en-US');
+}
+
+function fmtCompact(n) {
+  n = Number(n) || 0;
+  if (n >= 1000) return (n/1000).toFixed(n%1000===0?0:1) + 'K';
+  return String(n);
+}
+
+</script>
+<script>
+var product = null;
+var qty = 1;
+var selectedColorIndex = 0;
+var eurRate = 270;
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 3000);
+}
+
+function getProductId() {
+  var params = new URLSearchParams(window.location.search);
+  return params.get('id');
+}
+
+function renderGallery() {
+  var gallery = document.getElementById('gallery');
+  var images = [];
+  if (product.media_items && product.media_items.length) {
+    product.media_items.forEach(function(m){ if (m && m.type === 'image') images.push(m.src); });
+  }
+  if (!images.length && product.real_images && product.real_images.length) {
+    images = product.real_images;
+  }
+  var badge = product.old_price && Number(product.old_price) > Number(product.price) ? '<div class="gallery-badge">عرض خاص</div>' : '';
+  if (!images.length) {
+    gallery.innerHTML = '<span class="emoji">' + (product.emoji || '🌹') + '</span>' + badge;
+    return;
+  }
+  gallery.innerHTML = '<img src="' + images[0] + '" alt="">' + badge;
+}
+
+function renderColors() {
+  var block = document.getElementById('colorBlock');
+  var colors = product.colors || [];
+  var names = product.color_names || [];
+  if (!colors.length) { block.style.display = 'none'; return; }
+  block.style.display = 'block';
+  var html = '';
+  for (var i = 0; i < colors.length; i++) {
+    html += '<div class="color-dot' + (i===0?' sel':'') + '" style="background:' + escapeHtml(colors[i]) + '" onclick="selectColor(' + i + ')"></div>';
+  }
+  document.getElementById('colorOpts').innerHTML = html;
+  document.getElementById('selColorName').textContent = names[0] || '';
+}
+
+function selectColor(i) {
+  selectedColorIndex = i;
+  document.querySelectorAll('.color-dot').forEach(function(d, idx){ d.classList.toggle('sel', idx===i); });
+  var names = product.color_names || [];
+  document.getElementById('selColorName').textContent = names[i] || '';
+}
+
+function changeQty(delta) {
+  qty = Math.max(1, Math.min(20, qty + delta));
+  document.getElementById('qtyNum').textContent = qty;
+  updateTotals();
+}
+
+function updateTotals() {
+  if (!product) return;
+  var price = Number(product.price) || 0;
+  var total = price * qty;
+  document.getElementById('tPrice').textContent = fmtPrice(price) + ' دج';
+  document.getElementById('tTotal').textContent = fmtPrice(total) + ' دج';
+}
+
+function updateEurDisplay() {
+  if (!product) return;
+  var price = Number(product.price) || 0;
+  var eur = (price / eurRate).toFixed(0);
+  document.getElementById('priceEur').textContent = '≈ ' + eur + ' € للقطعة';
+}
+
+function goToCheckout() {
+  if (!product) { showToast('⚠️ جاري التحميل...'); return; }
+  var colorName = (product.color_names && product.color_names[selectedColorIndex]) || '';
+  var params = new URLSearchParams({ id: product.id, qty: qty, color: colorName });
+  location.href = 'checkout.html?' + params.toString();
+}
+
+async function loadProduct() {
+  var id = getProductId();
+  if (!id) {
+    document.getElementById('pName').textContent = 'منتج غير موجود';
+    document.getElementById('loadingScreen').classList.add('hide');
+    return;
+  }
+  try {
+    var rows = await sbGet('products', '?id=eq.' + encodeURIComponent(id) + '&limit=1');
+    if (!rows || !rows.length) {
+      document.getElementById('pName').textContent = 'هذا المنتج غير متوفر';
+      document.getElementById('loadingScreen').classList.add('hide');
+      return;
+    }
+    product = rows[0];
+
+    document.getElementById('pName').textContent = product.name || 'بدون اسم';
+    document.getElementById('pDesc').textContent = product.description || '';
+
+    var price = Number(product.price) || 0;
+    var oldPrice = Number(product.old_price) || 0;
+    document.getElementById('priceMain').textContent = fmtPrice(price) + ' دج';
+    if (oldPrice > price) document.getElementById('priceOld').textContent = fmtPrice(oldPrice) + ' دج';
+
+    renderGallery();
+    renderColors();
+    updateTotals();
+
+    document.getElementById('loadingScreen').classList.add('hide');
+
+    getSetting('payment_info').then(function(info){
+      if (info && info.eur_rate) eurRate = Number(info.eur_rate) || 270;
+      updateEurDisplay();
+    }).catch(function(e){ console.error('EUR rate load failed:', e); });
+
+  } catch (e) {
+    console.error('loadProduct failed:', e);
+    document.getElementById('pName').textContent = 'خطأ في تحميل المنتج';
+    document.getElementById('pDesc').textContent = e.message;
+    document.getElementById('loadingScreen').classList.add('hide');
+  }
+}
+
+loadProduct();
+</script>
+</body>
+</html>
