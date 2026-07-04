@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleurs by Liza — إتمام الطلب</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--pk:#e91e8c;--pkl:#f8bbd0;--pkp:#fce4f3;--blk:#111;--mt:#888;--bd:rgba(0,0,0,.08);--gn:#27ae60;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Tajawal',sans-serif;color:#1a1a2e;background:#fafafa;}
+button,select,input,textarea{font-family:inherit;}
+button{cursor:pointer;border:none;}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--bd);background:#fff;}
+.back-btn{font-size:1.3rem;width:38px;height:38px;border-radius:50%;background:var(--pkp);display:flex;align-items:center;justify-content:center;}
+.logo{font-family:'Montserrat',sans-serif;font-weight:800;font-size:1.1rem;}
+.logo span{color:var(--pk);}
+
+.wrap{padding:1.3rem;max-width:600px;margin:0 auto;}
+.card{background:#fff;border-radius:1.1rem;padding:1.3rem;margin-bottom:1.1rem;box-shadow:0 2px 16px rgba(0,0,0,.04);}
+.card-title{font-weight:700;font-size:.92rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+
+.fg{margin-bottom:.9rem;}
+.fl{display:block;font-size:.78rem;font-weight:600;color:#555;margin-bottom:.35rem;}
+.fi{width:100%;padding:.68rem .9rem;border:1.5px solid var(--bd);border-radius:.7rem;font-size:.85rem;}
+.fi:focus{outline:none;border-color:var(--pk);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;}
+
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;}
+.pay-opt{border:1.5px solid var(--bd);border-radius:.9rem;padding:.85rem .6rem;text-align:center;font-size:.78rem;font-weight:600;position:relative;transition:.2s;}
+.pay-opt.sel{border-color:var(--pk);background:var(--pkp);box-shadow:0 6px 16px rgba(233,30,140,.15);}
+.pay-opt .ico{font-size:1.4rem;display:block;margin-bottom:.35rem;}
+.pay-opt.disabled{opacity:.4;}
+
+.summary-row{display:flex;justify-content:space-between;font-size:.85rem;padding:.4rem 0;}
+.summary-row.total{font-weight:800;font-size:1.1rem;color:var(--pk);border-top:1px solid var(--bd);padding-top:.6rem;margin-top:.4rem;}
+
+.submit-btn{width:100%;background:linear-gradient(135deg,var(--pk),#c2185b);color:#fff;padding:1.1rem;border-radius:2rem;font-weight:700;font-size:1rem;box-shadow:0 12px 30px rgba(233,30,140,.3);}
+.submit-btn:disabled{opacity:.5;}
+
+.bank-box{background:var(--pkp);border-radius:.9rem;padding:1rem;margin-top:.9rem;font-size:.82rem;}
+.bank-row{display:flex;justify-content:space-between;padding:.3rem 0;}
+.bank-row b{font-family:'Montserrat',sans-serif;}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:2000;padding:1.5rem;}
+.overlay.show{display:flex;}
+.popup-box{background:#fff;border-radius:1.3rem;padding:1.8rem;max-width:340px;width:100%;text-align:center;}
+.popup-box h3{font-family:'Montserrat',sans-serif;margin-bottom:.6rem;font-size:1.05rem;}
+.popup-box p{color:var(--mt);font-size:.85rem;margin-bottom:1.3rem;}
+.contact-links{display:flex;flex-direction:column;gap:.6rem;}
+.contact-links a{padding:.85rem;border-radius:.8rem;background:var(--pkp);color:var(--pk);font-weight:600;font-size:.85rem;}
+.popup-close{margin-top:1.1rem;color:var(--mt);font-size:.8rem;}
+
+.success-overlay{position:fixed;inset:0;background:#fff;z-index:3000;display:none;align-items:center;justify-content:center;flex-direction:column;padding:2rem;text-align:center;}
+.success-overlay.show{display:flex;}
+.success-emoji{font-size:4.5rem;margin-bottom:1rem;}
+.success-overlay h2{font-family:'Montserrat',sans-serif;margin-bottom:.6rem;font-size:1.3rem;}
+.success-overlay p{color:var(--mt);margin-bottom:1.6rem;}
+.success-btn{background:var(--pk);color:#fff;padding:.9rem 2.2rem;border-radius:2rem;font-weight:700;display:inline-block;}
+
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--blk);color:#fff;padding:.7rem 1.4rem;border-radius:2rem;font-size:.82rem;display:none;z-index:1000;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="javascript:history.back()" class="back-btn">→</a>
+  <div class="logo">Fleur<span>❀</span>by liza</div>
+  <div style="width:38px;"></div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <div class="card-title">🌹 ملخص الطلب</div>
+    <div class="summary-row"><span id="sumProdName">—</span><span id="sumProdPrice">—</span></div>
+    <div class="summary-row"><span>الكمية</span><span id="sumQty">×1</span></div>
+    <div class="summary-row"><span>التوصيل</span><span id="sumDelivery">—</span></div>
+    <div class="summary-row total"><span>المجموع</span><span id="sumTotal">—</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📦 معلومات التوصيل</div>
+    <div class="fg"><label class="fl">الاسم الكامل *</label><input class="fi" id="iName" placeholder="مثال: سارة بن علي"></div>
+    <div class="fg"><label class="fl">رقم الهاتف *</label><input class="fi" id="iPhone" type="tel" placeholder="0555 123 456"></div>
+    <div class="frow">
+      <div class="fg"><label class="fl">الولاية *</label>
+        <select class="fi" id="iWilaya" onchange="onWilayaChange()"><option value="">اختاري...</option></select>
+      </div>
+      <div class="fg"><label class="fl">البلدية</label>
+        <select class="fi" id="iCommune"><option value="">اختاري الولاية أولاً</option></select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">العنوان بالتفصيل</label><textarea class="fi" id="iAddress" rows="2" placeholder="الحي، الشارع، رقم المنزل..."></textarea></div>
+    <div class="fg"><label class="fl">ملاحظة (اختياري)</label><textarea class="fi" id="iNote" rows="2" placeholder="رسالة الهدية أو أي تعليمات خاصة..."></textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💳 طريقة الدفع</div>
+    <div class="pay-grid" id="payGrid"></div>
+    <div id="bankDetails"></div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="submitOrder()">✅ تأكيد الطلب</button>
+</div>
+
+<div class="overlay" id="contactOverlay">
+  <div class="popup-box">
+    <h3>هذه الطريقة غير متاحة حالياً</h3>
+    <p>تواصلي معنا مباشرة لإتمام طلبك</p>
+    <div class="contact-links">
+      <a id="cpWhatsapp" href="#" target="_blank">💬 واتساب</a>
+      <a id="cpInstagram" href="#" target="_blank">📸 إنستقرام</a>
+      <a id="cpFacebook" href="#" target="_blank">👤 فيسبوك</a>
+    </div>
+    <div class="popup-close" onclick="closeContactPopup()">إغلاق</div>
+  </div>
+</div>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="success-emoji">🎉</div>
+  <h2>تم تأكيد طلبك!</h2>
+  <p id="successMsg">سنتواصل معك قريباً لتأكيد التوصيل</p>
+  <a href="index.html" class="success-btn">العودة للرئيسية</a>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// Fleurs by Liza — Shared Config
+// ═══════════════════════════════════════
+const SB_URL = 'https://ogtyvzqmifhkdoetumag.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ndHl2enFtaWZoa2RvZXR1bWFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzk1MDcsImV4cCI6MjA5NDYxNTUwN30.203q3w-EmneSP81Ecz9oc1DKLycrfIMU6iraKwng8wM';
+const SB_HEADERS = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY };
+
+async function sbGet(table, query) {
+  query = query || '';
+  const res = await fetch(SB_URL + '/rest/v1/' + table + query, { headers: SB_HEADERS });
+  if (!res.ok) {
+    const txt = await res.text().catch(function(){ return ''; });
+    throw new Error('GET ' + table + ' failed: ' + res.status + ' ' + txt);
+  }
+  return res.json();
+}
+
+async function sbPost(table, data) {
+  const headers = Object.assign({}, SB_HEADERS, {
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation'
+  });
+  const res = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbUpsert(table, data) {
+  const headers = Object.assign({}, SB_HEADERS, {
+    'Content-Type': 'application/json',
+    'Prefer': 'resolution=merge-duplicates,return=representation'
+  });
+  const res = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sbPatch(table, filter, data) {
+  const headers = Object.assign({}, SB_HEADERS, { 'Content-Type': 'application/json' });
+  const res = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'PATCH', headers: headers, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function sbDelete(table, filter) {
+  const res = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'DELETE', headers: SB_HEADERS
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function getSetting(key) {
+  try {
+    const rows = await sbGet('settings', '?key=eq.' + key + '&select=value');
+    return rows && rows[0] ? rows[0].value : null;
+  } catch (e) {
+    console.error('getSetting(' + key + ') failed:', e);
+    return null;
+  }
+}
+
+async function setSetting(key, value) {
+  return sbUpsert('settings', { key: key, value: value, updated_at: new Date().toISOString() });
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtPrice(n) {
+  n = Number(n) || 0;
+  return n.toLocaleString('en-US');
+}
+
+function fmtCompact(n) {
+  n = Number(n) || 0;
+  if (n >= 1000) return (n/1000).toFixed(n%1000===0?0:1) + 'K';
+  return String(n);
+}
+
+</script>
+<script>
+var product = null;
+var qty = 1;
+var colorName = '';
+var selectedWilaya = null;
+var allWilayas = [];
+var paymentInfo = {};
+var enabledMethods = ['cod','ccp','cib','dahabia','iban','binance'];
+var selectedMethod = 'cod';
+
+var PAY_METHODS = [
+  { key:'cod', name:'الدفع عند الاستلام', icon:'💵' },
+  { key:'ccp', name:'CCP / Baridimob', icon:'🏦' },
+  { key:'cib', name:'بطاقة CIB', icon:'💳' },
+  { key:'dahabia', name:'بريد Dahabia', icon:'💚' },
+  { key:'iban', name:'IBAN دولي EUR', icon:'🌍' },
+  { key:'binance', name:'Binance / USDT', icon:'🟡' }
+];
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(function(){ t.style.display = 'none'; }, 3000);
+}
+
+function getParams() {
+  var p = new URLSearchParams(window.location.search);
+  return { id: p.get('id'), qty: parseInt(p.get('qty')) || 1, color: p.get('color') || '' };
+}
+
+function updateSummary() {
+  if (!product) return;
+  var price = Number(product.price) || 0;
+  var delCost = selectedWilaya ? Number(selectedWilaya.home_price || 0) : 0;
+  var total = price * qty + delCost;
+
+  document.getElementById('sumProdName').textContent = product.name + (colorName ? ' (' + colorName + ')' : '');
+  document.getElementById('sumProdPrice').textContent = fmtPrice(price) + ' دج';
+  document.getElementById('sumQty').textContent = '×' + qty;
+  document.getElementById('sumDelivery').textContent = selectedWilaya ? fmtPrice(delCost) + ' دج' : 'اختاري الولاية';
+  document.getElementById('sumTotal').textContent = fmtPrice(total) + ' دج';
+}
+
+async function loadProduct() {
+  var params = getParams();
+  qty = params.qty;
+  colorName = params.color;
+  if (!params.id) { showToast('⚠️ منتج غير محدد'); return; }
+  try {
+    var rows = await sbGet('products', '?id=eq.' + encodeURIComponent(params.id) + '&limit=1');
+    if (rows && rows.length) {
+      product = rows[0];
+      updateSummary();
+    }
+  } catch (e) { console.error('loadProduct failed:', e); showToast('⚠️ خطأ في تحميل المنتج'); }
+}
+
+async function loadWilayas() {
+  var select = document.getElementById('iWilaya');
+  try {
+    var rows = await sbGet('delivery_prices', '?order=wilaya_id.asc');
+    allWilayas = rows || [];
+    var html = '<option value="">اختاري...</option>';
+    allWilayas.forEach(function(w){
+      html += '<option value="' + w.wilaya_id + '">' + String(w.wilaya_id).padStart(2,'0') + ' - ' + escapeHtml(w.wilaya_name) + '</option>';
+    });
+    select.innerHTML = html;
+  } catch (e) {
+    console.error('loadWilayas failed:', e);
+    select.innerHTML = '<option value="">⚠️ خطأ في تحميل الولايات</option>';
+  }
+}
+
+function onWilayaChange() {
+  var wid = parseInt(document.getElementById('iWilaya').value);
+  selectedWilaya = allWilayas.find(function(w){ return w.wilaya_id === wid; }) || null;
+  var communeSelect = document.getElementById('iCommune');
+  if (selectedWilaya && selectedWilaya.communes && selectedWilaya.communes.length) {
+    var html = '<option value="">اختاري...</option>';
+    selectedWilaya.communes.forEach(function(c){ html += '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>'; });
+    communeSelect.innerHTML = html;
+  } else {
+    communeSelect.innerHTML = '<option value="">—</option>';
+  }
+  updateSummary();
+}
+
+function renderPaymentGrid() {
+  var grid = document.getElementById('payGrid');
+  var html = '';
+  PAY_METHODS.forEach(function(m){
+    var enabled = enabledMethods.indexOf(m.key) !== -1;
+    var sel = m.key === selectedMethod ? ' sel' : '';
+    var dis = enabled ? '' : ' disabled';
+    html += '<div class="pay-opt' + sel + dis + '" onclick="selectPayment(\'' + m.key + '\')">';
+    html += '<span class="ico">' + m.icon + '</span>' + m.name + '</div>';
+  });
+  grid.innerHTML = html;
+  renderBankDetails();
+}
+
+function selectPayment(key) {
+  if (enabledMethods.indexOf(key) === -1) {
+    openContactPopup();
+    return;
+  }
+  selectedMethod = key;
+  renderPaymentGrid();
+}
+
+function renderBankDetails() {
+  var box = document.getElementById('bankDetails');
+  if (selectedMethod === 'cod') { box.innerHTML = ''; return; }
+  if (selectedMethod === 'ccp') {
+    box.innerHTML = '<div class="bank-box">' +
+      '<div class="bank-row"><span>الاسم</span><b>' + escapeHtml(paymentInfo.holder||'') + '</b></div>' +
+      '<div class="bank-row"><span>CCP</span><b>' + escapeHtml(paymentInfo.ccp||'') + '</b></div>' +
+      '<div class="bank-row"><span>Baridimob</span><b>' + escapeHtml(paymentInfo.baridimob||'') + '</b></div>' +
+      '<div style="font-size:.75rem;color:#888;margin-top:.6rem;">بعد التحويل، سيُطلب منك رفع صورة الإيصال</div></div>';
+  } else if (selectedMethod === 'iban') {
+    var rate = Number(paymentInfo.eur_rate) || 270;
+    var totalDzd = product ? (Number(product.price)||0) * qty : 0;
+    var totalEur = (totalDzd / rate).toFixed(2);
+    box.innerHTML = '<div class="bank-box">' +
+      '<div class="bank-row"><span>صاحب الحساب</span><b>' + escapeHtml(paymentInfo.iban_holder||'') + '</b></div>' +
+      '<div class="bank-row"><span>IBAN</span><b>' + escapeHtml(paymentInfo.iban||'') + '</b></div>' +
+      '<div class="bank-row"><span>SWIFT</span><b>' + escapeHtml(paymentInfo.swift||'') + '</b></div>' +
+      '<div class="bank-row"><span>المبلغ بالأورو</span><b>≈ ' + totalEur + ' €</b></div></div>';
+  } else if (selectedMethod === 'binance') {
+    box.innerHTML = '<div class="bank-box">' +
+      '<div class="bank-row"><span>Binance ID</span><b>' + escapeHtml(paymentInfo.binance_id||'') + '</b></div>' +
+      '<div class="bank-row"><span>الشبكة</span><b>' + escapeHtml(paymentInfo.binance_network||'TRC20') + '</b></div>' +
+      '<div class="bank-row"><span>العنوان</span><b style="font-size:.7rem;word-break:break-all;">' + escapeHtml(paymentInfo.binance_addr||'') + '</b></div></div>';
+  } else if (selectedMethod === 'dahabia' || selectedMethod === 'cib') {
+    box.innerHTML = '<div class="bank-box">سيتم تحويلك لبوابة الدفع الإلكتروني بعد تأكيد الطلب 💳</div>';
+  }
+}
+
+function openContactPopup() {
+  document.getElementById('cpWhatsapp').href = 'https://wa.me/' + (paymentInfo.whatsapp||'').replace(/[^0-9]/g,'');
+  document.getElementById('cpInstagram').href = 'https://instagram.com/' + (paymentInfo.instagram||'fleurs_byliza');
+  document.getElementById('cpFacebook').href = 'https://facebook.com/' + (paymentInfo.facebook||'fleursbyLiza');
+  document.getElementById('contactOverlay').classList.add('show');
+}
+function closeContactPopup() {
+  document.getElementById('contactOverlay').classList.remove('show');
+}
+
+async function loadPaymentSettings() {
+  try {
+    var info = await getSetting('payment_info');
+    if (info) paymentInfo = info;
+  } catch (e) { console.error('payment_info load failed:', e); }
+  try {
+    var methods = await getSetting('enabled_payment_methods');
+    if (Array.isArray(methods) && methods.length) enabledMethods = methods;
+  } catch (e) { console.error('enabled_payment_methods load failed:', e); }
+  renderPaymentGrid();
+}
+
+async function submitOrder() {
+  var name = document.getElementById('iName').value.trim();
+  var phone = document.getElementById('iPhone').value.trim();
+  var wilayaSelect = document.getElementById('iWilaya');
+  var wilayaName = wilayaSelect.options[wilayaSelect.selectedIndex] ? wilayaSelect.options[wilayaSelect.selectedIndex].text : '';
+  var commune = document.getElementById('iCommune').value;
+  var address = document.getElementById('iAddress').value.trim();
+  var note = document.getElementById('iNote').value.trim();
+
+  if (!name) { showToast('⚠️ أدخلي الاسم الكامل'); return; }
+  if (!phone || phone.length < 9) { showToast('⚠️ أدخلي رقم هاتف صحيح'); return; }
+  if (!selectedWilaya) { showToast('⚠️ اختاري الولاية'); return; }
+  if (!product) { showToast('⚠️ خطأ في بيانات المنتج'); return; }
+
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري الإرسال...';
+
+  var price = Number(product.price) || 0;
+  var delCost = Number(selectedWilaya.home_price || 0);
+  var total = price * qty + delCost;
+  var orderId = 'FBL' + Date.now();
+
+  var orderData = {
+    id: orderId,
+    name: name,
+    phone: phone,
+    wilaya: wilayaName,
+    commune: commune,
+    address: address,
+    delivery_type: 'home',
+    delivery_cost: delCost,
+    product: product.name,
+    product_id: product.id,
+    product_emoji: product.emoji || '🌹',
+    product_price: price,
+    color: colorName,
+    qty: qty,
+    payment_method: selectedMethod,
+    payment_status: selectedMethod === 'cod' ? 'pending' : 'waiting_review',
+    total: total,
+    note: note,
+    status: 'new',
+    date: new Date().toISOString()
+  };
+
+  try {
+    await sbPost('orders', orderData);
+
+    if (selectedMethod === 'cod') {
+      document.getElementById('successMsg').textContent = 'سنتصل بك قريباً لتأكيد التوصيل 🌹';
+      document.getElementById('successOverlay').classList.add('show');
+    } else if (selectedMethod === 'ccp' || selectedMethod === 'iban' || selectedMethod === 'binance') {
+      location.href = 'receipt.html?order=' + orderId;
+    } else {
+      document.getElementById('successMsg').textContent = 'سيتم التواصل معك لإتمام الدفع الإلكتروني 💳';
+      document.getElementById('successOverlay').classList.add('show');
+    }
+  } catch (e) {
+    console.error('submitOrder failed:', e);
+    showToast('❌ خطأ في إرسال الطلب: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '✅ تأكيد الطلب';
+  }
+}
+
+async function init() {
+  await loadProduct();
+  loadWilayas();
+  loadPaymentSettings();
+}
+init();
+</script>
+</body>
+</html>
