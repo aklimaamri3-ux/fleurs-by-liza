@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Fleurs by Liza — Reçu</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&family=Cormorant+Garamond:ital,wght@0,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--pk:#c8963c;--pk2:#e91e8c;--pkp:#fce4f3;--pkl:#f8bbd0;--blk:#0d0d0d;--wh:#fff;--gy:#f8f7f5;--bd:rgba(0,0,0,.08);--mt:#888;--gn:#27ae60;--font-ar:'Tajawal',sans-serif;--font-serif:'Cormorant Garamond',serif;--font-en:'Inter',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}body{font-family:var(--font-ar);color:#1a1a1a;background:var(--gy);}
+button,input{font-family:inherit;cursor:pointer;}input{cursor:text;}
+header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid var(--bd);background:rgba(255,255,255,.95);backdrop-filter:blur(12px);}
+.back{width:38px;height:38px;border-radius:50%;background:var(--pkp);display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.logo{font-family:var(--font-serif);font-size:1.3rem;font-weight:600;}.logo em{color:var(--pk);font-style:italic;}
+.wrap{padding:1.5rem;max-width:480px;margin:0 auto;}
+/* Stepper RTL-correct: rendered 3-2-1 in DOM so 1 appears rightmost */
+.steps{display:flex;align-items:center;justify-content:center;margin-bottom:2rem;direction:ltr;}
+.step{display:flex;flex-direction:column;align-items:center;gap:.28rem;flex:1;position:relative;}
+.step:not(:last-child)::after{content:'';position:absolute;top:15px;right:-50%;width:100%;height:2px;background:var(--bd);z-index:0;}
+.step.done:not(:last-child)::after{background:var(--gn);}
+.sn{width:30px;height:30px;border-radius:50%;background:#eee;color:#999;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;z-index:1;font-family:var(--font-en);}
+.step.active .sn{background:var(--pk2);color:#fff;}
+.step.done .sn{background:var(--gn);color:#fff;}
+.sl{font-size:.67rem;color:#999;text-align:center;}
+.step.active .sl{color:var(--pk2);font-weight:700;}
+.card{background:var(--wh);border-radius:1rem;padding:1.5rem;box-shadow:0 2px 12px rgba(0,0,0,.04);}
+.ttl{text-align:center;font-family:var(--font-serif);font-weight:600;font-size:1.3rem;margin-bottom:.4rem;}
+.sub{text-align:center;color:var(--mt);font-size:.82rem;margin-bottom:1.5rem;line-height:1.6;}
+.fi{width:100%;padding:.78rem 1rem;border:1.5px solid var(--bd);border-radius:.8rem;font-size:.88rem;margin-bottom:1rem;font-family:inherit;}
+.fi:focus{outline:none;border-color:var(--pk2);}
+.btn{width:100%;background:linear-gradient(135deg,var(--pk2),#8e24aa);color:#fff;padding:.9rem;border-radius:3rem;font-weight:700;font-size:.9rem;}
+.btn:disabled{opacity:.5;}
+.order-info{background:var(--pkp);border-radius:.85rem;padding:1rem;margin-bottom:1.2rem;font-size:.83rem;}
+.order-info b{font-family:var(--font-en);}
+.up-zone{border:2px dashed var(--bd);border-radius:1rem;padding:2rem 1rem;text-align:center;cursor:pointer;transition:.2s;margin-bottom:.9rem;}
+.up-zone:hover,.up-zone.drag{border-color:var(--pk2);background:var(--pkp);}
+.up-zone .ico{font-size:2.5rem;margin-bottom:.5rem;}
+.up-zone p{font-size:.79rem;color:var(--mt);line-height:1.6;}
+#prevImg{width:100%;border-radius:.8rem;margin-bottom:.9rem;display:none;}
+.succ-box{text-align:center;padding:1.5rem 0;}
+.succ-emo{font-size:3.5rem;margin-bottom:.8rem;}
+.h{display:none!important;}
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--blk);color:#fff;padding:.68rem 1.3rem;border-radius:2rem;font-size:.79rem;display:none;z-index:1000;}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="back">→</a>
+  <div class="logo">Fleurs<em>❀</em>by liza</div>
+  <div style="width:38px"></div>
+</header>
+<div class="wrap">
+  <!-- Stepper: DOM order 3→2→1 = visually 1→2→3 in RTL -->
+  <div class="steps">
+    <div class="step" id="s3"><div class="sn">3</div><div class="sl" id="sl3">التأكيد</div></div>
+    <div class="step" id="s2"><div class="sn">2</div><div class="sl" id="sl2">الإيصال</div></div>
+    <div class="step active" id="s1"><div class="sn">1</div><div class="sl" id="sl1">الطلب</div></div>
+  </div>
+
+  <div class="card" id="p1">
+    <div class="ttl" id="p1Title">أرسلي إيصالك 🌹</div>
+    <div class="sub" id="p1Sub">بعد إتمام التحويل البنكي، ارفعي صورة الإيصال ليتم تأكيد طلبك</div>
+    <input class="fi" id="oidIn" placeholder="FBL...">
+    <button class="btn" id="findBtn" onclick="findOrder()">🔍 البحث</button>
+  </div>
+
+  <div class="card h" id="p2">
+    <div class="order-info" id="oInfo"></div>
+    <div class="up-zone" id="dropZone" onclick="document.getElementById('fileIn').click()">
+      <div class="ico">📤</div>
+      <p id="upTxt">اضغطي لاختيار صورة الإيصال<br>أو اسحبيها هنا</p>
+      <input type="file" id="fileIn" accept="image/*" style="display:none" onchange="onFile(this.files[0])">
+    </div>
+    <img id="prevImg">
+    <button class="btn" id="upBtn" onclick="doUpload()" disabled id="upBtn">📤 <span id="upBtnTxt">رفع الإيصال</span></button>
+  </div>
+
+  <div class="card h" id="p3">
+    <div class="succ-box">
+      <div class="succ-emo">✅</div>
+      <div class="ttl" id="p3Title">تم استلام الإيصال!</div>
+      <div class="sub" id="p3Sub">سنراجع دفعتك ونؤكد طلبك قريباً 🌹</div>
+      <a href="index.html" class="btn" style="display:block;text-decoration:none;box-sizing:border-box;text-align:center;margin-top:1rem" id="p3Btn">العودة للرئيسية</a>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+// ═══ FLEURS BY LIZA — CORE ═══
+var SB_URL  = "https://lgpllhbabctsdplqapzi.supabase.co";
+var SB_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxncGxsaGJhYmN0c2RwbHFhcHppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxNzE3NzEsImV4cCI6MjA5ODc0Nzc3MX0.1n9iBt0G-JaiHYRpx_Cp_csCiUYQVZcQJXc5SO86Eec";
+var SB_SVC  = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxncGxsaGJhYmN0c2RwbHFhcHppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MzE3MTc3MSwiZXhwIjoyMDk4NzQ3NzcxfQ.iZYLCSXvDHlA6Weo94nDfyJ3CYY1KlmaR532Dwdvb1M";
+var SB_H = { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON };
+
+// Language
+var LANG = localStorage.getItem('flz_lang') || 'ar';
+function t(ar, fr) { return LANG === 'fr' ? (fr || ar) : ar; }
+function setLang(l) { LANG = l; localStorage.setItem('flz_lang', l); location.reload(); }
+
+// API
+async function sbGet(table, q) {
+  q = q || '';
+  var r = await fetch(SB_URL + '/rest/v1/' + table + q, { headers: SB_H });
+  if (!r.ok) { var e = await r.text().catch(function(){return '';}); throw new Error('GET ' + table + ' ' + r.status + ': ' + e); }
+  return r.json();
+}
+async function sbPost(table, data) {
+  var r = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', body: JSON.stringify(data),
+    headers: Object.assign({}, SB_H, { 'Content-Type': 'application/json', 'Prefer': 'return=representation' })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbUpsert(table, data) {
+  var r = await fetch(SB_URL + '/rest/v1/' + table, {
+    method: 'POST', body: JSON.stringify(data),
+    headers: Object.assign({}, SB_H, { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=representation' })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+async function sbPatch(table, filter, data) {
+  var r = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+    method: 'PATCH', body: JSON.stringify(data),
+    headers: Object.assign({}, SB_H, { 'Content-Type': 'application/json' })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return true;
+}
+async function sbDelete(table, filter) {
+  var r = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, { method: 'DELETE', headers: SB_H });
+  if (!r.ok) throw new Error(await r.text());
+  return true;
+}
+async function getSetting(key) {
+  try { var r = await sbGet('settings', '?key=eq.' + key + '&select=value'); return r && r[0] ? r[0].value : null; }
+  catch(e) { console.warn('getSetting', key, e.message); return null; }
+}
+async function setSetting(key, value) {
+  return sbUpsert('settings', { key: key, value: value, updated_at: new Date().toISOString() });
+}
+async function uploadImg(file, bucket) {
+  bucket = bucket || 'products';
+  var ext = file.name.split('.').pop() || 'jpg';
+  var name = Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
+  var r = await fetch(SB_URL + '/storage/v1/object/' + bucket + '/' + name, {
+    method: 'POST',
+    headers: { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON, 'Content-Type': file.type },
+    body: file
+  });
+  if (!r.ok) throw new Error('Upload failed ' + r.status + ': ' + (await r.text()));
+  return SB_URL + '/storage/v1/object/public/' + bucket + '/' + name;
+}
+
+// Utils
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function money(n) { return (Number(n)||0).toLocaleString('fr-DZ'); }
+function compact(n) { n=Number(n)||0; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(n%1e3?1:0)+'K'; return String(n); }
+function toast(msg, dur) {
+  dur = dur || 3000;
+  var t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._t); t._t = setTimeout(function(){ t.style.display='none'; }, dur);
+}
+
+
+var L={
+  ar:{p1Title:'أرسلي إيصالك 🌹',p1Sub:'بعد إتمام التحويل البنكي، ارفعي صورة الإيصال ليتم تأكيد طلبك',upTxt:'اضغطي لاختيار صورة الإيصال\nأو اسحبيها هنا',upBtnTxt:'رفع الإيصال',p3Title:'تم استلام الإيصال!',p3Sub:'سنراجع دفعتك ونؤكد طلبك قريباً 🌹',p3Btn:'العودة للرئيسية',sl1:'الطلب',sl2:'الإيصال',sl3:'التأكيد',findBtn:'🔍 البحث',notFound:'❌ لم يتم العثور على الطلب',uploadErr:'⚠️ اختاري صورة'},
+  fr:{p1Title:'Envoyez votre reçu 🌹',p1Sub:'Après le virement, envoyez une photo du reçu pour confirmer votre commande',upTxt:'Appuyer pour choisir une photo\nou glisser ici',upBtnTxt:'Envoyer le reçu',p3Title:'Reçu reçu!',p3Sub:'Nous vérifierons votre paiement bientôt 🌹',p3Btn:'Retour accueil',sl1:'Commande',sl2:'Reçu',sl3:'Confirmation',findBtn:'🔍 Chercher',notFound:'❌ Commande introuvable',uploadErr:'⚠️ Choisissez une image'}
+};
+
+var order=null, file=null;
+
+function applyLang(){
+  var p=new URLSearchParams(location.search); var ln=p.get('lang')||LANG; LANG=ln;
+  var fr=ln==='fr';
+  document.documentElement.setAttribute('dir',fr?'ltr':'rtl');
+  document.documentElement.setAttribute('lang',ln);
+  var l=L[ln]||L.ar;
+  Object.keys(l).forEach(function(k){ var e=document.getElementById(k); if(e) e.textContent=l[k]; });
+  document.getElementById('findBtn').textContent=l.findBtn;
+  document.getElementById('oidIn').placeholder=fr?'FBL...':'FBL...';
+}
+
+function setStep(n){
+  [1,2,3].forEach(function(i){
+    var el=document.getElementById('s'+i);
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    if(i===n) el.classList.add('active');
+  });
+}
+
+async function findOrder(){
+  var id=document.getElementById('oidIn').value.trim();
+  var l=L[LANG]||L.ar;
+  if(!id){ toast('⚠️'); return; }
+  try{
+    var rows=await sbGet('orders','?id=eq.'+encodeURIComponent(id)+'&limit=1');
+    if(!rows||!rows.length){ toast(l.notFound); return; }
+    order=rows[0];
+    if(order.payment_status==='paid'){
+      document.getElementById('p1').classList.add('h');
+      document.getElementById('p3').classList.remove('h');
+      setStep(3); return;
+    }
+    document.getElementById('oInfo').innerHTML=
+      '<div><b>#'+esc(order.id)+'</b></div>' +
+      '<div style="margin-top:.3rem">'+esc(order.product_name||order.product||'')+'</div>' +
+      '<div style="margin-top:.2rem;font-family:var(--font-en);font-weight:700">'+money(order.total)+' دج</div>';
+    document.getElementById('p1').classList.add('h');
+    document.getElementById('p2').classList.remove('h');
+    setStep(2);
+  }catch(e){ toast('❌ '+e.message); }
+}
+
+function onFile(f){
+  if(!f) return;
+  var l=L[LANG]||L.ar;
+  if(!f.type.startsWith('image/')){ toast(l.uploadErr); return; }
+  if(f.size>8*1024*1024){ toast('⚠️ Max 8MB'); return; }
+  file=f;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=document.getElementById('prevImg');
+    img.src=e.target.result; img.style.display='block';
+    document.getElementById('upBtn').disabled=false;
+  };
+  reader.readAsDataURL(f);
+}
+
+var dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag');});
+dz.addEventListener('dragleave',function(){dz.classList.remove('drag');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files.length) onFile(e.dataTransfer.files[0]);});
+
+async function doUpload(){
+  if(!file||!order) return;
+  var btn=document.getElementById('upBtn');
+  btn.disabled=true; btn.querySelector('span').textContent='⏳...';
+  try{
+    var url=await uploadImg(file,'receipts');
+    await sbPatch('orders','id=eq.'+encodeURIComponent(order.id),{
+      receipt_url:url, payment_status:'waiting_review',
+      receipt_at:new Date().toISOString()
+    });
+    document.getElementById('p2').classList.add('h');
+    document.getElementById('p3').classList.remove('h');
+    setStep(3);
+  }catch(e){
+    toast('❌ '+e.message);
+    btn.disabled=false; btn.querySelector('span').textContent=(L[LANG]||L.ar).upBtnTxt;
+  }
+}
+
+(function init(){
+  applyLang();
+  var p=new URLSearchParams(location.search);
+  var oid=p.get('order');
+  if(oid){ document.getElementById('oidIn').value=oid; findOrder(); }
+})();
+</script>
+</body></html>
