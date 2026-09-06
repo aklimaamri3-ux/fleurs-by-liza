@@ -220,8 +220,22 @@ async function findOrder(){
     d2.textContent=order.product_name||order.product||'';
     var d3=document.createElement('div');
     d3.style.cssText='margin-top:.2rem;font-family:var(--font-en);font-weight:700';
-    d3.textContent=money(order.total)+' دج';
-    oi.appendChild(d1);oi.appendChild(d2);oi.appendChild(d3);
+    var fr=LANG==='fr';
+    if(order.fulfillment_type==='pickup'){
+      d3.textContent=(fr?'Total: ':'المجموع: ')+money(order.total)+' دج';
+      oi.appendChild(d1);oi.appendChild(d2);oi.appendChild(d3);
+      var d4=document.createElement('div');
+      d4.style.cssText='margin-top:.4rem;font-family:var(--font-en);font-weight:800;color:var(--pk2)';
+      d4.textContent=(fr?'Acompte requis (50%): ':'الدفعة المقدمة المطلوبة (50%): ')+money(order.deposit_amount||Math.round(order.total/2))+' دج';
+      oi.appendChild(d4);
+      var d5=document.createElement('div');
+      d5.style.cssText='margin-top:.2rem;font-size:.72rem;color:var(--mt)';
+      d5.textContent=fr?'🏬 Retrait en boutique — envoyez le reçu de l\'acompte':'🏬 استلام من المحل — أرسلي إيصال الدفعة المقدمة';
+      oi.appendChild(d5);
+    } else {
+      d3.textContent=money(order.total)+' دج';
+      oi.appendChild(d1);oi.appendChild(d2);oi.appendChild(d3);
+    }
     document.getElementById('p1').classList.add('h');
     document.getElementById('p2').classList.remove('h');
     setStep(2);
