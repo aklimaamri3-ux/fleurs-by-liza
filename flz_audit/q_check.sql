@@ -1,0 +1,1 @@
+﻿select id,name,phone,wilaya,wilaya_id,commune,delivery_cost,product_price,qty,total,payment_method,payment_status,fulfillment_type,deposit_amount,client_ref,created_at from public.orders where name='Test Customer' order by created_at desc limit 3;

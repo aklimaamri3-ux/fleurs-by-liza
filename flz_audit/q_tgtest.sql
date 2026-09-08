@@ -1,0 +1,1 @@
+﻿insert into public.orders (id,name,phone,product_id,product_name,total,payment_method,status,payment_status,ref,wilaya_id,fulfillment_type) values ('TGTEST1','Test','0555000000','p1788442301101','Test Product',1000,'cod','new','pending','TGTEST-REF',16,'pickup') on conflict (id) do nothing;

@@ -1,0 +1,1 @@
+﻿select n.nspname as schema, p.proname as name, pg_get_function_identity_arguments(p.oid) as args, pg_get_functiondef(p.oid) as def, p.prosecdef as security_definer from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname in ('public') order by p.proname;

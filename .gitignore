@@ -1,0 +1,4 @@
+flz_audit/supabase/.temp/
+*.log
+*.exe
+desktop.ini

@@ -1,0 +1,1 @@
+﻿insert into public.ads (title,image_url,link_url,placement,active,sort_order) values ('ReAudit Ad','https://lgpllhbabctsdplqapzi.supabase.co/storage/v1/object/public/products/1788447335245_cs5nbupwi97.jpg','https://example.com/promo','home_top',true,0);
