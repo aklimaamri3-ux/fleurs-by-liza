@@ -194,6 +194,10 @@ footer p{font-size:.78rem;line-height:1.7;}
   <a href="index.html" class="logo">Fleurs<em>❀</em>by liza<small>FLOWER SHOP — ALGÉRIE</small></a>
   <div class="header-right">
     <button class="lang-btn" onclick="setLang(LANG==='ar'?'fr':'ar')">FR / AR</button>
+    <button class="lang-btn" id="wishToggleBtn" onclick="toggleWishlistView()" style="position:relative">
+      🤍
+      <span id="wishCount" style="display:none;position:absolute;top:-4px;left:-4px;background:#e91e8c;color:#fff;border-radius:50%;width:16px;height:16px;font-size:.6rem;align-items:center;justify-content:center">0</span>
+    </button>
     <a href="#track" class="track-btn">🔍 <span id="hdrTrack">تتبع طلبي</span></a>
   </div>
 </header>
@@ -471,6 +475,33 @@ var allProds = [], curCatId = 'all', allCats = [], eurRate = 270, showEur = true
 
 // ── RENDER PRODUCTS ──
 // ✅ renderProds — DOM API كاملاً لا XSS
+// ✅ Wishlist — localStorage فقط، بلا حساب زبون
+function getWishlist(){try{return JSON.parse(localStorage.getItem('fl_wishlist')||'[]');}catch(e){return [];}}
+function isWishlisted(id){return getWishlist().indexOf(String(id))!==-1;}
+function toggleWishlist(id){
+  var w=getWishlist();id=String(id);var i=w.indexOf(id);
+  if(i===-1)w.push(id);else w.splice(i,1);
+  try{localStorage.setItem('fl_wishlist',JSON.stringify(w));}catch(e){}
+  return i===-1;
+}
+function updateWishlistCount(){
+  var n=getWishlist().length;var b=document.getElementById('wishCount');
+  if(b){b.textContent=n;b.style.display=n>0?'flex':'none';}
+}
+var _wishlistView=false;
+function toggleWishlistView(){
+  _wishlistView=!_wishlistView;
+  var btn=document.getElementById('wishToggleBtn');
+  if(_wishlistView){
+    if(btn)btn.classList.add('active');
+    var w=getWishlist();
+    renderProds(allProds.filter(function(p){return w.indexOf(String(p.id))!==-1;}));
+  } else {
+    if(btn)btn.classList.remove('active');
+    filterByCat(curCatId||'all');
+  }
+}
+
 function renderProds(list) {
   var g = document.getElementById('prodGrid');
   var l = I18N[LANG] || I18N.ar;
@@ -509,6 +540,11 @@ function renderProds(list) {
       else{var emo=document.createElement('div');emo.className='pcard-emo';emo.textContent=p.emoji||'🌹';imgDiv.appendChild(emo);}
       if(badge){var bdg=document.createElement('div');bdg.className='pcard-badge';bdg.style.background=p.badge_color||'#e91e8c';bdg.textContent=badge;imgDiv.appendChild(bdg);}
       if(outOfStock){var ob=document.createElement('div');ob.className='pcard-badge';ob.style.cssText='background:#555;top:2.2rem';ob.textContent=LANG==='fr'?'Rupture de stock':'غير متوفر';imgDiv.appendChild(ob);}
+      var wbtn=document.createElement('button');wbtn.className='pcard-wish';wbtn.type='button';
+      wbtn.style.cssText='position:absolute;top:.5rem;left:.5rem;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.9);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2';
+      wbtn.textContent=isWishlisted(p.id)?'❤️':'🤍';
+      wbtn.addEventListener('click',function(e){e.stopPropagation();var pid=this.closest('.pcard').dataset.pid;var on=toggleWishlist(pid);this.textContent=on?'❤️':'🤍';updateWishlistCount();});
+      imgDiv.style.position='relative';imgDiv.appendChild(wbtn);
       card.appendChild(imgDiv);
 
       var body=document.createElement('div');body.className='pcard-body';
@@ -722,6 +758,12 @@ async function doTrack() {
       dateD.textContent = o.created_at ? new Date(o.created_at).toLocaleDateString('ar-DZ') : '';
       item.appendChild(refD); item.appendChild(prodD);
       item.appendChild(statD); item.appendChild(dateD);
+      if (o.yalidine_tracking) {
+        var trkD = document.createElement('div');
+        trkD.style.cssText = 'font-size:.72rem;margin-top:.35rem;font-family:var(--font-en);color:#555;background:#fff;border-radius:.4rem;padding:.3rem .5rem;display:inline-block';
+        trkD.textContent = '📦 ' + o.yalidine_tracking;
+        item.appendChild(trkD);
+      }
       res.appendChild(item);
     });
   } catch(e) {
@@ -805,6 +847,7 @@ async function init() {
   await Promise.all([loadCats(), loadProds()]);
   clearTimeout(t); hide();
   loadAnn(); loadStats(); loadEur(); loadRevs(); loadSocial(); loadSEOSettings(); loadAds();
+  updateWishlistCount();
 }
 init();
 </script>

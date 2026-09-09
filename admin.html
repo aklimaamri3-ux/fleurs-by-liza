@@ -1228,6 +1228,25 @@ async function sendTelegramNotif(order){
   }catch(e){console.warn('Telegram notif failed:',e.message);}
 }
 
+// ✅ إيميل عند تغيير حالة الطلب — فقط للحالات المهمة للزبون، ولا تُرسل أبداً "مدفوع"
+var STATUS_EMAIL_TYPE={shipping:'order_shipping',delivered:'order_delivered',cancelled:'order_cancelled'};
+async function notifyStatusEmail(orderId,newStatus){
+  var type=STATUS_EMAIL_TYPE[newStatus];
+  if(!type)return; // new/confirmed/preparing: لا قالب بريد لها حالياً
+  var tok=sessionStorage.getItem(TOK);
+  if(!tok)return;
+  try{
+    var rows=await sbGet('orders','?id=eq.'+encodeURIComponent(orderId)+'&limit=1');
+    var order=rows&&rows[0];
+    if(!order||!order.email)return; // بلا بريد إلكتروني — تجاهل بصمت
+    await fetch(SB_URL+'/functions/v1/hyper-action',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},
+      body:JSON.stringify({action:'send_email',type:type,order:order})
+    });
+  }catch(e){console.warn('Status email failed:',e.message);}
+}
+
 // ✅ CSV Export — مع حماية CSV Injection
 function csvSafe(v){
   v=String(v==null?'':v);
@@ -2874,7 +2893,11 @@ async function loadKanban(){
         e.preventDefault();colEl.style.background='';
         var oid=e.dataTransfer.getData('orderId');
         if(oid&&col.id){
-          try{await sbPatch('orders','id=eq.'+encodeURIComponent(oid),{status:col.id});loadKanban();toast('✅ تم نقل الطلب → '+col.label);}
+          try{
+            await sbPatch('orders','id=eq.'+encodeURIComponent(oid),{status:col.id});
+            loadKanban();toast('✅ تم نقل الطلب → '+col.label);
+            notifyStatusEmail(oid,col.id);
+          }
           catch(err){toast('❌ '+err.message);}
         }
       });

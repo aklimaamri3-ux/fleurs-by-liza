@@ -250,6 +250,21 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
 </div></body></html>`
       }
 
+      // ── Template: الطلب أُلغي ──
+      else if (type === 'order_cancelled') {
+        subject = `❌ طلبك #${ref} أُلغي — Fleurs by Liza`
+        html = `<!DOCTYPE html><html dir="rtl" lang="ar">
+<head><meta charset="UTF-8"><style>body{font-family:Tajawal,Arial,sans-serif;background:#f8f7f5;margin:0;padding:20px}.wrap{max-width:500px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}.header{background:linear-gradient(135deg,#7f8c8d,#95a5a6);padding:32px 24px;text-align:center;color:#fff}.body{padding:28px 24px}.footer{background:#f8f7f5;padding:20px;text-align:center;font-size:.75rem;color:#888}</style></head>
+<body><div class="wrap">
+<div class="header"><div style="font-size:2rem">❌</div><div style="font-size:1.1rem;font-weight:700;margin-top:8px">تم إلغاء الطلب</div><div style="opacity:.85;font-size:.82rem">Fleurs ❀ by liza</div></div>
+<div class="body">
+<p>مرحباً ${name}</p>
+<p style="color:#555;font-size:.88rem">نعتذر، تم إلغاء طلبك رقم <strong>#${ref}</strong>. للاستفسار تواصلي معنا.</p>
+</div>
+<div class="footer">Fleurs by Liza 🌹</div>
+</div></body></html>`
+      }
+
       else { return err('Unknown email type: ' + sanitize(type), 400) }
 
       // ── إرسال عبر Resend ──

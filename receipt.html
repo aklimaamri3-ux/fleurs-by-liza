@@ -43,6 +43,25 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
 .succ-emo{font-size:3.5rem;margin-bottom:.8rem;}
 .h{display:none!important;}
 #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--blk);color:#fff;padding:.68rem 1.3rem;border-radius:2rem;font-size:.79rem;display:none;z-index:1000;}
+/* ✅ Facture */
+#invBody{font-family:var(--font-ar)}
+#invBody .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--pk2);padding-bottom:1rem;margin-bottom:1.3rem}
+#invBody .lg{font-family:var(--font-serif);font-size:1.5rem;font-weight:700}#invBody .lg em{color:var(--pk);font-style:italic}
+#invBody .inv{text-align:left}#invBody .inv b{color:var(--pk2);font-size:1rem}#invBody .inv div{font-size:.72rem;color:var(--mt);margin-top:.2rem}
+#invBody .cust{margin-bottom:1rem}
+#invBody .row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--bd);font-size:.86rem}
+#invBody .row span:first-child{color:var(--mt)}#invBody .row span:last-child{font-weight:700}
+#invBody .items{width:100%;border-collapse:collapse;margin:.8rem 0;font-size:.8rem}
+#invBody .items th{text-align:right;color:var(--mt);font-weight:600;padding:.4rem;border-bottom:2px solid var(--bd);font-size:.72rem}
+#invBody .items td{padding:.5rem .4rem;border-bottom:1px solid #f5f5f5}
+#invBody .items td.ref{font-family:var(--font-en);color:var(--mt);font-size:.7rem}
+#invBody .tot{background:var(--pkp);border-radius:.6rem;padding:.9rem 1.1rem;margin-top:.8rem;display:flex;justify-content:space-between;font-weight:800;color:var(--pk2);font-size:1.05rem}
+@media print{
+  body>*:not(#invOverlay){display:none!important}
+  #invOverlay{position:static!important;background:#fff!important;padding:0!important}
+  #invOverlay>div{box-shadow:none!important;margin:0!important;max-width:100%!important}
+  #invClose,.inv-actions{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -84,6 +103,17 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
       <div class="sub" id="p3Sub">سنراجع دفعتك ونؤكد طلبك قريباً 🌹</div>
       <button class="btn" style="display:block;box-sizing:border-box;text-align:center;margin-top:1rem;background:#111" id="p3Invoice" onclick="printInvoice()">🖨️ طباعة الفاتورة</button>
       <a href="index.html" class="btn" style="display:block;text-decoration:none;box-sizing:border-box;text-align:center;margin-top:.6rem" id="p3Btn">العودة للرئيسية</a>
+    </div>
+  </div>
+</div>
+
+<div id="invOverlay" class="h" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;overflow:auto;padding:1rem">
+  <div style="max-width:640px;margin:1rem auto;background:#fff;border-radius:1rem;padding:2rem;position:relative">
+    <button onclick="closeInvoice()" style="position:absolute;top:1rem;left:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer" id="invClose">✕</button>
+    <div id="invBody"></div>
+    <div style="display:flex;gap:.6rem;margin-top:1.2rem" class="inv-actions">
+      <button onclick="window.print()" style="flex:1;padding:.8rem;border:none;border-radius:2rem;font-weight:700;cursor:pointer;background:#e91e8c;color:#fff" id="invPrintBtn">🖨️ طباعة</button>
+      <button onclick="window.print()" style="flex:1;padding:.8rem;border:none;border-radius:2rem;font-weight:700;cursor:pointer;background:#111;color:#fff" id="invPdfBtn">📄 تحميل PDF</button>
     </div>
   </div>
 </div>
@@ -184,45 +214,62 @@ var order=null, file=null;
 
 // ✅ فاتورة الزبون — تُبنى فقط من بيانات الطلب الموثوقة المسترجعة من القاعدة
 // (عبر findOrder بالـ id+receipt_token) — لا قيم يُدخلها المتصفح.
-function printInvoice(){
-  if(!order){toast('⚠️');return;}
-  var w=window.open('','_blank');if(!w)return;
+var PAY_LABELS={cod:'الدفع عند الاستلام',ccp:'CCP / Baridimob',iban:'تحويل بنكي IBAN',binance:'Binance',redotpay:'RedotPay',cib:'بطاقة CIB',dahabia:'Dahabia',pickup:'استلام من المحل'};
+var STATUS_LABELS={new:'جديد',confirmed:'مؤكد',shipping:'قيد التوصيل',delivered:'تم التسليم',cancelled:'ملغى'};
+var PSTATUS_LABELS={pending:'بانتظار الدفع',waiting_review:'بانتظار المراجعة',waiting_slickpay:'بانتظار الدفع الإلكتروني',paid:'مدفوع',rejected:'مرفوض'};
+
+function buildInvoiceHtml(){
   var fr=LANG==='fr';
   var ref=order.ref||order.id||'';
   var d=new Date(order.created_at||Date.now());
   var isPickup=order.fulfillment_type==='pickup';
-  var rows=[
-    [fr?'المنتج':'المنتج', esc(order.product_name||order.product||'')],
-    [fr?'الكمية':'الكمية', String(order.qty||1)],
-    [fr?'سعر المنتج':'سعر المنتج', money(order.product_price)+' دج'],
-  ];
+  var subtotal=(Number(order.product_price)||0)*(Number(order.qty)||1);
+  var rowsHtml=''
+    +'<tr><td>'+esc(order.product_name||order.product||'')+'</td><td class="ref">'+esc(order.product_id||'')+'</td>'
+    +'<td>'+String(order.qty||1)+'</td><td>'+money(order.product_price)+' دج</td><td>'+money(subtotal)+' دج</td></tr>';
+  var extraRows=[];
   if(isPickup){
-    rows.push([fr?'طريقة الاستلام':'طريقة الاستلام', '🏬 استلام من المحل']);
-    rows.push([fr?'الدفعة المقدمة (50%)':'الدفعة المقدمة (50%)', money(order.deposit_amount)+' دج']);
+    extraRows.push([fr?'Mode de retrait':'طريقة الاستلام','🏬 '+(fr?'Retrait en boutique':'استلام من المحل')]);
   } else {
-    rows.push([fr?'التوصيل':'التوصيل', esc(order.wilaya||'')+(order.commune?' — '+esc(order.commune):'')]);
-    rows.push([fr?'سعر التوصيل':'سعر التوصيل', money(order.delivery_cost)+' دج']);
+    extraRows.push([fr?'Livraison':'التوصيل', esc(order.wilaya||'')+(order.commune?' — '+esc(order.commune):'')]);
+    extraRows.push([fr?'Frais de livraison':'سعر التوصيل', money(order.delivery_cost)+' دج']);
   }
-  var html='<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>Facture — '+esc(ref)+'</title>'
-    +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Tajawal,Arial,sans-serif;color:#1a1a1a;background:#fff;padding:2rem;max-width:560px;margin:auto}'
-    +'.hd{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #e91e8c;padding-bottom:1rem;margin-bottom:1.3rem}'
-    +'.lg{font-size:1.5rem;font-weight:700}.lg em{color:#c8963c;font-style:italic}'
-    +'.inv{text-align:left}.inv b{color:#e91e8c;font-size:1rem}.inv div{font-size:.72rem;color:#888;margin-top:.2rem}'
-    +'.row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #f0f0f0;font-size:.86rem}'
-    +'.row span:first-child{color:#888}.row span:last-child{font-weight:700}'
-    +'.tot{background:#fce4f3;border-radius:.6rem;padding:.9rem 1.1rem;margin-top:.8rem;display:flex;justify-content:space-between;font-weight:800;color:#e91e8c;font-size:1.05rem}'
-    +'@media print{button{display:none}}</style></head><body>'
-    +'<div class="hd"><div class="lg">Fleurs<em>❀</em>by liza</div><div class="inv"><b>#'+esc(ref)+'</b><div>'+d.toLocaleDateString('fr-DZ')+'</div></div></div>'
-    +rows.map(function(r){return '<div class="row"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>';}).join('')
-    +'<div class="row"><span>'+(fr?'العميل':'العميل')+'</span><span>'+esc(order.name||'')+'</span></div>'
-    +'<div class="row"><span>'+(fr?'الهاتف':'الهاتف')+'</span><span>'+esc(order.phone||'')+'</span></div>'
-    +'<div class="row"><span>'+(fr?'طريقة الدفع':'طريقة الدفع')+'</span><span>'+esc(order.payment_method||'')+'</span></div>'
-    +'<div class="tot"><span>المجموع الكلي</span><span>'+money(order.total)+' دج</span></div>'
-    +'<button onclick="window.print()" style="margin-top:1.2rem;width:100%;padding:.8rem;background:#e91e8c;color:#fff;border:none;border-radius:2rem;font-weight:700;cursor:pointer">🖨️ طباعة</button>'
-    +'</body></html>';
-  w.document.write(html);
-  w.document.close();
+  if(Number(order.discount_amount)>0){
+    extraRows.push([fr?'Réduction'+(order.coupon_code?' ('+esc(order.coupon_code)+')':''):'الخصم'+(order.coupon_code?' ('+esc(order.coupon_code)+')':''), '-'+money(order.discount_amount)+' دج']);
+  }
+  if(isPickup){
+    extraRows.push([fr?'Acompte requis (50%)':'الدفعة المقدمة (50%)', money(order.deposit_amount||Math.round(order.total/2))+' دج']);
+  }
+  var payLabel=PAY_LABELS[order.payment_method]||order.payment_method||'';
+  var statusLabel=STATUS_LABELS[order.status]||order.status||'';
+  var pstatusLabel=PSTATUS_LABELS[order.payment_status]||order.payment_status||'';
+  var html='<div class="hd"><div class="lg">Fleurs<em>❀</em>by liza</div><div class="inv"><b>#'+esc(ref)+'</b><div>'+d.toLocaleDateString('fr-DZ')+' '+d.toLocaleTimeString('fr-DZ',{hour:'2-digit',minute:'2-digit'})+'</div></div></div>'
+    +'<div class="cust">'
+    +'<div class="row"><span>'+(fr?'Client':'العميل')+'</span><span>'+esc(order.name||'')+'</span></div>'
+    +'<div class="row"><span>'+(fr?'Téléphone':'الهاتف')+'</span><span>'+esc(order.phone||'')+'</span></div>'
+    +(order.email?'<div class="row"><span>'+(fr?'Email':'البريد')+'</span><span>'+esc(order.email)+'</span></div>':'')
+    +(!isPickup?'<div class="row"><span>'+(fr?'Wilaya':'الولاية')+'</span><span>'+esc(order.wilaya||'')+'</span></div>':'')
+    +(!isPickup&&order.address?'<div class="row"><span>'+(fr?'Adresse':'العنوان')+'</span><span>'+esc(order.address)+'</span></div>':'')
+    +'</div>'
+    +'<table class="items"><thead><tr><th>'+(fr?'Produit':'المنتج')+'</th><th>'+(fr?'Réf.':'المرجع')+'</th><th>'+(fr?'Qté':'الكمية')+'</th><th>'+(fr?'Prix':'السعر')+'</th><th>'+(fr?'Sous-total':'المجموع الفرعي')+'</th></tr></thead><tbody>'
+    +rowsHtml+'</tbody></table>'
+    +extraRows.map(function(r){return '<div class="row"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>';}).join('')
+    +'<div class="row"><span>'+(fr?'Mode de paiement':'طريقة الدفع')+'</span><span>'+esc(payLabel)+'</span></div>'
+    +'<div class="row"><span>'+(fr?'Statut commande':'حالة الطلب')+'</span><span>'+esc(statusLabel)+'</span></div>'
+    +'<div class="row"><span>'+(fr?'Statut paiement':'حالة الدفع')+'</span><span>'+esc(pstatusLabel)+'</span></div>'
+    +'<div class="tot"><span>'+(fr?'Total':'المجموع الكلي')+'</span><span>'+money(order.total)+' دج</span></div>';
+  return html;
 }
+
+function printInvoice(){
+  if(!order){toast('⚠️');return;}
+  var fr=LANG==='fr';
+  document.getElementById('invBody').innerHTML=buildInvoiceHtml();
+  document.getElementById('invPrintBtn').textContent='🖨️ '+(fr?'Imprimer':'طباعة');
+  document.getElementById('invPdfBtn').textContent='📄 '+(fr?'Télécharger PDF (Enregistrer en PDF)':'تحميل PDF (احفظي كـ PDF)');
+  document.getElementById('invOverlay').classList.remove('h');
+}
+function closeInvoice(){document.getElementById('invOverlay').classList.add('h');}
 
 function applyLang(){
   var p=new URLSearchParams(location.search); var ln=p.get('lang')||LANG; LANG=ln;
