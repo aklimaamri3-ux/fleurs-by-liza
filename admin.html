@@ -775,6 +775,10 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
       <div class="fg"><label class="fl">💰 تكلفة الشراء (دج) <span style="font-size:.62rem;color:var(--mt)">سري — لحساب الأرباح</span></label><input class="fi" id="pCostPrice" type="number" placeholder="0"></div>
       <div class="fg"><label class="fl">الإيموجي</label><input class="fi" id="pEmoji" value="🌹"></div>
     </div>
+    <div class="frow">
+      <div class="fg"><label class="fl">📦 الكمية بالمخزون <span style="font-size:.62rem;color:var(--mt)">فارغ = بلا تتبع (متوفر دائماً)</span></label><input class="fi" id="pStockQty" type="number" placeholder="بلا تتبع"></div>
+      <div class="fg"><label class="fl">حد التنبيه (مخزون منخفض)</label><input class="fi" id="pLowStock" type="number" placeholder="5"></div>
+    </div>
       <div class="fg"><label class="fl">التصنيف</label><select class="fi" id="pCat"></select></div>
     </div>
     <div class="frow">
@@ -1556,6 +1560,12 @@ function renderProdsGrid(){
       if(p.sku){var rf=document.createElement('div');rf.style.cssText='font-size:.62rem;color:var(--mt);font-family:var(--font-en)';rf.textContent='Réf: '+p.sku;cb.appendChild(rf);}
       var pr=document.createElement('div');pr.className='pcard-a-price';pr.textContent=money(p.price)+' دج';cb.appendChild(pr);
       var st=document.createElement('div');st.style.cssText='font-size:.65rem;color:'+(isActive?'#27ae60':'#e74c3c');st.textContent=isActive?'✅ نشط':'⏸️ معطل';cb.appendChild(st);
+      if(p.stock_qty!==null&&p.stock_qty!==undefined){
+        var lowT=p.low_stock_threshold||5;
+        var stockColor=p.stock_qty<=0?'#e74c3c':(p.stock_qty<=lowT?'#f39c12':'#27ae60');
+        var stockTxt=p.stock_qty<=0?'⛔ نفد المخزون':(p.stock_qty<=lowT?'⚠️ مخزون منخفض: '+p.stock_qty:'📦 المخزون: '+p.stock_qty);
+        var stk=document.createElement('div');stk.style.cssText='font-size:.65rem;color:'+stockColor+';font-weight:600';stk.textContent=stockTxt;cb.appendChild(stk);
+      }
       var acts=document.createElement('div');acts.className='pcard-a-acts';
       var eBtn=document.createElement('button');eBtn.className='btn-o btn-sm';eBtn.textContent='✏️';eBtn.dataset.id=pid;eBtn.addEventListener('click',function(){editProd(this.dataset.id);});
       var tBtn=document.createElement('button');tBtn.className='btn-o btn-sm';tBtn.textContent=isActive?'⏸️':'▶️';tBtn.dataset.id=pid;tBtn.dataset.active=String(isActive);tBtn.addEventListener('click',function(){toggleProd(this.dataset.id,this.dataset.active==='true');});
@@ -1577,6 +1587,7 @@ async function openProdMo(){
   document.getElementById('prodMoTitle').textContent='إضافة منتج';
   sv('pId','');sv('pRef','');sv('pNameAr','');sv('pNameFr','');sv('pDescAr','');sv('pDescFr','');
   sv('pPrice','');sv('pOld','');sv('pCostPrice','');sv('pEmoji','🌹');sv('pBadgeAr','');sv('pBadgeFr','');
+  sv('pStockQty','');sv('pLowStock','');
   // نخفي ref bar للمنتج الجديد — ref يتولد عند الحفظ
   var rb=document.getElementById('pRefBar');if(rb)rb.style.display='none';
   document.getElementById('pCat').innerHTML=buildCatSelect('');
@@ -1594,6 +1605,7 @@ async function editProd(id){
   sv('pNameAr',p.name_ar||p.name||'');sv('pNameFr',p.name_fr||'');
   sv('pDescAr',p.description_ar||p.description||'');sv('pDescFr',p.description_fr||'');
   sv('pPrice',p.price||'');sv('pOld',p.old_price||'');sv('pCostPrice',p.cost_price||'');sv('pEmoji',p.emoji||'🌹');
+  sv('pStockQty',p.stock_qty===null||p.stock_qty===undefined?'':p.stock_qty);sv('pLowStock',p.low_stock_threshold||'');
   sv('pBadgeAr',p.badge_ar||'');sv('pBadgeFr',p.badge_fr||'');
   document.getElementById('pCat').innerHTML=buildCatSelect(p.category_id||'');
   p.active!==false?document.getElementById('pActive').classList.add('on'):document.getElementById('pActive').classList.remove('on');
@@ -1639,7 +1651,8 @@ async function saveProd(){
   try{
     var mediaItems=existingImgUrls.map(function(u){return{type:'image',src:u};});
     for(var i=0;i<pendingImgs.length;i++){var url=await uploadImg(pendingImgs[i],'products');mediaItems.push({type:'image',src:url});}
-    var data={id,ref:ref,name_ar:nameAr,name_fr:gv('pNameFr'),description_ar:gv('pDescAr'),description_fr:gv('pDescFr'),price,old_price:parseInt(gv('pOld'))||0,cost_price:parseInt(gv('pCostPrice'))||0,emoji:gv('pEmoji')||'🌹',category_id:gv('pCat'),badge_ar:gv('pBadgeAr'),badge_fr:gv('pBadgeFr'),active:document.getElementById('pActive').classList.contains('on'),media_items:mediaItems,created_at:new Date().toISOString()};
+    var stockRaw=gv('pStockQty');var lowRaw=gv('pLowStock');
+    var data={id,ref:ref,name_ar:nameAr,name_fr:gv('pNameFr'),description_ar:gv('pDescAr'),description_fr:gv('pDescFr'),price,old_price:parseInt(gv('pOld'))||0,cost_price:parseInt(gv('pCostPrice'))||0,emoji:gv('pEmoji')||'🌹',category_id:gv('pCat'),badge_ar:gv('pBadgeAr'),badge_fr:gv('pBadgeFr'),active:document.getElementById('pActive').classList.contains('on'),media_items:mediaItems,stock_qty:stockRaw===''?null:(parseInt(stockRaw)||0),low_stock_threshold:lowRaw===''?5:(parseInt(lowRaw)||5),created_at:new Date().toISOString()};
     await sbUpsert('products',data);
     toast('✅ تم حفظ المنتج — Réf: '+ref);closeProdMo();loadProds();
   }catch(e){toast('❌ '+e.message);}
