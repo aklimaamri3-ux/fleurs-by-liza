@@ -618,7 +618,6 @@ function renderProds(list) {
       var old   = Number(p.old_price) || 0;
       var eur   = eurRate ? (price / eurRate).toFixed(0) : '';
       var badge = LANG === 'fr' && p.badge_fr ? p.badge_fr : (p.badge_ar || '');
-      var outOfStock = p.in_stock === false;
 
       // ✅ DOM API
       var card=document.createElement('div');card.className='pcard';
@@ -629,7 +628,6 @@ function renderProds(list) {
       if(imgSrc){var im=document.createElement('img');im.src=imgSrc;im.loading='lazy';im.alt=name;im.onerror=function(){this.style.display='none';};imgDiv.appendChild(im);}
       else{var emo=document.createElement('div');emo.className='pcard-emo';emo.textContent=p.emoji||'🌹';imgDiv.appendChild(emo);}
       if(badge){var bdg=document.createElement('div');bdg.className='pcard-badge';bdg.style.background=p.badge_color||'#e91e8c';bdg.textContent=badge;imgDiv.appendChild(bdg);}
-      if(outOfStock){var ob=document.createElement('div');ob.className='pcard-badge';ob.style.cssText='background:#555;top:2.2rem';ob.textContent=LANG==='fr'?'Rupture de stock':'غير متوفر';imgDiv.appendChild(ob);}
       var wbtn=document.createElement('button');wbtn.className='pcard-wish';wbtn.type='button';
       wbtn.style.cssText='position:absolute;top:.5rem;left:.5rem;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.9);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2';
       wbtn.textContent=isWishlisted(p.id)?'❤️':'🤍';
@@ -647,16 +645,13 @@ function renderProds(list) {
       if(eur&&showEur){var pe=document.createElement('div');pe.className='pcard-eur';pe.textContent='≈ '+eur+' €';body.appendChild(pe);}
       var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:.4rem';
       var btn=document.createElement('button');btn.className='pcard-btn';btn.style.flex='1';
-      if(outOfStock){btn.disabled=true;btn.style.cssText='flex:1;opacity:.5;cursor:not-allowed';btn.textContent=LANG==='fr'?'Rupture de stock':'نفدت الكمية';}
-      else{btn.textContent=l.orderBtn;}
+      btn.textContent=l.orderBtn;
       btnRow.appendChild(btn);
-      if(!outOfStock){
-        var cartBtn=document.createElement('button');cartBtn.className='pcard-btn';cartBtn.type='button';
-        cartBtn.style.cssText='flex:0 0 auto;width:2.6rem;background:#111';cartBtn.textContent='🛒';
-        cartBtn.title=LANG==='fr'?'Ajouter au panier':'أضيفي للسلة';
-        cartBtn.addEventListener('click',function(e){e.stopPropagation();addToCart(this.closest('.pcard').dataset.pid,1);});
-        btnRow.appendChild(cartBtn);
-      }
+      var cartBtn=document.createElement('button');cartBtn.className='pcard-btn';cartBtn.type='button';
+      cartBtn.style.cssText='flex:0 0 auto;width:2.6rem;background:#111';cartBtn.textContent='🛒';
+      cartBtn.title=LANG==='fr'?'Ajouter au panier':'أضيفي للسلة';
+      cartBtn.addEventListener('click',function(e){e.stopPropagation();addToCart(this.closest('.pcard').dataset.pid,1);});
+      btnRow.appendChild(cartBtn);
       body.appendChild(btnRow);
       card.appendChild(body);
       g.appendChild(card);
