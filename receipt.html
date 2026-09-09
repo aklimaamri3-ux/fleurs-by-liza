@@ -361,7 +361,7 @@ async function findOrder(){
 
 var _selectedRating=5;
 async function loadReviewBox(){
-  if(!order)return;
+  if(!order||featureFlags.reviews===false)return;
   var box=document.getElementById('reviewBox');
   try{
     var r=await fetch(SB_URL+'/rest/v1/rpc/get_review_status',{
@@ -416,7 +416,7 @@ async function submitReview(){
 }
 
 async function loadDeliveryProof(){
-  if(!order||order.status!=='delivered')return;
+  if(!order||order.status!=='delivered'||featureFlags.delivery_proof===false)return;
   try{
     var r=await fetch(SB_URL+'/functions/v1/hyper-action',{
       method:'POST',
@@ -505,8 +505,11 @@ async function doUpload(){
 // ✅ token من الرابط
 var RECEIPT_TOKEN='';
 
-(function init(){
+var featureFlags={};
+(async function init(){
   applyLang();
+  try{featureFlags=await getSetting('feature_flags')||{};}catch(e){}
+  if(featureFlags.invoice===false){var ib=document.getElementById('p3Invoice');if(ib)ib.style.display='none';}
   var p=new URLSearchParams(location.search);
   var oid=p.get('order');
   var tok=p.get('token')||'';

@@ -629,11 +629,13 @@ function renderProds(list) {
       if(imgSrc){var im=document.createElement('img');im.src=imgSrc;im.loading='lazy';im.alt=name;im.onerror=function(){this.style.display='none';};imgDiv.appendChild(im);}
       else{var emo=document.createElement('div');emo.className='pcard-emo';emo.textContent=p.emoji||'🌹';imgDiv.appendChild(emo);}
       if(badge){var bdg=document.createElement('div');bdg.className='pcard-badge';bdg.style.background=p.badge_color||'#e91e8c';bdg.textContent=badge;imgDiv.appendChild(bdg);}
-      var wbtn=document.createElement('button');wbtn.className='pcard-wish';wbtn.type='button';
-      wbtn.style.cssText='position:absolute;top:.5rem;left:.5rem;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.9);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2';
-      wbtn.textContent=isWishlisted(p.id)?'❤️':'🤍';
-      wbtn.addEventListener('click',function(e){e.stopPropagation();var pid=this.closest('.pcard').dataset.pid;var on=toggleWishlist(pid);this.textContent=on?'❤️':'🤍';updateWishlistCount();});
-      imgDiv.style.position='relative';imgDiv.appendChild(wbtn);
+      if(featOn('wishlist')){
+        var wbtn=document.createElement('button');wbtn.className='pcard-wish';wbtn.type='button';
+        wbtn.style.cssText='position:absolute;top:.5rem;left:.5rem;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.9);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2';
+        wbtn.textContent=isWishlisted(p.id)?'❤️':'🤍';
+        wbtn.addEventListener('click',function(e){e.stopPropagation();var pid=this.closest('.pcard').dataset.pid;var on=toggleWishlist(pid);this.textContent=on?'❤️':'🤍';updateWishlistCount();});
+        imgDiv.style.position='relative';imgDiv.appendChild(wbtn);
+      }
       card.appendChild(imgDiv);
 
       var body=document.createElement('div');body.className='pcard-body';
@@ -649,11 +651,13 @@ function renderProds(list) {
       var btn=document.createElement('button');btn.className='pcard-btn';btn.style.flex='1';
       btn.textContent=l.orderBtn;
       btnRow.appendChild(btn);
-      var cartBtn=document.createElement('button');cartBtn.className='pcard-btn';cartBtn.type='button';
-      cartBtn.style.cssText='flex:0 0 auto;width:2.6rem;background:#111';cartBtn.textContent='🛒';
-      cartBtn.title=LANG==='fr'?'Ajouter au panier':'أضيفي للسلة';
-      cartBtn.addEventListener('click',function(e){e.stopPropagation();addToCart(this.closest('.pcard').dataset.pid,1);});
-      btnRow.appendChild(cartBtn);
+      if(featOn('cart')){
+        var cartBtn=document.createElement('button');cartBtn.className='pcard-btn';cartBtn.type='button';
+        cartBtn.style.cssText='flex:0 0 auto;width:2.6rem;background:#111';cartBtn.textContent='🛒';
+        cartBtn.title=LANG==='fr'?'Ajouter au panier':'أضيفي للسلة';
+        cartBtn.addEventListener('click',function(e){e.stopPropagation();addToCart(this.closest('.pcard').dataset.pid,1);});
+        btnRow.appendChild(cartBtn);
+      }
       body.appendChild(btnRow);
       card.appendChild(body);
       g.appendChild(card);
@@ -1007,14 +1011,25 @@ function renderAdsInto(containerId, ads) {
 }
 
 // ── INIT ──
+var featureFlags = {};
+async function loadFeatureFlags() {
+  try { featureFlags = await getSetting('feature_flags') || {}; } catch(e) { featureFlags = {}; }
+}
+function featOn(key) { return featureFlags[key] !== false; }
 async function init() {
   applyI18n();
   var hide = function() { document.getElementById('ld').classList.add('h'); };
   var t = setTimeout(hide, 5000);
-  await Promise.all([loadCats(), loadProds(), loadOccasionsBar()]);
+  await loadFeatureFlags();
+  await Promise.all([loadCats(), loadProds(), featOn('occasions') ? loadOccasionsBar() : Promise.resolve()]);
   clearTimeout(t); hide();
-  loadAnn(); loadStats(); loadEur(); loadRevs(); loadSocial(); loadSEOSettings(); loadAds(); loadBizHours();
-  updateWishlistCount(); updateCartCount();
+  loadAnn(); loadStats(); loadEur(); loadSocial(); loadSEOSettings(); loadBizHours();
+  if (featOn('reviews')) loadRevs();
+  if (featOn('ads')) loadAds();
+  if (featOn('wishlist')) updateWishlistCount(); else { var wb=document.getElementById('wishToggleBtn'); if(wb) wb.style.display='none'; }
+  if (featOn('cart')) updateCartCount(); else { var cb=document.getElementById('cartToggleBtn'); if(cb) cb.style.display='none'; }
+  if (!featOn('search')) { var sw=document.querySelector('.search-wrap'); if(sw) sw.style.display='none'; }
+  if (!featOn('tracking')) { var trackSec=document.getElementById('track'); if(trackSec) trackSec.style.display='none'; var trackBtn=document.querySelector('.track-btn'); if(trackBtn) trackBtn.style.display='none'; }
 }
 
 // ✅ ساعات العمل — إعلامية فقط، لا تمنع الطلب أبداً

@@ -128,6 +128,7 @@ Deno.serve(async (req) => {
     // own order, after the same receipt_token check every other
     // customer-facing order RPC uses.
     if (action === 'get_delivery_proof_url') {
+      if (!(await featureEnabled('delivery_proof'))) return ok({ url: null })
       const filt = idFilter(body.order_id ?? '')
       if (!filt) return err('Invalid order_id', 400)
       const token = String(body.token ?? '').trim()
@@ -160,6 +161,7 @@ Deno.serve(async (req) => {
 
     // ── Telegram: إشعار طلب ──
     if (action === 'telegram_notify') {
+      if (!(await featureEnabled('telegram_notifications'))) return ok({ ok: true, skipped: true })
       const o = body.order
       if (!o) return err('no order', 400)
       const filt = idFilter(o.id ?? o.order_id ?? '')
@@ -199,6 +201,7 @@ Deno.serve(async (req) => {
 
     // ── ✅ Resend: إرسال إيميل ──
     if (action === 'send_email') {
+      if (!(await featureEnabled('email_notifications'))) return ok({ sent: false, reason: 'disabled' })
       const resendKey = Deno.env.get('RESEND_API_KEY')
       if (!resendKey) return ok({ sent: false, reason: 'not_configured' })
 
@@ -509,6 +512,7 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
 
     // ── Yalidine: إنشاء شحنة (admin) ──
     if (action === 'yalidine_create_shipment') {
+      if (!(await featureEnabled('yalidine'))) return err('Yalidine is currently disabled', 403)
       const token = Deno.env.get('YALIDINE_TOKEN')
       const id    = Deno.env.get('YALIDINE_ID')
       if (!token || !id) return err('Yalidine not configured', 500)
@@ -609,6 +613,22 @@ function slickpayKey(): string {
 function slickpayBase(): string {
   const isProd = Deno.env.get('SLICKPAY_ENV') === 'prod' || Deno.env.get('SLICKPAY_ENV') === 'live'
   return (isProd ? 'https://prodapi.slick-pay.com' : 'https://devapi.slick-pay.com') + '/api/v2'
+}
+
+// ✅ real, server-side feature flag check — not just UI hiding. Fails
+// open (returns true) on any error so a settings hiccup never takes
+// the whole site down; the actual on/off switch lives in
+// settings.feature_flags, admin-only to write.
+async function featureEnabled(key: string): Promise<boolean> {
+  try {
+    const r = await jfetch(`${SB_URL}/rest/v1/rpc/is_feature_enabled`, {
+      method: 'POST',
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_key: key }),
+    }, 5_000)
+    if (!r.ok) return true
+    return (await r.json()) !== false
+  } catch { return true }
 }
 
 async function jfetch(url: string, init: RequestInit = {}, ms = 10_000): Promise<Response> {

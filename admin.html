@@ -769,6 +769,11 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
           <div style="font-size:.78rem;color:var(--mt);margin-bottom:.6rem">يرسل ملخص أمس لتيليغرام</div>
           <button class="btn btn-p" onclick="sendDailyReport()">📤 إرسال التقرير لتيليغرام</button>
         </div>
+        <div class="card">
+          <div class="ct" style="margin-bottom:.4rem">🎛️ تفعيل/تعطيل الميزات</div>
+          <div style="font-size:.7rem;color:var(--mt);margin-bottom:.8rem">تعطيل ميزة هنا يمنعها فعلياً من السيرفر — ليس فقط إخفاء الزر</div>
+          <div id="featFlagsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.5rem"></div>
+        </div>
       </div>
 
     </div>
@@ -2984,6 +2989,31 @@ async function loadSettingsPage(){
       if(prev&&safeLogo()){prev.src=safeLogo();prev.style.display='block';}
     }
   }catch(e){}
+  loadFeatureFlags();
+}
+var FEATURE_LABELS={cart:'🛒 السلة',wishlist:'🤍 المفضلة',promotions:'🎁 البروموسيون',ads:'📣 الإعلانات',reviews:'⭐ التقييمات',occasions:'🎉 المناسبات',telegram_notifications:'📱 إشعارات تيليغرام',email_notifications:'📧 إشعارات الإيميل',whatsapp_actions:'💬 واتساب',yalidine:'🚚 Yalidine',delivery_proof:'📸 إثبات التوصيل',tracking:'🔍 تتبع الطلب',invoice:'🧾 الفاتورة',search:'🔎 البحث'};
+async function loadFeatureFlags(){
+  try{
+    var flags=await getSetting('feature_flags')||{};
+    var box=document.getElementById('featFlagsGrid');if(!box)return;box.innerHTML='';
+    Object.keys(FEATURE_LABELS).forEach(function(key){
+      var isOn=flags[key]!==false;
+      var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:center;background:var(--gy);padding:.5rem .7rem;border-radius:.6rem;font-size:.78rem';
+      var lbl=document.createElement('span');lbl.textContent=FEATURE_LABELS[key];row.appendChild(lbl);
+      var tgl=document.createElement('div');tgl.className='tgl'+(isOn?' on':'');tgl.dataset.key=key;tgl.dataset.on=String(isOn);
+      tgl.addEventListener('click',function(){toggleFeatureFlag(this.dataset.key,this.dataset.on==='true');});
+      row.appendChild(tgl);box.appendChild(row);
+    });
+  }catch(e){}
+}
+async function toggleFeatureFlag(key,cur){
+  try{
+    var flags=await getSetting('feature_flags')||{};
+    flags[key]=!cur;
+    await setSetting('feature_flags',flags);
+    toast((!cur?'✅ تم تفعيل: ':'⏸️ تم تعطيل: ')+(FEATURE_LABELS[key]||key));
+    loadFeatureFlags();
+  }catch(e){toast('❌ '+e.message);}
 }
 async function uploadLogo(file){
   if(!file)return;toast('⏳ جاري رفع اللوغو...');
