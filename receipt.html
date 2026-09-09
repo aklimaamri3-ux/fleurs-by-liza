@@ -101,6 +101,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
       <div class="succ-emo">✅</div>
       <div class="ttl" id="p3Title">تم استلام الإيصال!</div>
       <div class="sub" id="p3Sub">سنراجع دفعتك ونؤكد طلبك قريباً 🌹</div>
+      <div id="deliveryProofBox" class="h" style="margin-top:1rem"></div>
       <button class="btn" style="display:block;box-sizing:border-box;text-align:center;margin-top:1rem;background:#111" id="p3Invoice" onclick="printInvoice()">🖨️ طباعة الفاتورة</button>
       <a href="index.html" class="btn" style="display:block;text-decoration:none;box-sizing:border-box;text-align:center;margin-top:.6rem" id="p3Btn">العودة للرئيسية</a>
     </div>
@@ -319,7 +320,9 @@ async function findOrder(){
     if(order.payment_status==='paid'){
       document.getElementById('p1').classList.add('h');
       document.getElementById('p3').classList.remove('h');
-      setStep(3); return;
+      setStep(3);
+      loadDeliveryProof();
+      return;
     }
     var oi=document.getElementById('oInfo');
     oi.innerHTML='';
@@ -352,6 +355,28 @@ async function findOrder(){
     var pp=new URLSearchParams(location.search);
     if(pp.get('paid')==='1' && order.payment_method!=='cod') pollSlickPay(order.id, 0);
   }catch(e){ toast('❌ خطأ في الاتصال'); }
+}
+
+async function loadDeliveryProof(){
+  if(!order||order.status!=='delivered')return;
+  try{
+    var r=await fetch(SB_URL+'/functions/v1/hyper-action',{
+      method:'POST',
+      headers:Object.assign({},SB_H,{'Content-Type':'application/json'}),
+      body:JSON.stringify({action:'get_delivery_proof_url',order_id:order.id,token:RECEIPT_TOKEN})
+    });
+    if(!r.ok)return;
+    var d=await r.json();
+    if(!d.url)return;
+    var fr=LANG==='fr';
+    var box=document.getElementById('deliveryProofBox');
+    box.innerHTML='';
+    var lbl=document.createElement('div');lbl.style.cssText='font-weight:700;font-size:.85rem;margin-bottom:.4rem';lbl.textContent=fr?'📸 Preuve de livraison':'📸 إثبات التوصيل';box.appendChild(lbl);
+    var img=document.createElement('img');img.src=d.url;img.style.cssText='max-width:100%;border-radius:.7rem;cursor:pointer';
+    img.addEventListener('click',function(){window.open(d.url,'_blank','noopener,noreferrer');});
+    box.appendChild(img);
+    box.classList.remove('h');
+  }catch(e){}
 }
 
 async function pollSlickPay(id, tries){

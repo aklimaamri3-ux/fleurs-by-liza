@@ -1846,6 +1846,21 @@ function viewOrder(id){
       rImg.addEventListener('click',function(){window.open(su,'_blank','noopener,noreferrer');});
     });
   }
+  // ✅ صورة إثبات التوصيل — بكت delivery_proofs خاص، أدمن فقط
+  var dpD=document.createElement('div');dpD.className='fg';
+  var dpL=document.createElement('label');dpL.className='fl';dpL.textContent='📸 صورة إثبات التوصيل';dpD.appendChild(dpL);
+  if(o.delivery_proof_url&&_safeStorageRx.test(o.delivery_proof_url)){
+    var dpImg=document.createElement('img');dpImg.style.cssText='max-width:100%;border-radius:.6rem;margin-bottom:.4rem;cursor:pointer;opacity:.5';
+    dpD.appendChild(dpImg);
+    signedUrl(o.delivery_proof_url).then(function(su){dpImg.src=su;dpImg.style.opacity='1';dpImg.addEventListener('click',function(){window.open(su,'_blank','noopener,noreferrer');});});
+    var dpDelBtn=document.createElement('button');dpDelBtn.className='btn-d btn-sm';dpDelBtn.textContent='🗑️ حذف الصورة';dpDelBtn.dataset.id=String(o.id||'');
+    dpDelBtn.addEventListener('click',function(){deleteDeliveryProof(this.dataset.id);});dpD.appendChild(dpDelBtn);
+  } else {
+    var dpInput=document.createElement('input');dpInput.type='file';dpInput.accept='image/*';dpInput.className='fi';dpInput.id='dpFile';dpD.appendChild(dpInput);
+    var dpUpBtn=document.createElement('button');dpUpBtn.className='btn btn-o btn-sm';dpUpBtn.style.marginTop='.4rem';dpUpBtn.textContent='📤 رفع الصورة';dpUpBtn.dataset.id=String(o.id||'');
+    dpUpBtn.addEventListener('click',function(){uploadDeliveryProof(this.dataset.id);});dpD.appendChild(dpUpBtn);
+  }
+  body.appendChild(dpD);
   var hr=document.createElement('hr');hr.style.cssText='margin:.8rem 0;border-color:var(--bd)';body.appendChild(hr);
   // ملاحظة داخلية
   var ntD=document.createElement('div');ntD.className='fg';var ntL=document.createElement('label');ntL.className='fl';ntL.textContent='📝 ملاحظة داخلية (لا يراها الزبون)';var ntA=document.createElement('textarea');ntA.className='fi';ntA.id='ordNote';ntA.rows=2;ntA.placeholder='...';ntA.value=o.internal_note||'';ntD.appendChild(ntL);ntD.appendChild(ntA);body.appendChild(ntD);
@@ -1857,6 +1872,24 @@ function viewOrder(id){
   document.getElementById('ordMo').classList.add('sh');
 }
 function closeOrdMo(){document.getElementById('ordMo').classList.remove('sh');window._curOrd=null;}
+async function uploadDeliveryProof(id){
+  var input=document.getElementById('dpFile');
+  if(!input||!input.files||!input.files[0]){toast('⚠️ اختاري صورة');return;}
+  try{
+    var url=await uploadImg(input.files[0],'delivery_proofs');
+    await sbPatch('orders','id=eq.'+encodeURIComponent(id),{delivery_proof_url:url,delivery_proof_uploaded_at:new Date().toISOString()});
+    var o=allOrders.find(function(x){return x.id===id;});if(o){o.delivery_proof_url=url;}
+    toast('✅ تم رفع الصورة');viewOrder(id);
+  }catch(e){toast('❌ '+e.message);}
+}
+async function deleteDeliveryProof(id){
+  if(!confirm('حذف صورة إثبات التوصيل؟ لن يتأثر سجل الطلب نفسه.'))return;
+  try{
+    await sbPatch('orders','id=eq.'+encodeURIComponent(id),{delivery_proof_url:null,delivery_proof_uploaded_at:null});
+    var o=allOrders.find(function(x){return x.id===id;});if(o){o.delivery_proof_url=null;}
+    toast('🗑️ تم الحذف');viewOrder(id);
+  }catch(e){toast('❌ '+e.message);}
+}
 async function updateOrdStatus(id){
   var s=gv('ordSS'),note=document.getElementById('ordNote')?document.getElementById('ordNote').value:'';
   var upd={status:s};

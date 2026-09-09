@@ -42,6 +42,7 @@ const RATE_LIMIT: Record<string, { limit: number; windowMs: number }> = {
   slickpay_webhook:         { limit: 120, windowMs: 60_000 },
   yalidine_create_shipment: { limit: 30,  windowMs: 60_000 },
   send_email:               { limit: 15,  windowMs: 60_000 },
+  get_delivery_proof_url:   { limit: 20,  windowMs: 60_000 },
 }
 const hits = new Map<string, { count: number; resetAt: number }>()
 
@@ -119,6 +120,30 @@ Deno.serve(async (req) => {
     // ── Health check ──
     if (!action || action === 'health') {
       return ok({ ok: true, service: 'Fleurs by Liza API v4' })
+    }
+
+    // ── Delivery proof: token-gated signed URL, server-side (service role) ──
+    // customers never get direct storage access to the admin-only
+    // delivery_proofs bucket — only a short-lived signed URL for their
+    // own order, after the same receipt_token check every other
+    // customer-facing order RPC uses.
+    if (action === 'get_delivery_proof_url') {
+      const filt = idFilter(body.order_id ?? '')
+      if (!filt) return err('Invalid order_id', 400)
+      const token = String(body.token ?? '').trim()
+      if (!token) return err('Missing token', 400)
+      const order = await getOrder(filt, 'receipt_token,delivery_proof_url,status')
+      if (!order || order.receipt_token !== token) return err('Not found', 404)
+      if (!order.delivery_proof_url) return ok({ url: null })
+      const signRes = await jfetch(`${SB_URL}/storage/v1/object/sign/delivery_proofs/${encodeURIComponent(order.delivery_proof_url)}`, {
+        method: 'POST',
+        headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expiresIn: 600 }),
+      })
+      if (!signRes.ok) return err('Failed to sign', 502)
+      const signData = await signRes.json()
+      const signed = signData?.signedURL || ''
+      return ok({ url: signed ? `${SB_URL}/storage/v1${signed}` : null, status: order.status })
     }
 
     // ── Telegram test ──
