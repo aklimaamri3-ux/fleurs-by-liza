@@ -390,7 +390,16 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
             <div class="fg"><label class="fl">القيمة</label><input class="fi" id="promoVal" type="number"></div>
             <div class="fg"><label class="fl">الحد الأقصى للاستعمال</label><input class="fi" id="promoMaxUse" type="number" placeholder="بلا حد"></div>
           </div>
-          <button class="btn btn-p" onclick="addPromo()">+ إضافة كود</button>
+          <div class="frow">
+            <div class="fg"><label class="fl">الحد الأدنى للطلب (دج)</label><input class="fi" id="promoMinOrder" type="number" placeholder="بلا حد أدنى"></div>
+            <div class="fg"></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">تاريخ البداية</label><input class="fi" id="promoStart" type="date"></div>
+            <div class="fg"><label class="fl">تاريخ النهاية</label><input class="fi" id="promoEnd" type="date"></div>
+          </div>
+          <button class="btn btn-p" id="promoSaveBtn" onclick="addPromo()">+ إضافة كود</button>
+          <button class="btn-o" id="promoCancelEdit" onclick="cancelEditPromo()" style="display:none;margin-inline-start:.5rem">إلغاء التعديل</button>
           <div style="overflow-x:auto;margin-top:.8rem"><table class="tbl" id="promoTbl"></table></div>
         </div>
       </div>
@@ -2453,21 +2462,77 @@ async function loadPromos(){
   var box=document.getElementById('promoTbl');if(!box)return;box.innerHTML='';
   try{
     var promos=await getSetting('promos')||[];
-    if(!promos.length){var em=document.createElement('tr');var etd=document.createElement('td');etd.colSpan=4;etd.style.cssText='padding:1rem;color:#888;text-align:center';etd.textContent='لا توجد أكواد';em.appendChild(etd);box.appendChild(em);return;}
-    var hdr=document.createElement('tr');['الكود','القيمة','الاستعمال',''].forEach(function(t){var th=document.createElement('th');th.textContent=t;hdr.appendChild(th);});box.appendChild(hdr);
+    if(!promos.length){var em=document.createElement('tr');var etd=document.createElement('td');etd.colSpan=6;etd.style.cssText='padding:1rem;color:#888;text-align:center';etd.textContent='لا توجد أكواد';em.appendChild(etd);box.appendChild(em);return;}
+    var hdr=document.createElement('tr');['الكود','القيمة','الاستعمال','الفترة','الحالة',''].forEach(function(t){var th=document.createElement('th');th.textContent=t;hdr.appendChild(th);});box.appendChild(hdr);
     promos.forEach(function(p){
       var tr=document.createElement('tr');
       var td1=document.createElement('td');var bold=document.createElement('b');bold.textContent=p.code||'';td1.appendChild(bold);tr.appendChild(td1);
-      var td2=document.createElement('td');td2.textContent=p.type==='percent'?(p.value+'%'):(money(p.value)+' دج');tr.appendChild(td2);
+      var td2=document.createElement('td');td2.textContent=p.type==='percent'?(p.value+'%'):(money(p.value)+' دج');
+      if(p.min_order){var mo=document.createElement('div');mo.style.cssText='font-size:.65rem;color:var(--mt)';mo.textContent='حد أدنى: '+money(p.min_order)+' دج';td2.appendChild(mo);}
+      tr.appendChild(td2);
       var td3=document.createElement('td');td3.style.fontSize='.72rem';td3.textContent=(p.used||0)+'/'+(p.max_use||'∞');tr.appendChild(td3);
-      var td4=document.createElement('td');var dBtn=document.createElement('button');dBtn.className='btn-d btn-sm';dBtn.textContent='🗑️';dBtn.dataset.code=String(p.code||'');dBtn.addEventListener('click',function(){deletePromo(this.dataset.code);});td4.appendChild(dBtn);tr.appendChild(td4);box.appendChild(tr);
+      var td4=document.createElement('td');td4.style.fontSize='.65rem';td4.textContent=(p.start_date||'—')+' → '+(p.end_date||'—');tr.appendChild(td4);
+      var td5=document.createElement('td');var isActive=p.active!==false;
+      var stBtn=document.createElement('button');stBtn.className='btn-o btn-sm';stBtn.textContent=isActive?'✅ مفعّل':'⏸️ معطّل';stBtn.dataset.code=String(p.code||'');stBtn.dataset.active=String(isActive);
+      stBtn.addEventListener('click',function(){togglePromoActive(this.dataset.code,this.dataset.active==='true');});
+      td5.appendChild(stBtn);tr.appendChild(td5);
+      var td6=document.createElement('td');
+      var eBtn=document.createElement('button');eBtn.className='btn-o btn-sm';eBtn.textContent='✏️';eBtn.dataset.code=String(p.code||'');eBtn.addEventListener('click',function(){editPromo(this.dataset.code);});
+      var dBtn=document.createElement('button');dBtn.className='btn-d btn-sm';dBtn.textContent='🗑️';dBtn.dataset.code=String(p.code||'');dBtn.addEventListener('click',function(){deletePromo(this.dataset.code);});
+      td6.appendChild(eBtn);td6.appendChild(dBtn);tr.appendChild(td6);box.appendChild(tr);
     });
   }catch(e){}
 }
+var _editingPromoCode=null;
+async function editPromo(code){
+  try{
+    var cur=await getSetting('promos')||[];
+    var p=cur.find(function(x){return x.code===code;});
+    if(!p)return;
+    _editingPromoCode=code;
+    sv('promoCode',p.code);sv('promoType',p.type);sv('promoVal',p.value);sv('promoMaxUse',p.max_use||'');
+    sv('promoMinOrder',p.min_order||'');sv('promoStart',p.start_date||'');sv('promoEnd',p.end_date||'');
+    document.getElementById('promoSaveBtn').textContent='💾 حفظ التعديل';
+    document.getElementById('promoCancelEdit').style.display='inline-block';
+    document.getElementById('promoCode').scrollIntoView({behavior:'smooth',block:'center'});
+  }catch(e){toast('❌ '+e.message);}
+}
+function cancelEditPromo(){
+  _editingPromoCode=null;
+  sv('promoCode','');sv('promoVal','');sv('promoMaxUse','');sv('promoMinOrder','');sv('promoStart','');sv('promoEnd','');
+  document.getElementById('promoSaveBtn').textContent='+ إضافة كود';
+  document.getElementById('promoCancelEdit').style.display='none';
+}
+async function togglePromoActive(code,cur){
+  try{
+    var promos=await getSetting('promos')||[];
+    var p=promos.find(function(x){return x.code===code;});
+    if(!p)return;
+    p.active=!cur;
+    await setSetting('promos',promos);
+    toast(!cur?'✅ تم التفعيل':'⏸️ تم التعطيل');
+    loadPromos();
+  }catch(e){toast('❌ '+e.message);}
+}
 async function addPromo(){
   var code=gv('promoCode').toUpperCase(),type=gv('promoType'),val=parseInt(gv('promoVal'))||0,maxUse=parseInt(gv('promoMaxUse'))||0;
+  var minOrder=parseInt(gv('promoMinOrder'))||0,startDate=gv('promoStart')||null,endDate=gv('promoEnd')||null;
   if(!code){toast('⚠️ أدخلي الكود');return;}if(!val){toast('⚠️ أدخلي القيمة');return;}
-  try{var cur=await getSetting('promos')||[];cur=cur.filter(function(p){return p.code!==code;});cur.push({code:code,type:type,value:val,max_use:maxUse||null,used:0,active:true,created_at:new Date().toISOString()});await setSetting('promos',cur);toast('✅ تم إضافة الكود');sv('promoCode','');sv('promoVal','');sv('promoMaxUse','');loadPromos();}
+  try{
+    var cur=await getSetting('promos')||[];
+    var existing=cur.find(function(p){return p.code===code;});
+    var entry={
+      code:code,type:type,value:val,max_use:maxUse||null,min_order:minOrder||null,
+      start_date:startDate||null,end_date:endDate||null,
+      used:existing?(existing.used||0):0,
+      active:existing?(existing.active!==false):true,
+      created_at:existing?existing.created_at:new Date().toISOString()
+    };
+    cur=cur.filter(function(p){return p.code!==code;});cur.push(entry);
+    await setSetting('promos',cur);
+    toast(_editingPromoCode?'✅ تم حفظ التعديل':'✅ تم إضافة الكود');
+    cancelEditPromo();loadPromos();
+  }
   catch(e){toast('❌ '+e.message);}
 }
 async function deletePromo(code){try{var cur=await getSetting('promos')||[];cur=cur.filter(function(p){return p.code!==code;});await setSetting('promos',cur);toast('🗑️ تم الحذف');loadPromos();}catch(e){toast('❌ '+e.message);}}

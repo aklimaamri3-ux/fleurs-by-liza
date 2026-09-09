@@ -328,7 +328,11 @@ async function applyCoupon(){
       updateSum();
     } else {
       appliedCoupon=null;appliedDiscount=0;
-      var errMap={not_found:'الكود غير صحيح',inactive:'الكود غير مفعّل',exhausted:'انتهى الحد المسموح لهذا الكود'};
+      var errMap={
+        not_found:'الكود غير صحيح',inactive:'الكود غير مفعّل',exhausted:'انتهى الحد المسموح لهذا الكود',
+        not_started:'الكود لم يبدأ بعد',expired:'انتهت صلاحية الكود',
+        below_minimum:'الحد الأدنى للطلب '+(d&&d.min_order?money(d.min_order):'')+' دج'
+      };
       msg.style.color='#e74c3c';msg.textContent='❌ '+(errMap[d&&d.error]||'الكود غير صالح');
       updateSum();
     }
