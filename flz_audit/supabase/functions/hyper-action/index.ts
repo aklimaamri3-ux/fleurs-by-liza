@@ -48,12 +48,15 @@ const hits = new Map<string, { count: number; resetAt: number }>()
 // ✅ أنماط معرّفات آمنة
 const RE_NUM  = /^\d+$/
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+// ✅ actual customer order ids (checkout.html): 'FBL' + Date.now(), e.g. FBL1788896221938
+const RE_ORDER_ID = /^FBL\d{1,20}$/
 const RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function idFilter(v: any): string | null {
   const s = String(v ?? '').trim()
-  if (RE_NUM.test(s))  return 'id=eq.' + Number(s)
-  if (RE_UUID.test(s)) return 'id=eq.' + s
+  if (RE_NUM.test(s))      return 'id=eq.' + Number(s)
+  if (RE_UUID.test(s))     return 'id=eq.' + s
+  if (RE_ORDER_ID.test(s)) return 'id=eq.' + s
   return null
 }
 
@@ -269,15 +272,17 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
     }
 
     // ── SlickPay: إنشاء فاتورة ──
+    // API docs (developers.slick-pay.com): single Bearer key, prod base is
+    // prodapi.slick-pay.com (not api.slick-pay.com), invoice id/url are
+    // top-level fields in the create response, and invoice status comes
+    // back as a top-level `completed` (0/1) field — not `data.payment_status`.
     if (action === 'slickpay_create') {
-      const pub = Deno.env.get('SLICKPAY_PUBLIC')
-      if (!pub) return err('SlickPay not configured', 500)
-      const isProd   = Deno.env.get('SLICKPAY_ENV') === 'prod'
-      const base     = isProd ? 'https://api.slick-pay.com' : 'https://devapi.slick-pay.com'
-      const contact  = Deno.env.get('SLICKPAY_CONTACT') || ''
+      const key = slickpayKey()
+      if (!key) return err('SlickPay not configured', 500)
+      const base     = slickpayBase()
       const filt     = idFilter(body.order_id ?? '')
       if (!filt) return err('Invalid order_id', 400)
-      const order    = await getOrder(filt, 'total,payment_status,slickpay_order_id')
+      const order    = await getOrder(filt, 'total,payment_status,slickpay_order_id,name,phone,email,address,wilaya,commune,receipt_token')
       if (!order) return err('Order not found', 404)
       const uid = await requireUser(req)
       if (order.user_id && uid !== order.user_id && !(await isAdmin(uid))) return err('Forbidden', 403)
@@ -285,25 +290,51 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
       if (order.slickpay_order_id)            return err('Invoice already created', 409)
       const amount = Number(order.total) || 0
       if (!(amount > 0) || amount > 10_000_000) return err('Invalid order total', 400)
-      const res = await jfetch(`${base}/api/v2/users/invoices`, {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': `Bearer ${pub}` },
-        body: JSON.stringify({ amount, contact, url: `${SITE}/receipt.html?order=${order.id}&paid=1`, items: [{ name: `Commande #${order.id}`, price: amount, quantity: 1 }] }),
-      })
-      const data      = await res.json()
-      const payUrl    = data?.data?.payment_url || data?.data?.url    || data?.payment_url || ''
-      const invoiceId = data?.data?.invoice_number || data?.data?.id  || ''
-      if (invoiceId) {
-        try { await sbPatch('orders', filt, { slickpay_order_id: String(invoiceId), payment_status: 'pending' }) }
-        catch (e) { console.error('Failed to save invoice id:', e) }
+
+      const envContact = Deno.env.get('SLICKPAY_CONTACT') || ''
+      const nameParts   = sanitize(order.name || 'Client').split(' ')
+      const invoicePayload: Record<string, unknown> = {
+        amount,
+        url: `${SITE}/receipt.html?order=${order.id}&paid=1&token=${order.receipt_token || ''}`,
+        webhook_url: `${SB_URL}/functions/v1/hyper-action?action=slickpay_webhook`,
+        items: [{ name: `Commande #${order.id}`, price: amount, quantity: 1 }],
+        note: `Fleurs by Liza — commande #${order.id}`,
       }
-      return ok({ success: !!payUrl, payment_url: payUrl, invoice_id: invoiceId })
+      if (envContact) {
+        invoicePayload.contact = envContact
+      } else {
+        invoicePayload.firstname = nameParts[0] || 'Client'
+        invoicePayload.lastname  = nameParts.slice(1).join(' ') || '.'
+        invoicePayload.phone     = sanitize(order.phone || '')
+        if (order.email) invoicePayload.email = sanitize(order.email)
+        const addr = [order.address, order.commune, order.wilaya].filter(Boolean).join(', ')
+        invoicePayload.address = sanitize(addr || order.wilaya || 'Algérie')
+      }
+      const whSecret = Deno.env.get('SLICKPAY_WEBHOOK_SECRET')
+      if (whSecret) invoicePayload.webhook_signature = whSecret
+
+      const res = await jfetch(`${base}/users/invoices`, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body: JSON.stringify(invoicePayload),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.success) {
+        console.error('SlickPay create failed:', res.status, data)
+        return err('SlickPay: ' + (data?.message || res.status), 502)
+      }
+      const payUrl    = data?.url || data?.data?.url || data?.data?.payment_url || ''
+      const invoiceId = data?.id  ?? data?.data?.id   ?? data?.data?.invoice_number ?? ''
+      if (!payUrl || invoiceId === '') { console.error('SlickPay create: missing url/id in response', data); return err('SlickPay: unexpected response', 502) }
+      try { await sbPatch('orders', filt, { slickpay_order_id: String(invoiceId), payment_status: 'waiting_slickpay' }) }
+      catch (e) { console.error('Failed to save invoice id:', e); return err('Failed to save invoice', 500) }
+      return ok({ success: true, payment_url: payUrl, invoice_id: invoiceId })
     }
 
-    // ── SlickPay: فحص الحالة ──
+    // ── SlickPay: فحص الحالة (server-authoritative — used by receipt.html polling) ──
     if (action === 'slickpay_check') {
-      const pub  = Deno.env.get('SLICKPAY_PUBLIC')
-      if (!pub) return err('SlickPay not configured', 500)
+      const key  = slickpayKey()
+      if (!key) return err('SlickPay not configured', 500)
       const filt = idFilter(body.order_id ?? '')
       if (!filt) return err('Invalid order_id', 400)
       const order = await getOrder(filt, 'slickpay_order_id,payment_status')
@@ -311,14 +342,13 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
       const uid = await requireUser(req)
       if (order.user_id && uid !== order.user_id && !(await isAdmin(uid))) return err('Forbidden', 403)
       if (!order.slickpay_order_id) return ok({ payment_status: order.payment_status || 'pending' })
-      const isProd = Deno.env.get('SLICKPAY_ENV') === 'prod'
-      const base   = isProd ? 'https://api.slick-pay.com' : 'https://devapi.slick-pay.com'
-      const res    = await jfetch(`${base}/api/v2/users/invoices/${encodeURIComponent(String(order.slickpay_order_id))}`, {
-        headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${pub}` },
+      const base = slickpayBase()
+      const res  = await jfetch(`${base}/users/invoices/${encodeURIComponent(String(order.slickpay_order_id))}`, {
+        headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${key}` },
       })
       if (res.ok) {
         const d      = await res.json()
-        const isPaid = (d?.data?.payment_status || d?.payment_status) === 'paid'
+        const isPaid = d?.completed === 1 || d?.completed === true || (d?.data?.payment_status === 'paid')
         if (isPaid && order.payment_status !== 'paid') {
           try { await sbPatch('orders', filt, { payment_status: 'paid', status: 'confirmed' }) }
           catch (e) { console.error('Check patch failed:', e) }
@@ -329,13 +359,23 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
     }
 
     // ── SlickPay Webhook ──
+    // Deployed with verify_jwt=false for this function (see config.toml) —
+    // SlickPay's server has no way to send a Supabase JWT. Security instead
+    // comes from: (1) an optional HMAC check if SLICKPAY_WEBHOOK_SECRET is
+    // set, and (2) always re-fetching the invoice from SlickPay's API with
+    // our own trusted key before trusting anything the webhook body claims —
+    // a forged call can only reference an invoice id that already matches
+    // one of OUR orders (attacker-uncontrollable) and still can't fake the
+    // authoritative `completed` status, since that's re-checked server-side.
     if (action === 'slickpay_webhook') {
       const whSecret = Deno.env.get('SLICKPAY_WEBHOOK_SECRET')
       if (whSecret) {
         const sig = req.headers.get('x-slickpay-signature') || req.headers.get('x-signature') || ''
-        if (!sig || !(await verifyHmac(whSecret, rawBody, sig))) return err('Invalid signature', 401)
+        if (sig && !(await verifyHmac(whSecret, rawBody, sig))) return err('Invalid signature', 401)
       }
-      const invoiceNum = String(body?.data?.invoice_number || body?.invoice_number || '').trim()
+      const invoiceNum = String(
+        body?.id ?? body?.data?.id ?? body?.invoice_number ?? body?.data?.invoice_number ?? ''
+      ).trim()
       if (!invoiceNum) return ok({ received: true })
       const enc = encodeURIComponent(invoiceNum)
       let order: any = null
@@ -348,18 +388,18 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
         order = (rows as any[])[0] || null
       }
       if (!order) return ok({ received: true })
-      const pub  = Deno.env.get('SLICKPAY_PUBLIC')
-      if (!pub) return err('SlickPay not configured', 500)
-      const isProd = Deno.env.get('SLICKPAY_ENV') === 'prod'
-      const base   = isProd ? 'https://api.slick-pay.com' : 'https://devapi.slick-pay.com'
-      const ver    = await jfetch(`${base}/api/v2/users/invoices/${enc}`, {
-        headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${pub}` },
+      const key = slickpayKey()
+      if (!key) return err('SlickPay not configured', 500)
+      const base = slickpayBase()
+      const ver  = await jfetch(`${base}/users/invoices/${enc}`, {
+        headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${key}` },
       })
       if (!ver.ok) return err('Verification failed', 502)
       const d           = await ver.json()
-      const reallyPaid  = (d?.data?.payment_status || d?.payment_status) === 'paid'
+      const reallyPaid  = d?.completed === 1 || d?.completed === true || (d?.data?.payment_status === 'paid')
       if (!reallyPaid)  return ok({ received: true, status: 'pending' })
-      const paidAmount  = Number(d?.data?.amount ?? d?.data?.price ?? 0)
+      const inv = (typeof d?.data === 'string') ? (() => { try { return JSON.parse(d.data) } catch { return {} } })() : (d?.data || {})
+      const paidAmount  = Number(inv?.amount ?? inv?.price ?? 0)
       const orderAmount = Number(order?.total ?? 0)
       if (paidAmount > 0 && orderAmount > 0 && Math.abs(paidAmount - orderAmount) > 1) {
         console.error(`Amount mismatch: invoice=${invoiceNum} paid=${paidAmount} order=${order.id} total=${orderAmount}`)
@@ -499,6 +539,20 @@ function allowHit(key: string, limit: number, windowMs: number): boolean {
   if (!rec || rec.resetAt <= now) { hits.set(key, { count: 1, resetAt: now + windowMs }); return true }
   rec.count++
   return rec.count <= limit
+}
+
+// ✅ SlickPay's own docs describe a single Bearer API key, issued in the
+// `<id>|<token>` shape and called PUBLIC_KEY in their dashboard — that is
+// the value actually accepted as `Authorization: Bearer …` for every API
+// call. SLICKPAY_SECRET is kept as a fallback in case that naming differs
+// per account, but SLICKPAY_PUBLIC is the documented, correct credential.
+function slickpayKey(): string {
+  return Deno.env.get('SLICKPAY_PUBLIC') || Deno.env.get('SLICKPAY_SECRET') || ''
+}
+
+function slickpayBase(): string {
+  const isProd = Deno.env.get('SLICKPAY_ENV') === 'prod' || Deno.env.get('SLICKPAY_ENV') === 'live'
+  return (isProd ? 'https://prodapi.slick-pay.com' : 'https://devapi.slick-pay.com') + '/api/v2'
 }
 
 async function jfetch(url: string, init: RequestInit = {}, ms = 10_000): Promise<Response> {

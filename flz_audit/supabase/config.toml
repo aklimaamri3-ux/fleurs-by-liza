@@ -411,3 +411,12 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# verify_jwt=false: SlickPay's server posts to the slickpay_webhook action of
+# this function with no way to supply a Supabase JWT. The function's own
+# code re-verifies every webhook against SlickPay's API with a trusted
+# server-side key before trusting anything the callback body claims, and a
+# forged call can only reference an invoice id that already matches one of
+# our own orders — so this is safe (same pattern as Stripe/PayPal webhooks).
+[functions.hyper-action]
+verify_jwt = false

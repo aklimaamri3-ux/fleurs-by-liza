@@ -486,12 +486,12 @@ async function openSlickPay(orderId, order) {
     if (r.ok) {
       var d = await r.json();
       if (d.payment_url) {
-        await sbPatch('orders', 'id=eq.' + encodeURIComponent(orderId), {
-          payment_status: 'waiting_slickpay'
-        });
+        // ✅ payment_status يُحدَّث سيرفر-سايد من slickpay_create نفسها
         location.href = d.payment_url;
         return;
       }
+    } else {
+      console.error('SlickPay create failed:', await r.text().catch(function(){return '';}));
     }
   } catch(e) {
     console.error('SlickPay exception:', e);

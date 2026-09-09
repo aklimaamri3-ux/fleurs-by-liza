@@ -286,7 +286,26 @@ async function findOrder(){
     document.getElementById('p1').classList.add('h');
     document.getElementById('p2').classList.remove('h');
     setStep(2);
+    // ✅ عائدة من SlickPay (?paid=1) — الـ webhook قد يتأخر عن التحويل، نتحقق سيرفر-سايد
+    var pp=new URLSearchParams(location.search);
+    if(pp.get('paid')==='1' && order.payment_method!=='cod') pollSlickPay(order.id, 0);
   }catch(e){ toast('❌ خطأ في الاتصال'); }
+}
+
+async function pollSlickPay(id, tries){
+  if(tries>=12){ toast(LANG==='fr'?'⏳ Confirmation en cours — actualisez dans un instant':'⏳ التأكيد جارٍ — حدّثي الصفحة بعد قليل'); return; }
+  try{
+    var r=await fetch(SB_URL+'/functions/v1/hyper-action',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_ANON,'Authorization':'Bearer '+SB_ANON},
+      body:JSON.stringify({action:'slickpay_check',order_id:id})
+    });
+    if(r.ok){
+      var d=await r.json();
+      if(d.payment_status==='paid'){ await findOrder(); return; }
+    }
+  }catch(e){}
+  setTimeout(function(){ pollSlickPay(id,tries+1); },2500);
 }
 
 async function onFile(f){
