@@ -641,6 +641,7 @@ function renderProds(list) {
       var prices=document.createElement('div');prices.className='pcard-prices';
       if(old>price){var po=document.createElement('span');po.className='pcard-old';po.textContent=money(old)+' دج';prices.appendChild(po);}
       var pp=document.createElement('span');pp.className='pcard-price';pp.textContent=money(price)+' دج';prices.appendChild(pp);
+      if(old>price){var pct=Math.round((1-price/old)*100);var pd=document.createElement('span');pd.style.cssText='background:var(--pk2);color:#fff;font-size:.68rem;font-weight:700;padding:.1rem .4rem;border-radius:.4rem;font-family:var(--font-en)';pd.textContent='-'+pct+'%';prices.appendChild(pd);}
       body.appendChild(prices);
       if(eur&&showEur){var pe=document.createElement('div');pe.className='pcard-eur';pe.textContent='≈ '+eur+' €';body.appendChild(pe);}
       var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:.4rem';
@@ -661,16 +662,38 @@ function renderProds(list) {
 
 function goProduct(id) { location.href = 'product.html?id=' + encodeURIComponent(id); }
 
-function filterByCat(catId) {
-  curCatId = catId;
-  document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.cid === catId); });
-  var list = catId === 'all' ? allProds : allProds.filter(function(p) { return p.category_id === catId; });
-  if (!list.length && allProds.length) list = allProds;
+var curSearchQ = '';
+function applyFilters() {
+  var list = curCatId === 'all' ? allProds : allProds.filter(function(p) { return p.category_id === curCatId; });
+  if (!list.length && allProds.length && !curSearchQ) list = allProds;
+  var q = curSearchQ.trim().toLowerCase();
+  if (q) {
+    list = list.filter(function(p) {
+      var name = ((p.name_ar||'') + ' ' + (p.name_fr||'') + ' ' + (p.name||'')).toLowerCase();
+      return name.indexOf(q) !== -1;
+    });
+  }
   // ✅ promo يظهر أولاً دائماً
   list = list.slice().sort(function(a,b){
     return ((b.old_price>0)?1:0) - ((a.old_price>0)?1:0);
   });
   renderProds(list);
+}
+function filterByCat(catId) {
+  curCatId = catId;
+  document.querySelectorAll('.cat-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.cid === catId); });
+  applyFilters();
+}
+function doSearch(q) {
+  curSearchQ = q || '';
+  var clearBtn = document.getElementById('searchClear');
+  if (clearBtn) clearBtn.style.display = curSearchQ ? 'block' : 'none';
+  applyFilters();
+}
+function clearSearch() {
+  var input = document.getElementById('prodSearch');
+  if (input) input.value = '';
+  doSearch('');
 }
 
 // ── LOAD CATEGORIES ──
