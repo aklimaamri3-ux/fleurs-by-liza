@@ -117,6 +117,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
     <div class="trow fin"><span id="totalLabel">المجموع</span><span><b id="tTotal">—</b></span></div>
   </div>
   <button class="order-btn" id="orderBtn" onclick="goCheckout()">🛒 إتمام الطلب</button>
+  <button class="order-btn" id="addCartBtn" onclick="addCurrentToCart()" style="background:#111;margin-top:.5rem">🛍️ <span id="addCartLbl">أضيفي للسلة</span></button>
 <div class="share-row">
   <button class="share-btn share-wa" onclick="shareWA()">💬 واتساب</button>
   <button class="share-btn share-fb" onclick="shareFB()">📘 فيسبوك</button>
@@ -218,6 +219,19 @@ function toast(msg, dur) {
 
 
 var prod=null, qty=1, selCI=0, imgs=[], eurRate=270;
+
+// ✅ نفس مفتاح localStorage المستعمل في index.html — سلة واحدة موحّدة عبر الموقع
+function addCurrentToCart(){
+  if(!prod||!prod.id){toast('⚠️');return;}
+  var fr=LANG==='fr';
+  try{
+    var cart=JSON.parse(localStorage.getItem('fl_cart')||'[]');
+    var item=cart.find(function(x){return x.product_id===prod.id;});
+    if(item)item.qty=Math.min(20,item.qty+qty);else cart.push({product_id:prod.id,qty:qty});
+    localStorage.setItem('fl_cart',JSON.stringify(cart));
+    toast(fr?'✅ Ajouté au panier':'✅ أُضيف للسلة');
+  }catch(e){toast('❌ '+e.message);}
+}
 var _safeStorageRx=/^https:\/\/[a-z0-9]+\.supabase\.co\/storage\//;
 
 function applyLang(){
@@ -229,6 +243,7 @@ function applyLang(){
   document.getElementById('priceLabel').textContent=fr?'Prix':'السعر';
   document.getElementById('totalLabel').textContent=fr?'Total':'المجموع';
   document.getElementById('orderBtn').textContent=fr?'🛒 Commander':'🛒 إتمام الطلب';
+  document.getElementById('addCartLbl').textContent=fr?'Ajouter au panier':'أضيفي للسلة';
   document.getElementById('tr1').textContent=fr?'Roses fraîches':'ورد طازج';
   document.getElementById('tr2').textContent=fr?'Emballage luxe':'تغليف فاخر';
   document.getElementById('tr3').textContent=fr?'Livraison rapide':'توصيل سريع';

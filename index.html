@@ -35,6 +35,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 /* ── LOADING ── */
 #ld{position:fixed;inset:0;background:var(--blk);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.2rem;transition:opacity .5s;}
 #ld.h{opacity:0;pointer-events:none;}
+.ov-h{display:none!important;}
 .ld-logo{font-family:var(--font-serif);color:var(--wh);font-size:2rem;letter-spacing:.1em;}
 .ld-logo em{color:var(--pk);font-style:normal;}
 .ld-line{width:60px;height:1px;background:var(--pk);animation:ldw 1.5s ease infinite;}
@@ -198,9 +199,24 @@ footer p{font-size:.78rem;line-height:1.7;}
       🤍
       <span id="wishCount" style="display:none;position:absolute;top:-4px;left:-4px;background:#e91e8c;color:#fff;border-radius:50%;width:16px;height:16px;font-size:.6rem;align-items:center;justify-content:center">0</span>
     </button>
+    <button class="lang-btn" id="cartToggleBtn" onclick="openCart()" style="position:relative">
+      🛒
+      <span id="cartCount" style="display:none;position:absolute;top:-4px;left:-4px;background:#e91e8c;color:#fff;border-radius:50%;width:16px;height:16px;font-size:.6rem;align-items:center;justify-content:center">0</span>
+    </button>
     <a href="#track" class="track-btn">🔍 <span id="hdrTrack">تتبع طلبي</span></a>
   </div>
 </header>
+
+<div id="cartOverlay" class="ov-h" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;overflow:auto;padding:1rem">
+  <div style="max-width:480px;margin:1rem auto;background:#fff;border-radius:1rem;padding:1.5rem;position:relative">
+    <button onclick="closeCart()" style="position:absolute;top:1rem;left:1rem;background:none;border:none;font-size:1.3rem;cursor:pointer">✕</button>
+    <div style="font-family:var(--font-serif,serif);font-weight:600;font-size:1.2rem;margin-bottom:1rem" id="cartTitle">🛒 Panier</div>
+    <div id="cartItems"></div>
+    <div id="cartSubtotal" style="font-weight:800;color:#e91e8c;text-align:center;margin-top:1rem;font-size:1rem"></div>
+    <button id="cartCheckoutBtn" onclick="goToCartCheckout()" style="display:none;width:100%;margin-top:1rem;padding:.8rem;border:none;border-radius:2rem;font-weight:700;cursor:pointer;background:#e91e8c;color:#fff">✅ Passer la commande</button>
+    <button onclick="clearCart()" style="width:100%;margin-top:.5rem;padding:.6rem;border:1px solid #ddd;border-radius:2rem;font-weight:600;cursor:pointer;background:#fff;color:#888;font-size:.78rem">🗑️ Vider le panier</button>
+  </div>
+</div>
 <div id="adsTop" style="display:none"></div>
 
 <!-- HERO -->
@@ -475,6 +491,80 @@ var allProds = [], curCatId = 'all', allCats = [], eurRate = 270, showEur = true
 
 // ── RENDER PRODUCTS ──
 // ✅ renderProds — DOM API كاملاً لا XSS
+// ✅ Cart — localStorage فقط، بلا حساب زبون. الأسعار المعروضة هنا للعرض فقط —
+// السيرفر (create_cart_order) يعيد حساب كل شيء من مصدر موثوق عند الدفع.
+function getCart(){try{return JSON.parse(localStorage.getItem('fl_cart')||'[]');}catch(e){return [];}}
+function saveCart(c){try{localStorage.setItem('fl_cart',JSON.stringify(c));}catch(e){}}
+function addToCart(pid,qty){
+  pid=String(pid);qty=Math.max(1,parseInt(qty)||1);
+  var cart=getCart();var item=cart.find(function(x){return x.product_id===pid;});
+  if(item)item.qty=Math.min(20,item.qty+qty);else cart.push({product_id:pid,qty:qty});
+  saveCart(cart);updateCartCount();toast(LANG==='fr'?'✅ Ajouté au panier':'✅ أُضيف للسلة');
+}
+function removeFromCart(pid){var cart=getCart().filter(function(x){return x.product_id!==String(pid);});saveCart(cart);updateCartCount();renderCartView();}
+function setCartQty(pid,qty){
+  qty=parseInt(qty)||1;qty=Math.max(1,Math.min(20,qty));
+  var cart=getCart();var item=cart.find(function(x){return x.product_id===String(pid);});
+  if(item){item.qty=qty;saveCart(cart);}
+  updateCartCount();renderCartView();
+}
+function clearCart(){saveCart([]);updateCartCount();renderCartView();}
+function updateCartCount(){
+  var n=getCart().reduce(function(s,x){return s+x.qty;},0);
+  var b=document.getElementById('cartCount');
+  if(b){b.textContent=n;b.style.display=n>0?'flex':'none';}
+}
+function openCart(){document.getElementById('cartOverlay').classList.remove('ov-h');renderCartView();}
+function closeCart(){document.getElementById('cartOverlay').classList.add('ov-h');}
+function renderCartView(){
+  var box=document.getElementById('cartItems');if(!box)return;box.innerHTML='';
+  var cart=getCart();var fr=LANG==='fr';
+  if(!cart.length){
+    var em=document.createElement('div');em.style.cssText='text-align:center;padding:2rem;color:#888';
+    em.textContent=fr?'Votre panier est vide':'سلتك فارغة';box.appendChild(em);
+    document.getElementById('cartSubtotal').textContent='';
+    document.getElementById('cartCheckoutBtn').style.display='none';
+    return;
+  }
+  document.getElementById('cartCheckoutBtn').style.display='block';
+  var subtotal=0;
+  cart.forEach(function(item){
+    var p=allProds.find(function(x){return x.id===item.product_id;});
+    if(!p){removeFromCart(item.product_id);return;}
+    var name=fr&&p.name_fr?p.name_fr:(p.name_ar||p.name||'');
+    var imgSrc='';
+    if(p.media_items&&p.media_items.length){for(var j=0;j<p.media_items.length;j++){if(p.media_items[j]&&p.media_items[j].type==='image'){imgSrc=p.media_items[j].src;break;}}}
+    var lineTotal=(Number(p.price)||0)*item.qty;subtotal+=lineTotal;
+    var row=document.createElement('div');row.style.cssText='display:flex;gap:.6rem;padding:.7rem 0;border-bottom:1px solid #eee;align-items:center';
+    var imgEl;
+    if(imgSrc){imgEl=document.createElement('img');imgEl.src=imgSrc;imgEl.style.cssText='width:56px;height:56px;border-radius:.5rem;object-fit:cover';}
+    else{imgEl=document.createElement('div');imgEl.style.cssText='width:56px;height:56px;border-radius:.5rem;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:1.3rem';imgEl.textContent=p.emoji||'🌹';}
+    row.appendChild(imgEl);
+    var info=document.createElement('div');info.style.cssText='flex:1;min-width:0';
+    var nm=document.createElement('div');nm.style.cssText='font-weight:700;font-size:.85rem';nm.textContent=name;info.appendChild(nm);
+    if(p.sku){var sk=document.createElement('div');sk.style.cssText='font-size:.65rem;color:#999;font-family:monospace';sk.textContent=p.sku;info.appendChild(sk);}
+    var pr=document.createElement('div');pr.style.cssText='font-size:.78rem;color:#e91e8c;font-weight:700;margin-top:.2rem';pr.textContent=money(p.price)+' دج';info.appendChild(pr);
+    row.appendChild(info);
+    var qtyBox=document.createElement('div');qtyBox.style.cssText='display:flex;align-items:center;gap:.3rem';
+    var minus=document.createElement('button');minus.textContent='−';minus.style.cssText='width:26px;height:26px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer';
+    minus.addEventListener('click',function(){setCartQty(item.product_id,item.qty-1<1?1:item.qty-1);if(item.qty<=1)removeFromCart(item.product_id);});
+    var qn=document.createElement('span');qn.style.cssText='min-width:20px;text-align:center;font-size:.82rem';qn.textContent=item.qty;
+    var plus=document.createElement('button');plus.textContent='+';plus.style.cssText='width:26px;height:26px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer';
+    plus.addEventListener('click',function(){setCartQty(item.product_id,item.qty+1);});
+    qtyBox.appendChild(minus);qtyBox.appendChild(qn);qtyBox.appendChild(plus);
+    row.appendChild(qtyBox);
+    var rm=document.createElement('button');rm.textContent='🗑️';rm.style.cssText='background:none;border:none;cursor:pointer;font-size:1rem;margin-'+(fr?'left':'right')+':.4rem';
+    rm.addEventListener('click',function(){removeFromCart(item.product_id);});
+    row.appendChild(rm);
+    box.appendChild(row);
+  });
+  document.getElementById('cartSubtotal').textContent=(fr?'Sous-total: ':'المجموع الفرعي: ')+money(subtotal)+' دج';
+}
+function goToCartCheckout(){
+  if(!getCart().length)return;
+  location.href='checkout.html?cart=1';
+}
+
 // ✅ Wishlist — localStorage فقط، بلا حساب زبون
 function getWishlist(){try{return JSON.parse(localStorage.getItem('fl_wishlist')||'[]');}catch(e){return [];}}
 function isWishlisted(id){return getWishlist().indexOf(String(id))!==-1;}
@@ -555,10 +645,19 @@ function renderProds(list) {
       var pp=document.createElement('span');pp.className='pcard-price';pp.textContent=money(price)+' دج';prices.appendChild(pp);
       body.appendChild(prices);
       if(eur&&showEur){var pe=document.createElement('div');pe.className='pcard-eur';pe.textContent='≈ '+eur+' €';body.appendChild(pe);}
-      var btn=document.createElement('button');btn.className='pcard-btn';
-      if(outOfStock){btn.disabled=true;btn.style.cssText='opacity:.5;cursor:not-allowed';btn.textContent=LANG==='fr'?'Rupture de stock':'نفدت الكمية';}
+      var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:.4rem';
+      var btn=document.createElement('button');btn.className='pcard-btn';btn.style.flex='1';
+      if(outOfStock){btn.disabled=true;btn.style.cssText='flex:1;opacity:.5;cursor:not-allowed';btn.textContent=LANG==='fr'?'Rupture de stock':'نفدت الكمية';}
       else{btn.textContent=l.orderBtn;}
-      body.appendChild(btn);
+      btnRow.appendChild(btn);
+      if(!outOfStock){
+        var cartBtn=document.createElement('button');cartBtn.className='pcard-btn';cartBtn.type='button';
+        cartBtn.style.cssText='flex:0 0 auto;width:2.6rem;background:#111';cartBtn.textContent='🛒';
+        cartBtn.title=LANG==='fr'?'Ajouter au panier':'أضيفي للسلة';
+        cartBtn.addEventListener('click',function(e){e.stopPropagation();addToCart(this.closest('.pcard').dataset.pid,1);});
+        btnRow.appendChild(cartBtn);
+      }
+      body.appendChild(btnRow);
       card.appendChild(body);
       g.appendChild(card);
     } catch(e) { console.error('render product', i, e); }
@@ -847,7 +946,7 @@ async function init() {
   await Promise.all([loadCats(), loadProds()]);
   clearTimeout(t); hide();
   loadAnn(); loadStats(); loadEur(); loadRevs(); loadSocial(); loadSEOSettings(); loadAds(); loadBizHours();
-  updateWishlistCount();
+  updateWishlistCount(); updateCartCount();
 }
 
 // ✅ ساعات العمل — إعلامية فقط، لا تمنع الطلب أبداً

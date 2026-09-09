@@ -227,10 +227,17 @@ function buildInvoiceHtml(){
   var ref=order.ref||order.id||'';
   var d=new Date(order.created_at||Date.now());
   var isPickup=order.fulfillment_type==='pickup';
-  var subtotal=(Number(order.product_price)||0)*(Number(order.qty)||1);
-  var rowsHtml=''
-    +'<tr><td>'+esc(order.product_name||order.product||'')+'</td><td class="ref">'+esc(order.product_sku||order.product_id||'')+'</td>'
-    +'<td>'+String(order.qty||1)+'</td><td>'+money(order.product_price)+' دج</td><td>'+money(subtotal)+' دج</td></tr>';
+  var rowsHtml='';
+  if(order.is_multi_item&&order.__items&&order.__items.length){
+    rowsHtml=order.__items.map(function(it){
+      return '<tr><td>'+esc(it.product_name||'')+'</td><td class="ref">'+esc(it.product_sku||'')+'</td>'
+        +'<td>'+String(it.qty||1)+'</td><td>'+money(it.product_price)+' دج</td><td>'+money(it.subtotal)+' دج</td></tr>';
+    }).join('');
+  } else {
+    var subtotal=(Number(order.product_price)||0)*(Number(order.qty)||1);
+    rowsHtml='<tr><td>'+esc(order.product_name||order.product||'')+'</td><td class="ref">'+esc(order.product_sku||order.product_id||'')+'</td>'
+      +'<td>'+String(order.qty||1)+'</td><td>'+money(order.product_price)+' دج</td><td>'+money(subtotal)+' دج</td></tr>';
+  }
   var extraRows=[];
   if(isPickup){
     extraRows.push([fr?'Mode de retrait':'طريقة الاستلام','🏬 '+(fr?'Retrait en boutique':'استلام من المحل')]);
@@ -265,9 +272,13 @@ function buildInvoiceHtml(){
   return html;
 }
 
-function printInvoice(){
+async function printInvoice(){
   if(!order){toast('⚠️');return;}
   var fr=LANG==='fr';
+  if(order.is_multi_item&&!order.__items){
+    try{ order.__items=await sbRpc('get_order_items_by_token',{p_id:order.id,p_token:RECEIPT_TOKEN}); }
+    catch(e){ order.__items=[]; }
+  }
   document.getElementById('invBody').innerHTML=buildInvoiceHtml();
   document.getElementById('invPrintBtn').textContent='🖨️ '+(fr?'Imprimer':'طباعة');
   document.getElementById('invPdfBtn').textContent='📄 '+(fr?'Télécharger PDF (Enregistrer en PDF)':'تحميل PDF (احفظي كـ PDF)');

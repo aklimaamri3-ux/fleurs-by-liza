@@ -49,6 +49,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
 .succ-ov p{color:var(--mt);margin-bottom:1.5rem;font-size:.85rem;}
 .succ-btn{background:var(--pk2);color:var(--wh);padding:.9rem 2.2rem;border-radius:3rem;font-weight:700;display:inline-block;}
 #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--blk);color:#fff;padding:.68rem 1.3rem;border-radius:2rem;font-size:.79rem;display:none;z-index:1000;}
+.h{display:none!important;}
 </style>
 </head>
 <body>
@@ -60,8 +61,9 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
 <div class="wrap">
   <div class="card">
     <div class="card-title" id="sumTitle">🌹 ملخص الطلب</div>
-    <div class="sum-row"><span id="sumPname">—</span><span class="sum-val" id="sumPrice">—</span></div>
-    <div class="sum-row"><span id="sumQtyLabel">الكمية</span><span class="sum-val" id="sumQty">×1</span></div>
+    <div id="cartItemsList" class="h"></div>
+    <div class="sum-row" id="sumPnameRow"><span id="sumPname">—</span><span class="sum-val" id="sumPrice">—</span></div>
+    <div class="sum-row" id="sumQtyRow"><span id="sumQtyLabel">الكمية</span><span class="sum-val" id="sumQty">×1</span></div>
     <div class="sum-row"><span id="sumDelLabel">التوصيل</span><span class="sum-val" id="sumDel">—</span></div>
     <div class="sum-row" id="sumDiscRow" style="display:none;color:var(--gn)"><span id="sumDiscLabel">الخصم</span><span class="sum-val" id="sumDisc">—</span></div>
     <div class="sum-row tot"><span id="sumTotLabel">المجموع</span><span class="sum-val" id="sumTot">—</span></div>
@@ -243,6 +245,7 @@ var PAY=[
   {k:'pickup', ar:'استلام (50% مسبق)',    fr:'Retrait (50% avance)',      ic:'🏪'},
 ];
 var prod=null,qty=1,color='',selW=null,wilayas=[],payInfo={},enabled=['cod','ccp','cib','dahabia','iban','binance','redotpay'],selPay='cod';
+var isCartMode=false,cartItems=[];
 
 function getLang(){ var p=new URLSearchParams(location.search); return p.get('lang')||LANG; }
 function applyLang(){
@@ -258,34 +261,60 @@ function applyLang(){
 function getL(){ return L[LANG]||L.ar; }
 
 var appliedCoupon=null,appliedDiscount=0;
+function cartSubtotal(){
+  return cartItems.reduce(function(s,it){return s+(Number(it.prod.price)||0)*it.qty;},0);
+}
 function updateSum(){
-  if(!prod) return;
-  var pr=Number(prod.price)||0;
   var isPickup=selPay==='pickup';
   var dc=isPickup?0:(selW?Number(selW.home_price||0):0);
-  var subtotal=pr*qty+dc;
-  var ln=LANG==='fr'&&prod.name_fr?prod.name_fr:(prod.name_ar||prod.name||'');
+  var fr=LANG==='fr';
+  if(isCartMode){
+    var box=document.getElementById('cartItemsList');box.innerHTML='';
+    if(!cartItems.length){
+      var em=document.createElement('div');em.style.cssText='text-align:center;padding:1rem;color:#888;font-size:.82rem';
+      em.textContent=fr?'Votre panier est vide':'سلتك فارغة';box.appendChild(em);
+    } else {
+      cartItems.forEach(function(it){
+        var name=fr&&it.prod.name_fr?it.prod.name_fr:(it.prod.name_ar||it.prod.name||'');
+        var row=document.createElement('div');row.className='sum-row';
+        var sp=document.createElement('span');sp.textContent=name+' ×'+it.qty;
+        var sv=document.createElement('span');sv.className='sum-val';sv.textContent=money((Number(it.prod.price)||0)*it.qty)+' دج';
+        row.appendChild(sp);row.appendChild(sv);box.appendChild(row);
+      });
+    }
+    var subtotal=cartSubtotal()+dc;
+    document.getElementById('sumDel').textContent=isPickup?(fr?'Retrait':'استلام'):(selW?money(dc)+' دج':'—');
+    var discRow=document.getElementById('sumDiscRow');
+    if(appliedCoupon&&appliedDiscount>0){discRow.style.display='flex';document.getElementById('sumDisc').textContent='-'+money(appliedDiscount)+' دج';}
+    else{discRow.style.display='none';}
+    document.getElementById('sumTot').textContent=money(Math.max(subtotal-appliedDiscount,0))+' دج';
+    return;
+  }
+  if(!prod) return;
+  var pr=Number(prod.price)||0;
+  var subtotal2=pr*qty+dc;
+  var ln=fr&&prod.name_fr?prod.name_fr:(prod.name_ar||prod.name||'');
   document.getElementById('sumPname').textContent=ln+(color?' ('+color+')':'');
   document.getElementById('sumPrice').textContent=money(pr)+' دج';
   document.getElementById('sumQty').textContent='×'+qty;
-  document.getElementById('sumDel').textContent=isPickup?(LANG==='fr'?'Retrait':'استلام'):(selW?money(dc)+' دج':'—');
-  var discRow=document.getElementById('sumDiscRow');
+  document.getElementById('sumDel').textContent=isPickup?(fr?'Retrait':'استلام'):(selW?money(dc)+' دج':'—');
+  var discRow2=document.getElementById('sumDiscRow');
   if(appliedCoupon&&appliedDiscount>0){
-    discRow.style.display='flex';
+    discRow2.style.display='flex';
     document.getElementById('sumDisc').textContent='-'+money(appliedDiscount)+' دج';
-  } else { discRow.style.display='none'; }
-  document.getElementById('sumTot').textContent=money(Math.max(subtotal-appliedDiscount,0))+' دج';
+  } else { discRow2.style.display='none'; }
+  document.getElementById('sumTot').textContent=money(Math.max(subtotal2-appliedDiscount,0))+' دج';
 }
 
 async function applyCoupon(){
   var code=document.getElementById('couponInput').value.trim();
   var msg=document.getElementById('couponMsg');
   if(!code){msg.style.color='#e74c3c';msg.textContent='⚠️ أدخلي كوداً';return;}
-  if(!prod){return;}
-  var pr=Number(prod.price)||0;
+  if(!isCartMode&&!prod){return;}
+  if(isCartMode&&!cartItems.length){return;}
   var isPickup=selPay==='pickup';
   var dc=isPickup?0:(selW?Number(selW.home_price||0):0);
-  var subtotal=pr*qty+dc;
+  var subtotal=isCartMode?(cartSubtotal()+dc):((Number(prod.price)||0)*qty+dc);
   try{
     var r=await fetch(SB_URL+'/rest/v1/rpc/validate_coupon',{
       method:'POST',
@@ -308,11 +337,29 @@ async function applyCoupon(){
 
 async function loadProd(){
   var p=new URLSearchParams(location.search);
+  if(p.get('cart')==='1'){
+    isCartMode=true;
+    document.getElementById('sumPnameRow').classList.add('h');
+    document.getElementById('sumQtyRow').classList.add('h');
+    document.getElementById('cartItemsList').classList.remove('h');
+    var raw=[];try{raw=JSON.parse(localStorage.getItem('fl_cart')||'[]');}catch(e){}
+    if(!raw.length){updateSum();return;}
+    try{
+      var ids=raw.map(function(x){return x.product_id;});
+      var rows=await sbGet('products','?id=in.('+ids.map(encodeURIComponent).join(',')+')');
+      cartItems=raw.map(function(x){
+        var pr=(rows||[]).find(function(r){return r.id===x.product_id;});
+        return pr?{product_id:x.product_id,qty:x.qty,prod:pr}:null;
+      }).filter(Boolean);
+    }catch(e){console.error(e);}
+    updateSum();
+    return;
+  }
   var id=p.get('id'); qty=parseInt(p.get('qty'))||1; color=p.get('color')||'';
   if(!id) return;
   try{
-    var rows=await sbGet('products','?id=eq.'+encodeURIComponent(id)+'&limit=1');
-    if(rows&&rows.length){ prod=rows[0]; updateSum(); }
+    var rows2=await sbGet('products','?id=eq.'+encodeURIComponent(id)+'&limit=1');
+    if(rows2&&rows2.length){ prod=rows2[0]; updateSum(); }
   }catch(e){ console.error(e); }
 }
 
@@ -531,7 +578,8 @@ async function submitOrder(){
   if(!name){ toast(l.nameErr); return; }
   if(!phone||!validatePhone(rawPhone)){ toast(l.phoneErr+' — مثال: 0555 123 456'); return; }
   if(!isPickup&&(!selW||!wid)){ toast(l.wilayaErr); return; }
-  if(!prod){ toast('⚠️'); return; }
+  if(isCartMode){ if(!cartItems.length){ toast('⚠️'); return; } }
+  else if(!prod){ toast('⚠️'); return; }
   // ✅ تحقق البريد إذا أُدخل
   if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('⚠️ البريد الإلكتروني غير صحيح');return;}
   // Rate limit: max 3 orders per 10 min
@@ -547,21 +595,34 @@ async function submitOrder(){
   var btn=document.getElementById('subBtn');
   btn.disabled=true; btn.textContent=l.sending;
   var oid='FBL'+Date.now();
-  var orderParams={
-    p_id:oid, p_name:name, p_phone:phone, p_wilaya_id:wid, p_commune:isPickup?'':commune, p_address:isPickup?'':addr,
-    p_product_id:prod.id, p_color:color, p_qty:qty,
-    p_payment_method:selPay, p_fulfillment_type:isPickup?'pickup':'delivery',
-    p_note:note, p_lang:LANG,
-    p_email:email||null, // ✅ البريد في الطلب
-    p_coupon_code:appliedCoupon||null, // ✅ السيرفر يعيد التحقق والتطبيق — لا يُوثق الخصم المعروض هنا
-    p_client_ref:CLIENT_REF // ✅ يمنع الطلبات المكررة عند النقر المتعدد
-  };
+  var saved;
   try{
-    // ✅ نحفظ الطلب عبر RPC آمن — السيرفر (trigger) يعيد حساب السعر/التوصيل/الدفعة المقدمة/الحالة من مصدر موثوق
-    var saved=await sbRpc('create_order',orderParams);
+    if(isCartMode){
+      var cartParams={
+        p_id:oid, p_items:cartItems.map(function(it){return {product_id:it.product_id,qty:it.qty};}),
+        p_name:name, p_phone:phone, p_wilaya_id:wid, p_commune:isPickup?'':commune, p_address:isPickup?'':addr,
+        p_payment_method:selPay, p_fulfillment_type:isPickup?'pickup':'delivery',
+        p_note:note, p_lang:LANG, p_email:email||null,
+        p_coupon_code:appliedCoupon||null, p_client_ref:CLIENT_REF
+      };
+      saved=await sbRpc('create_cart_order',cartParams);
+      try{localStorage.setItem('fl_cart','[]');}catch(e){}
+    } else {
+      var orderParams={
+        p_id:oid, p_name:name, p_phone:phone, p_wilaya_id:wid, p_commune:isPickup?'':commune, p_address:isPickup?'':addr,
+        p_product_id:prod.id, p_color:color, p_qty:qty,
+        p_payment_method:selPay, p_fulfillment_type:isPickup?'pickup':'delivery',
+        p_note:note, p_lang:LANG,
+        p_email:email||null, // ✅ البريد في الطلب
+        p_coupon_code:appliedCoupon||null, // ✅ السيرفر يعيد التحقق والتطبيق — لا يُوثق الخصم المعروض هنا
+        p_client_ref:CLIENT_REF // ✅ يمنع الطلبات المكررة عند النقر المتعدد
+      };
+      // ✅ نحفظ الطلب عبر RPC آمن — السيرفر (trigger) يعيد حساب السعر/التوصيل/الدفعة المقدمة/الحالة من مصدر موثوق
+      saved=await sbRpc('create_order',orderParams);
+    }
     var real=(saved&&saved[0])?saved[0]:{};
-    real.product_name=(LANG==='fr'&&prod.name_fr?prod.name_fr:(prod.name_ar||prod.name||''));
-    real.product_emoji=prod.emoji||'🌹';
+    real.product_name=isCartMode?((real.item_count||cartItems.length)+(LANG==='fr'?' produits':' منتجات')):(LANG==='fr'&&prod.name_fr?prod.name_fr:(prod.name_ar||prod.name||''));
+    real.product_emoji=isCartMode?'🛍️':(prod.emoji||'🌹');
     real.name=name; real.phone=phone; real.commune=isPickup?'':commune; real.address=isPickup?'':addr;
     real.payment_method=selPay; real.email=email||null;
     var receiptToken=real.receipt_token||'';
