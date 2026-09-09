@@ -959,7 +959,7 @@ async function loadSocial() {
     if (!p) return;
     var wa = String(p.whatsapp || '').replace(/\D/g, '');
     var btn = document.getElementById('waFloat');
-    if (btn && wa.length >= 9) {
+    if (btn && wa.length >= 9 && featOn('whatsapp_actions')) {
       btn.href = 'https://wa.me/' + wa;
       btn.style.display = 'flex';
     }

@@ -469,9 +469,12 @@ function renderBank(){
   }
 }
 
+var featureFlags={};
+async function loadFeatureFlags(){try{featureFlags=await getSetting('feature_flags')||{};}catch(e){featureFlags={};}}
+function featOn(key){return featureFlags[key]!==false;}
 function openDeliveryContactPopup(){
   // ✅ واتساب يجي من الأدمن فقط — ما فيه رقم hardcoded
-  var wa=(payInfo.whatsapp||'').replace(/\D/g,'');
+  var wa=(payInfo.whatsapp||'').replace(/\D/g,'')&&featOn('whatsapp_actions')?(payInfo.whatsapp||'').replace(/\D/g,''):'';
   var ig=payInfo.instagram||'fleurs_byliza';
   document.getElementById('delWa').href = wa ? 'https://wa.me/'+wa : '#';
   document.getElementById('delWa').style.display = wa ? '' : 'none';
@@ -480,7 +483,7 @@ function openDeliveryContactPopup(){
   document.getElementById('delCpOv').classList.add('sh');
 }
 function openCp(){
-  var wa=(payInfo.whatsapp||'').replace(/\D/g,'');
+  var wa=(payInfo.whatsapp||'').replace(/\D/g,'')&&featOn('whatsapp_actions')?(payInfo.whatsapp||'').replace(/\D/g,''):'';
   var ig=payInfo.instagram||'fleurs_byliza';
   document.getElementById('cpWa').href = wa ? 'https://wa.me/'+wa : '#';
   document.getElementById('cpWa').style.display = wa ? '' : 'none';
@@ -549,7 +552,7 @@ async function openSlickPay(orderId, order) {
   }
 
   var ps = await getSetting('pay_methods') || {};
-  var wa=(payInfo.whatsapp||'').replace(/\D/g,'');
+  var wa=(payInfo.whatsapp||'').replace(/\D/g,'')&&featOn('whatsapp_actions')?(payInfo.whatsapp||'').replace(/\D/g,''):'';
   document.getElementById('cpWa').href = wa ? 'https://wa.me/'+wa : '#';
   document.getElementById('cpWa').style.display = wa ? '' : 'none';
   document.getElementById('cpIg').href = 'https://instagram.com/'+(payInfo.instagram||'fleurs_byliza');
@@ -683,6 +686,7 @@ async function submitOrder(){
 
 async function init(){
   applyLang();
+  await loadFeatureFlags();
   await loadProd();
   loadWilayas();
   loadPay();

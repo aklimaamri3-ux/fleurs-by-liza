@@ -350,6 +350,9 @@ function shareProduct(){
   navigator.clipboard.writeText(url).then(function(){toast('✅ تم نسخ الرابط');});
 }
 function shareWA(){var name=prod?(prod.name_ar||prod.name||''):'';window.open('https://wa.me/?text='+encodeURIComponent('🌹 '+name+' — Fleurs by Liza\n'+location.href));}
+var featureFlags={};
+async function loadFeatureFlags(){try{featureFlags=await getSetting('feature_flags')||{};}catch(e){featureFlags={};}}
+function featOn(key){return featureFlags[key]!==false;}
 function shareFB(){window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href));}
 
 function saveRecent(p){
@@ -468,6 +471,7 @@ async function loadProd(){
     document.getElementById('ld').classList.add('h');
   }
 }
+(async function(){await loadFeatureFlags();if(!featOn('whatsapp_actions')){var wb=document.querySelector('.share-wa');if(wb)wb.style.display='none';}})();
 loadProd();
 </script>
 </body></html>
