@@ -472,6 +472,15 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
       <div class="page" id="page-reviews">
         <div class="pg-title">⭐ التقييمات</div>
         <div class="card">
+          <div class="ch"><div class="ct">🔔 تقييمات حقيقية بانتظار الموافقة</div></div>
+          <div id="realRevPending"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct">✅ تقييمات حقيقية منشورة</div></div>
+          <div id="realRevApproved"></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct">✏️ إضافة تقييم يدوياً (شهادة منقولة يدوياً)</div></div>
           <div class="frow"><div class="fg"><label class="fl">الاسم</label><input class="fi" id="revName"></div><div class="fg"><label class="fl">التقييم</label><select class="fi" id="revRating"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div></div>
           <div class="fg"><label class="fl">النص</label><textarea class="fi" id="revText" rows="2" placeholder="تجربة رائعة..."></textarea></div>
           <button class="btn btn-p" onclick="addReview()">+ إضافة</button>
@@ -2779,9 +2788,45 @@ async function loadReviews(){
     if(!revs.length){box.innerHTML='<div style="text-align:center;color:#888;padding:1rem">لا توجد تقييمات</div>';return;}
     box.innerHTML=revs.map(function(r,i){return '<div style="border-bottom:1px solid var(--bd);padding:.7rem 0;display:flex;justify-content:space-between;align-items:start;gap:.5rem"><div><div style="font-weight:700;font-size:.8rem">'+ef(r.name||'')+'  '+'⭐'.repeat(r.rating||5)+'</div><div style="font-size:.77rem;color:#555;margin-top:.2rem">'+ef(r.text||'')+'</div></div><button class="btn-d btn-sm" onclick="deleteReview('+i+')">🗑️</button></div>';}).join('');
   }catch(e){}
+  loadRealReviews();
 }
 async function addReview(){var name=gv('revName'),text=gv('revText'),rating=parseInt(gv('revRating'))||5;if(!name||!text){toast('⚠️ أدخلي الاسم والنص');return;}try{var cur=await getSetting('reviews')||[];cur.unshift({name:name,text:text,rating:rating,date:new Date().toISOString()});await setSetting('reviews',cur);toast('✅ تم إضافة التقييم');sv('revName','');sv('revText','');loadReviews();}catch(e){toast('❌ '+e.message);}}
 async function deleteReview(idx){try{var cur=await getSetting('reviews')||[];cur.splice(idx,1);await setSetting('reviews',cur);toast('🗑️ تم الحذف');loadReviews();}catch(e){toast('❌ '+e.message);}}
+
+// ═══ REAL REVIEWS (delivery-gated, token-verified submissions) ═══
+async function loadRealReviews(){
+  try{
+    var rows=await sbGet('reviews','?deleted_at=is.null&order=created_at.desc&limit=200');
+    var pending=(rows||[]).filter(function(r){return !r.approved;});
+    var approved=(rows||[]).filter(function(r){return r.approved;});
+    var pBox=document.getElementById('realRevPending');
+    pBox.innerHTML=pending.length?'':'<div style="text-align:center;color:#888;padding:.8rem;font-size:.82rem">لا توجد تقييمات بانتظار الموافقة</div>';
+    pending.forEach(function(r){
+      var d=document.createElement('div');d.style.cssText='border-bottom:1px solid var(--bd);padding:.7rem 0';
+      var top=document.createElement('div');top.style.cssText='display:flex;justify-content:space-between;align-items:start;gap:.5rem';
+      var info=document.createElement('div');
+      var nm=document.createElement('div');nm.style.cssText='font-weight:700;font-size:.8rem';nm.textContent=(r.customer_name||'')+'  '+'⭐'.repeat(r.rating||0);info.appendChild(nm);
+      if(r.review_text){var tx=document.createElement('div');tx.style.cssText='font-size:.77rem;color:#555;margin-top:.2rem';tx.textContent=r.review_text;info.appendChild(tx);}
+      var acts=document.createElement('div');acts.style.cssText='display:flex;gap:.3rem';
+      var apBtn=document.createElement('button');apBtn.className='btn-g btn-sm';apBtn.textContent='✅';apBtn.dataset.id=r.id;apBtn.addEventListener('click',function(){approveReview(this.dataset.id);});
+      var rjBtn=document.createElement('button');rjBtn.className='btn-d btn-sm';rjBtn.textContent='❌';rjBtn.dataset.id=r.id;rjBtn.addEventListener('click',function(){rejectReview(this.dataset.id);});
+      acts.appendChild(apBtn);acts.appendChild(rjBtn);
+      top.appendChild(info);top.appendChild(acts);d.appendChild(top);pBox.appendChild(d);
+    });
+    var aBox=document.getElementById('realRevApproved');
+    aBox.innerHTML=approved.length?'':'<div style="text-align:center;color:#888;padding:.8rem;font-size:.82rem">لا توجد تقييمات منشورة بعد</div>';
+    approved.forEach(function(r){
+      var d=document.createElement('div');d.style.cssText='border-bottom:1px solid var(--bd);padding:.7rem 0;display:flex;justify-content:space-between;align-items:start;gap:.5rem';
+      var info=document.createElement('div');
+      var nm=document.createElement('div');nm.style.cssText='font-weight:700;font-size:.8rem';nm.textContent=(r.customer_name||'')+'  '+'⭐'.repeat(r.rating||0);info.appendChild(nm);
+      if(r.review_text){var tx=document.createElement('div');tx.style.cssText='font-size:.77rem;color:#555;margin-top:.2rem';tx.textContent=r.review_text;info.appendChild(tx);}
+      var rjBtn=document.createElement('button');rjBtn.className='btn-d btn-sm';rjBtn.textContent='🗑️';rjBtn.dataset.id=r.id;rjBtn.addEventListener('click',function(){rejectReview(this.dataset.id);});
+      d.appendChild(info);d.appendChild(rjBtn);aBox.appendChild(d);
+    });
+  }catch(e){}
+}
+async function approveReview(id){try{await sbPatch('reviews','id=eq.'+encodeURIComponent(id),{approved:true});toast('✅ تم النشر');loadRealReviews();}catch(e){toast('❌ '+e.message);}}
+async function rejectReview(id){if(!confirm('حذف هذا التقييم؟'))return;try{await sbPatch('reviews','id=eq.'+encodeURIComponent(id),{deleted_at:new Date().toISOString()});toast('🗑️ تم الحذف');loadRealReviews();}catch(e){toast('❌ '+e.message);}}
 
 // ═══ REPORTS ═══
 async function loadReports(){

@@ -102,6 +102,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
       <div class="ttl" id="p3Title">تم استلام الإيصال!</div>
       <div class="sub" id="p3Sub">سنراجع دفعتك ونؤكد طلبك قريباً 🌹</div>
       <div id="deliveryProofBox" class="h" style="margin-top:1rem"></div>
+      <div id="reviewBox" class="h" style="margin-top:1rem;text-align:right"></div>
       <button class="btn" style="display:block;box-sizing:border-box;text-align:center;margin-top:1rem;background:#111" id="p3Invoice" onclick="printInvoice()">🖨️ طباعة الفاتورة</button>
       <a href="index.html" class="btn" style="display:block;text-decoration:none;box-sizing:border-box;text-align:center;margin-top:.6rem" id="p3Btn">العودة للرئيسية</a>
     </div>
@@ -322,6 +323,7 @@ async function findOrder(){
       document.getElementById('p3').classList.remove('h');
       setStep(3);
       loadDeliveryProof();
+      loadReviewBox();
       return;
     }
     var oi=document.getElementById('oInfo');
@@ -355,6 +357,62 @@ async function findOrder(){
     var pp=new URLSearchParams(location.search);
     if(pp.get('paid')==='1' && order.payment_method!=='cod') pollSlickPay(order.id, 0);
   }catch(e){ toast('❌ خطأ في الاتصال'); }
+}
+
+var _selectedRating=5;
+async function loadReviewBox(){
+  if(!order)return;
+  var box=document.getElementById('reviewBox');
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/rpc/get_review_status',{
+      method:'POST', headers:Object.assign({},SB_H,{'Content-Type':'application/json'}),
+      body:JSON.stringify({p_order_id:order.id,p_token:RECEIPT_TOKEN})
+    });
+    if(!r.ok)return;
+    var st=await r.json();
+    if(!st.eligible)return;
+    var fr=LANG==='fr';
+    box.innerHTML='';
+    if(st.already_reviewed){
+      var thx=document.createElement('div');thx.style.cssText='font-size:.85rem;color:var(--gn);font-weight:600;text-align:center';
+      thx.textContent=fr?'✅ Merci pour votre avis !':'✅ شكراً على تقييمك!';
+      box.appendChild(thx);box.classList.remove('h');return;
+    }
+    var lbl=document.createElement('div');lbl.style.cssText='font-weight:700;font-size:.85rem;margin-bottom:.5rem;text-align:center';
+    lbl.textContent=fr?'⭐ Donnez votre avis':'⭐ شاركينا تقييمك';box.appendChild(lbl);
+    var stars=document.createElement('div');stars.id='starPicker';stars.style.cssText='display:flex;justify-content:center;gap:.3rem;font-size:1.6rem;margin-bottom:.6rem;direction:ltr';
+    for(var i=1;i<=5;i++){
+      var s=document.createElement('span');s.dataset.v=i;s.style.cursor='pointer';s.textContent=i<=_selectedRating?'⭐':'☆';
+      s.addEventListener('click',function(){_selectedRating=parseInt(this.dataset.v);renderStars();});
+      stars.appendChild(s);
+    }
+    box.appendChild(stars);
+    var txt=document.createElement('textarea');txt.id='reviewTextIn';txt.rows=3;txt.className='fi';
+    txt.style.cssText='width:100%;box-sizing:border-box;border:1px solid var(--bd);border-radius:.6rem;padding:.6rem;font-family:inherit;font-size:.82rem';
+    txt.placeholder=fr?'Votre expérience (optionnel)...':'تجربتك معنا (اختياري)...';
+    box.appendChild(txt);
+    var submitBtn=document.createElement('button');submitBtn.className='btn';submitBtn.style.cssText='display:block;box-sizing:border-box;text-align:center;margin-top:.6rem;background:var(--pk2)';
+    submitBtn.textContent=fr?'Envoyer':'إرسال';
+    submitBtn.addEventListener('click',submitReview);
+    box.appendChild(submitBtn);
+    box.classList.remove('h');
+  }catch(e){}
+}
+function renderStars(){
+  var stars=document.getElementById('starPicker');if(!stars)return;
+  Array.prototype.forEach.call(stars.children,function(s){s.textContent=parseInt(s.dataset.v)<=_selectedRating?'⭐':'☆';});
+}
+async function submitReview(){
+  var fr=LANG==='fr';
+  try{
+    var r=await fetch(SB_URL+'/rest/v1/rpc/submit_review',{
+      method:'POST', headers:Object.assign({},SB_H,{'Content-Type':'application/json'}),
+      body:JSON.stringify({p_order_id:order.id,p_token:RECEIPT_TOKEN,p_rating:_selectedRating,p_text:document.getElementById('reviewTextIn').value.trim()||null})
+    });
+    var d=await r.json();
+    if(d.ok){ toast(fr?'✅ Merci pour votre avis !':'✅ شكراً على تقييمك!'); loadReviewBox(); }
+    else { toast('❌ '+(d.error||'error')); }
+  }catch(e){ toast('❌ '+(LANG==='fr'?'Erreur':'خطأ')); }
 }
 
 async function loadDeliveryProof(){

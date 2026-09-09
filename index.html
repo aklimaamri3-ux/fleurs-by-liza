@@ -859,10 +859,15 @@ async function loadEur() {
 }
 async function loadRevs() {
   try {
-    var revs = await getSetting('reviews');
     var g = document.getElementById('revGrid');
-    if (!revs || !revs.length) { g.innerHTML = ''; return; }
-    g.innerHTML = revs.slice(0, 5).map(function(r) {
+    var manual = await getSetting('reviews') || [];
+    var real = [];
+    try { real = await sbGet('reviews', '?select=customer_name,rating,review_text&order=created_at.desc&limit=10') || []; } catch(e2) {}
+    // ✅ تقييمات حقيقية (مرتبطة بطلب فعلي ومُوافَق عليها) + تقييمات يدوية قديمة
+    var combined = real.map(function(r){ return {name:r.customer_name, text:r.review_text, rating:r.rating}; })
+      .concat(manual.map(function(r){ return {name:r.name, text:r.text, rating:r.rating}; }));
+    if (!combined.length) { g.innerHTML = ''; return; }
+    g.innerHTML = combined.slice(0, 6).map(function(r) {
       return '<div class="rev-card"><div class="rev-stars">' + '⭐'.repeat(Math.min(5, Number(r.rating)||5)) + '</div><div class="rev-text">' + esc(r.text||'') + '</div><div class="rev-name">— ' + esc(r.name||'') + '</div></div>';
     }).join('');
   } catch(e) {}
