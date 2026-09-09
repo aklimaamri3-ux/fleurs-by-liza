@@ -1,0 +1,1 @@
+select id, name_ar, name_fr, price, old_price, active, created_at, media_items from public.products where name_ar ilike '%test%' or name_ar ilike 'tes' or name_fr ilike '%test%' order by created_at desc;

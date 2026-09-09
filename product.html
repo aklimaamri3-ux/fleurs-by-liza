@@ -458,11 +458,13 @@ async function loadProd(){
     loadRecent(prod.id);
     setTimeout(socialProof, 1500);
     document.getElementById('ld').classList.add('h');
-    // EUR — ✅ يحترم زر إظهار/إخفاء اليورو من إعدادات الأدمن
+    // EUR — ✅ يحترم زر إظهار/إخفاء اليورو من إعدادات الأدمن (تُقرأ مباشرة
+    // حتى تعمل عند الدخول المباشر لصفحة المنتج، لا فقط عبر الصفحة الرئيسية)
     try{
-      var showEur=sessionStorage.getItem('fl_show_eur')!=='0';
+      var curSet=await getSetting('currency');
+      var showEur=!curSet||curSet.show_eur!==false;
       if(showEur){
-        var er=Number(sessionStorage.getItem('fl_eur'))||270;
+        var er=Number(curSet&&curSet.eur)||Number(sessionStorage.getItem('fl_eur'))||270;
         document.getElementById('pEur').textContent='≈ '+(price/er).toFixed(0)+' €';
       }
     }catch(e){}

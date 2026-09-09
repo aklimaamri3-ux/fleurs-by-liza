@@ -322,6 +322,23 @@ async function findOrder(){
       document.getElementById('p1').classList.add('h');
       document.getElementById('p3').classList.remove('h');
       setStep(3);
+      // ✅ العنوان يعكس الحالة الحقيقية للطلب — لا نكتب دائماً "سنراجع
+      // دفعتك قريباً" حتى بعد ما يكون الطلب مؤكد/في الطريق/تم تسليمه
+      var fr2=LANG==='fr';
+      var t=document.getElementById('p3Title'), s=document.getElementById('p3Sub');
+      if(order.status==='delivered'){
+        t.textContent=fr2?'Livré ✅':'تم التسليم ✅';
+        s.textContent=fr2?'Votre commande a été livrée. Merci ! 🌹':'تم تسليم طلبك. شكراً لثقتك! 🌹';
+      } else if(order.status==='shipping'){
+        t.textContent=fr2?'En cours de livraison 🚚':'قيد التوصيل 🚚';
+        s.textContent=fr2?'Votre commande est en route !':'طلبك في الطريق إليك!';
+      } else if(order.status==='cancelled'){
+        t.textContent=fr2?'Commande annulée':'الطلب ملغى';
+        s.textContent=fr2?'Contactez-nous pour plus de détails.':'تواصلي معنا لمزيد من التفاصيل.';
+      } else {
+        t.textContent=fr2?'Paiement confirmé ✅':'تم تأكيد الدفع ✅';
+        s.textContent=fr2?'Votre commande est confirmée et en préparation 🌹':'تم تأكيد طلبك وجاري تحضيره 🌹';
+      }
       loadDeliveryProof();
       loadReviewBox();
       return;
