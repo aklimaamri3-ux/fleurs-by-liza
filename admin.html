@@ -1202,7 +1202,7 @@ function sBadge(s){
   return m[s]||('<span class="badge bgr">'+ef(String(s||'').slice(0,15))+'</span>');
 }
 function pBadge(s){
-  var m={pending:'<span class="badge bo">⏳ انتظار</span>',waiting_review:'<span class="badge bo">🧾 مراجعة</span>',paid:'<span class="badge bg">✅ مدفوع</span>',rejected:'<span class="badge br">❌ مرفوض</span>'};
+  var m={pending:'<span class="badge bo">⏳ انتظار</span>',waiting_review:'<span class="badge bo">🧾 مراجعة</span>',waiting_slickpay:'<span class="badge bo">💳 انتظار الدفع الإلكتروني</span>',paid:'<span class="badge bg">✅ مدفوع</span>',rejected:'<span class="badge br">❌ مرفوض</span>'};
   return m[s]||('<span class="badge bgr">'+ef(String(s||'').slice(0,15))+'</span>');
 }
 function fmtDate(d){if(!d)return '—';var dt=new Date(d);return dt.toLocaleDateString('ar-DZ')+' '+dt.toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});}
@@ -1953,7 +1953,9 @@ async function signedUrl(fullUrl){
 async function loadReceipts(){
   var g=document.getElementById('receiptsGrid');g.innerHTML='';
   try{
-    var rows=await sbGet('orders','?payment_status=eq.waiting_review&order=created_at.desc');
+    // ✅ cib/dahabia (SlickPay) تُستثنى صراحةً — هذه لا تُؤكَّد إلا سيرفر-سايد
+    // عبر slickpay_check/webhook، أبداً من هذه القائمة اليدوية
+    var rows=await sbGet('orders','?payment_status=eq.waiting_review&payment_method=not.in.(cib,dahabia)&order=created_at.desc');
     if(!rows||!rows.length){var em=document.createElement('div');em.style.cssText='grid-column:1/-1;text-align:center;padding:2rem;color:#888';em.textContent='🎉 لا توجد إيصالات بانتظار المراجعة';g.appendChild(em);return;}
     // نجيب كل الـ signed URLs بشكل متوازي
     var signedMap={};
@@ -1976,7 +1978,10 @@ async function loadReceipts(){
       var nm=document.createElement('div');nm.style.fontSize='.72rem';nm.textContent=o.name||'';cb.appendChild(nm);
       var pr=document.createElement('div');pr.className='pcard-a-price';pr.textContent=money(o.total)+' دج';cb.appendChild(pr);
       var acts=document.createElement('div');acts.className='pcard-a-acts';
-      var apBtn=document.createElement('button');apBtn.className='btn-g btn-sm';apBtn.textContent='✅ قبول';apBtn.dataset.id=oid;apBtn.addEventListener('click',function(){approveRec(this.dataset.id);});
+      var apBtn=document.createElement('button');apBtn.className='btn-g btn-sm';apBtn.textContent='✅ قبول';apBtn.dataset.id=oid;
+      // ✅ لا قبول بلا إيصال حقيقي مرفوع — يمنع الموافقة العمياء على طلب بلا دليل دفع
+      if(!su){apBtn.disabled=true;apBtn.title='لا يوجد إيصال مرفوع لهذا الطلب';apBtn.style.opacity='.4';apBtn.style.cursor='not-allowed';}
+      else apBtn.addEventListener('click',function(){approveRec(this.dataset.id);});
       var rjBtn=document.createElement('button');rjBtn.className='btn-d btn-sm';rjBtn.textContent='❌ رفض';rjBtn.dataset.id=oid;rjBtn.addEventListener('click',function(){rejectRec(this.dataset.id);});
       acts.appendChild(apBtn);acts.appendChild(rjBtn);cb.appendChild(acts);card.appendChild(cb);g.appendChild(card);
     });

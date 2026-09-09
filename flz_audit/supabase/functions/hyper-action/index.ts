@@ -337,11 +337,13 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
       if (!key) return err('SlickPay not configured', 500)
       const filt = idFilter(body.order_id ?? '')
       if (!filt) return err('Invalid order_id', 400)
-      const order = await getOrder(filt, 'slickpay_order_id,payment_status')
+      const order = await getOrder(filt, 'slickpay_order_id,payment_status,total')
       if (!order) return err('Order not found', 404)
       const uid = await requireUser(req)
       if (order.user_id && uid !== order.user_id && !(await isAdmin(uid))) return err('Forbidden', 403)
       if (!order.slickpay_order_id) return ok({ payment_status: order.payment_status || 'pending' })
+      // ✅ already confirmed paid previously — no need to re-verify or re-trust anything new
+      if (order.payment_status === 'paid') return ok({ payment_status: 'paid' })
       const base = slickpayBase()
       const res  = await jfetch(`${base}/users/invoices/${encodeURIComponent(String(order.slickpay_order_id))}`, {
         headers: { 'Accept': 'application/json', 'Authorization': `Bearer ${key}` },
@@ -349,11 +351,25 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
       if (res.ok) {
         const d      = await res.json()
         const isPaid = d?.completed === 1 || d?.completed === true || (d?.data?.payment_status === 'paid')
-        if (isPaid && order.payment_status !== 'paid') {
+        if (isPaid) {
+          // ✅ same amount-mismatch guard as the webhook — see comment there.
+          // SlickPay's own invoice schema for the paid amount is undocumented,
+          // so this is defense-in-depth on top of (not a replacement for) the
+          // primary safeguard: `completed` can only be true for THIS exact
+          // invoice id, which we created ourselves with a fixed amount, and
+          // that field can only come from SlickPay's real backend.
+          const inv = (typeof d?.data === 'string') ? (() => { try { return JSON.parse(d.data) } catch { return {} } })() : (d?.data || {})
+          const paidAmount  = Number(inv?.amount ?? inv?.price ?? 0)
+          const orderAmount = Number(order?.total ?? 0)
+          if (paidAmount > 0 && orderAmount > 0 && Math.abs(paidAmount - orderAmount) > 1) {
+            console.error(`slickpay_check amount mismatch: order=${filt} paid=${paidAmount} total=${orderAmount}`)
+            return ok({ payment_status: 'pending' })
+          }
           try { await sbPatch('orders', filt, { payment_status: 'paid', status: 'confirmed' }) }
           catch (e) { console.error('Check patch failed:', e) }
+          return ok({ payment_status: 'paid' })
         }
-        return ok({ payment_status: isPaid ? 'paid' : 'pending' })
+        return ok({ payment_status: 'pending' })
       }
       return ok({ payment_status: order.payment_status || 'pending' })
     }
