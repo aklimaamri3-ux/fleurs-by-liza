@@ -133,6 +133,7 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
     <div class="sb-it on" data-p="dash"><span class="ico">📊</span>لوحة التحكم</div>
     <div class="sb-it" data-p="prods"><span class="ico">🌹</span>المنتجات</div>
     <div class="sb-it" data-p="cats"><span class="ico">🏷️</span>التصنيفات</div>
+    <div class="sb-it" data-p="occasions"><span class="ico">🎉</span>المناسبات</div>
     <div class="sb-it" data-p="orders"><span class="ico">📦</span>الطلبات <span id="newOrdBadge" style="background:var(--rd);color:#fff;border-radius:1rem;padding:.05rem .4rem;font-size:.62rem;margin-right:auto;display:none"></span></div>
     <div class="sb-it" data-p="receipts"><span class="ico">🧾</span>الإيصالات</div>
     <div class="sb-it" data-p="staff"><span class="ico">👥</span>الخدّامين</div>
@@ -202,6 +203,23 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
           <button class="btn btn-p" onclick="saveCat()">+ إضافة</button>
         </div>
         <div class="card"><div style="overflow-x:auto"><table class="tbl" id="catsTbl"></table></div></div>
+      </div>
+
+      <div class="page" id="page-occasions">
+        <div class="pg-title">🎉 المناسبات</div>
+        <div class="card">
+          <div class="ch"><div class="ct">إضافة مناسبة جديدة</div></div>
+          <div class="frow">
+            <div class="fg"><label class="fl">الاسم بالعربية *</label><input class="fi" id="occAr" placeholder="عيد الحب"></div>
+            <div class="fg"><label class="fl">Nom en français</label><input class="fi" id="occFr" placeholder="Saint-Valentin"></div>
+          </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">الأيقونة</label><input class="fi" id="occIco" placeholder="🎉" value="🎉"></div>
+            <div class="fg"><label class="fl">رقم الترتيب</label><input class="fi" id="occOrder" type="number" value="0"></div>
+          </div>
+          <button class="btn btn-p" onclick="saveOcc()">+ إضافة</button>
+        </div>
+        <div class="card"><div style="overflow-x:auto"><table class="tbl" id="occTbl"></table></div></div>
       </div>
 
       <div class="page" id="page-orders">
@@ -777,6 +795,7 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
     </div>
       <div class="fg"><label class="fl">التصنيف</label><select class="fi" id="pCat"></select></div>
     </div>
+    <div class="fg"><label class="fl">🎉 المناسبات المناسبة لهذا المنتج</label><div id="pOccBox" style="display:flex;flex-wrap:wrap;gap:.4rem"></div></div>
     <div class="frow">
       <div class="fg"><label class="fl">Badge (عرض/جديد...)</label><input class="fi" id="pBadgeAr" placeholder="جديد"></div>
       <div class="fg"><label class="fl">Badge FR</label><input class="fi" id="pBadgeFr" placeholder="Nouveau"></div>
@@ -1185,8 +1204,8 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 // ═══ NAV ═══
-var PAGE_TITLES={'dash':'لوحة التحكم','prods':'المنتجات','cats':'التصنيفات','orders':'الطلبات','receipts':'الإيصالات','staff':'الخدّامين','delivery':'التوصيل','payment':'طرق الدفع','announce':'الإعلانات','promos':'البروموسيون والكوبونات','ads':'الإعلانات (Ads)','reviews':'التقييمات','reports':'التقارير','charts':'Charts — إحصائيات بيانية','kanban':'Kanban — إدارة الطلبات','crm':'CRM — الزبناء','seo':'SEO Manager','currency':'إدارة العملات','scheduled':'الطلبات المجدولة','tracking':'تتبع الطلب','trash':'سلة المهملات','settings':'الإعدادات'};
-var PAGE_FNS={dash:loadDash,prods:loadProds,cats:loadCats,orders:loadOrders,receipts:loadReceipts,staff:loadStaff,delivery:loadDelivery,payment:loadPayPage,announce:loadAnnouncePage,promos:loadPromosPage,ads:loadAds,reviews:loadReviews,reports:loadReports,charts:loadCharts,kanban:loadKanban,crm:loadCRM,seo:loadSEO,currency:loadCurrency,scheduled:loadScheduled,tracking:loadTracking,trash:loadTrash,settings:loadSettingsPage};
+var PAGE_TITLES={'dash':'لوحة التحكم','prods':'المنتجات','cats':'التصنيفات','occasions':'المناسبات','orders':'الطلبات','receipts':'الإيصالات','staff':'الخدّامين','delivery':'التوصيل','payment':'طرق الدفع','announce':'الإعلانات','promos':'البروموسيون والكوبونات','ads':'الإعلانات (Ads)','reviews':'التقييمات','reports':'التقارير','charts':'Charts — إحصائيات بيانية','kanban':'Kanban — إدارة الطلبات','crm':'CRM — الزبناء','seo':'SEO Manager','currency':'إدارة العملات','scheduled':'الطلبات المجدولة','tracking':'تتبع الطلب','trash':'سلة المهملات','settings':'الإعدادات'};
+var PAGE_FNS={dash:loadDash,prods:loadProds,cats:loadCats,occasions:loadOccasions,orders:loadOrders,receipts:loadReceipts,staff:loadStaff,delivery:loadDelivery,payment:loadPayPage,announce:loadAnnouncePage,promos:loadPromosPage,ads:loadAds,reviews:loadReviews,reports:loadReports,charts:loadCharts,kanban:loadKanban,crm:loadCRM,seo:loadSEO,currency:loadCurrency,scheduled:loadScheduled,tracking:loadTracking,trash:loadTrash,settings:loadSettingsPage};
 
 function goPage(p){
   document.querySelectorAll('.sb-it').forEach(function(i){i.classList.remove('on');});
@@ -1519,6 +1538,51 @@ async function saveCat(){
 async function toggleCat(id,cur){try{await sbPatch('categories','id=eq.'+encodeURIComponent(id),{active:!cur});loadCats();}catch(e){toast('❌ '+e.message);}}
 async function deleteCat(id){if(!confirm('نقل هذا التصنيف إلى سلة المهملات؟ يمكن استرجاعه خلال 20 يوماً.'))return;try{await sbPatch('categories','id=eq.'+encodeURIComponent(id),{deleted_at:new Date().toISOString()});toast('🗑️ نُقل إلى سلة المهملات');loadCats();}catch(e){toast('❌ '+e.message);}}
 
+// ═══ OCCASIONS ═══
+var allOccasions=[];
+async function loadOccasions(){
+  try{
+    var rows=await sbGet('occasions','?deleted_at=is.null&order=sort_order.asc');allOccasions=rows||[];
+    var tbl=document.getElementById('occTbl');tbl.innerHTML='';
+    var hdr=document.createElement('tr');
+    ['الأيقونة','العربية','Français','الترتيب','الحالة',''].forEach(function(t){var th=document.createElement('th');th.textContent=t;hdr.appendChild(th);});
+    tbl.appendChild(hdr);
+    allOccasions.forEach(function(o){
+      var oid=String(o.id||'');var isActive=o.active!==false;
+      var tr=document.createElement('tr');
+      [[o.icon||'🎉'],[o.name_ar||''],[o.name_fr||''],[String(o.sort_order||0)]].forEach(function(v){var td=document.createElement('td');td.textContent=v[0];tr.appendChild(td);});
+      var stTd=document.createElement('td');stTd.innerHTML=isActive?'<span class="badge bg">✅</span>':'<span class="badge br">⏸️</span>';tr.appendChild(stTd);
+      var acTd=document.createElement('td');acTd.style.cssText='display:flex;gap:.3rem';
+      var tBtn=document.createElement('button');tBtn.className='btn-o btn-sm';tBtn.textContent=isActive?'⏸️':'▶️';tBtn.dataset.id=oid;tBtn.dataset.active=String(isActive);tBtn.addEventListener('click',function(){toggleOcc(this.dataset.id,this.dataset.active==='true');});
+      var dBtn=document.createElement('button');dBtn.className='btn-d btn-sm';dBtn.textContent='🗑️';dBtn.dataset.id=oid;dBtn.addEventListener('click',function(){deleteOcc(this.dataset.id);});
+      acTd.appendChild(tBtn);acTd.appendChild(dBtn);tr.appendChild(acTd);tbl.appendChild(tr);
+    });
+  }catch(e){toast('❌ '+e.message);}
+}
+async function saveOcc(){
+  var nameAr=gv('occAr');if(!nameAr){toast('⚠️ أدخلي الاسم');return;}
+  try{
+    await sbPost('occasions',{name_ar:nameAr,name_fr:gv('occFr'),icon:gv('occIco')||'🎉',sort_order:parseInt(gv('occOrder'))||0,active:true});
+    toast('✅ تمت الإضافة');sv('occAr','');sv('occFr','');sv('occIco','🎉');sv('occOrder','0');loadOccasions();
+  }catch(e){toast('❌ '+e.message);}
+}
+async function toggleOcc(id,cur){try{await sbPatch('occasions','id=eq.'+encodeURIComponent(id),{active:!cur});loadOccasions();}catch(e){toast('❌ '+e.message);}}
+async function deleteOcc(id){if(!confirm('نقل هذه المناسبة إلى سلة المهملات؟ يمكن استرجاعها خلال 20 يوماً.'))return;try{await sbPatch('occasions','id=eq.'+encodeURIComponent(id),{deleted_at:new Date().toISOString()});toast('🗑️ نُقلت إلى سلة المهملات');loadOccasions();}catch(e){toast('❌ '+e.message);}}
+
+// ✅ ربط المنتج بالمناسبات — checkboxes في نموذج المنتج
+async function renderOccCheckboxes(selectedIds){
+  if(!allOccasions.length){try{allOccasions=await sbGet('occasions','?deleted_at=is.null&order=sort_order.asc');}catch(e){allOccasions=[];}}
+  var box=document.getElementById('pOccBox');if(!box)return;box.innerHTML='';
+  selectedIds=selectedIds||[];
+  allOccasions.forEach(function(o){
+    var lbl=document.createElement('label');lbl.style.cssText='display:flex;align-items:center;gap:.25rem;font-size:.75rem;background:var(--gy);padding:.3rem .6rem;border-radius:1rem;cursor:pointer';
+    var cb=document.createElement('input');cb.type='checkbox';cb.value=o.id;cb.checked=selectedIds.indexOf(o.id)!==-1;cb.className='pOccCb';
+    lbl.appendChild(cb);lbl.appendChild(document.createTextNode((o.icon||'🎉')+' '+(o.name_ar||'')));
+    box.appendChild(lbl);
+  });
+}
+function getSelectedOccIds(){return Array.prototype.map.call(document.querySelectorAll('.pOccCb:checked'),function(c){return c.value;});}
+
 // ═══ PRODUCTS ═══
 async function loadProds(){
   var g=document.getElementById('prodsGrid');g.innerHTML='';
@@ -1581,6 +1645,7 @@ async function openProdMo(){
   var rb=document.getElementById('pRefBar');if(rb)rb.style.display='none';
   document.getElementById('pCat').innerHTML=buildCatSelect('');
   document.getElementById('pActive').classList.add('on');
+  renderOccCheckboxes([]);
   pendingImgs=[];existingImgUrls=[];document.getElementById('imgPrev').innerHTML='';
   document.getElementById('prodMo').classList.add('sh');
 }
@@ -1597,6 +1662,7 @@ async function editProd(id){
   sv('pBadgeAr',p.badge_ar||'');sv('pBadgeFr',p.badge_fr||'');
   document.getElementById('pCat').innerHTML=buildCatSelect(p.category_id||'');
   p.active!==false?document.getElementById('pActive').classList.add('on'):document.getElementById('pActive').classList.remove('on');
+  try{var rels=await sbGet('product_occasions','?product_id=eq.'+encodeURIComponent(id)+'&select=occasion_id');renderOccCheckboxes((rels||[]).map(function(r){return r.occasion_id;}));}catch(e){renderOccCheckboxes([]);}
   // ✅ عرض ref bar
   var rb=document.getElementById('pRefBar');var rd=document.getElementById('pRefDisplay');
   if(rb&&rd&&p.ref){rd.textContent=p.ref;rb.style.display='flex';}
@@ -1641,6 +1707,12 @@ async function saveProd(){
     for(var i=0;i<pendingImgs.length;i++){var url=await uploadImg(pendingImgs[i],'products');mediaItems.push({type:'image',src:url});}
     var data={id,ref:ref,name_ar:nameAr,name_fr:gv('pNameFr'),description_ar:gv('pDescAr'),description_fr:gv('pDescFr'),price,old_price:parseInt(gv('pOld'))||0,cost_price:parseInt(gv('pCostPrice'))||0,emoji:gv('pEmoji')||'🌹',category_id:gv('pCat'),badge_ar:gv('pBadgeAr'),badge_fr:gv('pBadgeFr'),active:document.getElementById('pActive').classList.contains('on'),media_items:mediaItems,created_at:new Date().toISOString()};
     await sbUpsert('products',data);
+    // ✅ مزامنة المناسبات — استبدال كامل: حذف الروابط القديمة ثم إدراج المختارة حالياً
+    try{
+      await sbDelete('product_occasions','product_id=eq.'+encodeURIComponent(id));
+      var occIds=getSelectedOccIds();
+      if(occIds.length)await sbPost('product_occasions',occIds.map(function(oid){return{product_id:id,occasion_id:oid};}));
+    }catch(e){console.warn('occasions sync failed',e.message);}
     toast('✅ تم حفظ المنتج — Réf: '+ref);closeProdMo();loadProds();
   }catch(e){toast('❌ '+e.message);}
 }

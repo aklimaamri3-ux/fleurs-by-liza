@@ -261,6 +261,7 @@ footer p{font-size:.78rem;line-height:1.7;}
   <button id="searchClear" class="search-clear" onclick="clearSearch()" style="display:none">✕</button>
 </div>
 <div class="cats-wrap" id="catsBar"></div>
+<div class="cats-wrap" id="occBar"></div>
   <div id="prodGrid"><div class="grid-empty">⏳ جاري التحميل...</div></div>
 </section>
 
@@ -663,9 +664,15 @@ function renderProds(list) {
 function goProduct(id) { location.href = 'product.html?id=' + encodeURIComponent(id); }
 
 var curSearchQ = '';
+var curOccId = 'all';
+var occProductMap = {}; // occasion_id -> {product_id: true}
 function applyFilters() {
   var list = curCatId === 'all' ? allProds : allProds.filter(function(p) { return p.category_id === curCatId; });
-  if (!list.length && allProds.length && !curSearchQ) list = allProds;
+  if (!list.length && allProds.length && !curSearchQ && curOccId === 'all') list = allProds;
+  if (curOccId !== 'all') {
+    var map = occProductMap[curOccId] || {};
+    list = list.filter(function(p) { return map[p.id]; });
+  }
   var q = curSearchQ.trim().toLowerCase();
   if (q) {
     list = list.filter(function(p) {
@@ -720,6 +727,44 @@ async function loadCats() {
       bar.appendChild(btn);
     });
   } catch(e) { console.error('loadCats', e); }
+}
+
+// ── LOAD OCCASIONS ──
+async function loadOccasionsBar() {
+  try {
+    var rows = await sbGet('occasions', '?active=eq.true&order=sort_order.asc');
+    var occasions = rows || [];
+    var bar = document.getElementById('occBar');
+    if (!bar) return;
+    bar.innerHTML = '';
+    if (!occasions.length) return;
+    var fr = LANG === 'fr';
+    var allBtn=document.createElement('button');allBtn.className='cat-btn active';allBtn.dataset.oid='all';
+    var ico=document.createElement('span');ico.className='cico';ico.textContent='🎉';allBtn.appendChild(ico);
+    allBtn.appendChild(document.createTextNode(fr?'Toutes occasions':'كل المناسبات'));
+    allBtn.addEventListener('click',function(){filterByOcc('all');});
+    bar.appendChild(allBtn);
+    occasions.forEach(function(o) {
+      var name = fr && o.name_fr ? o.name_fr : o.name_ar;
+      var btn=document.createElement('button');btn.className='cat-btn';btn.dataset.oid=o.id;
+      var oi=document.createElement('span');oi.className='cico';oi.textContent=o.icon||'🎉';btn.appendChild(oi);
+      btn.appendChild(document.createTextNode(name));
+      btn.addEventListener('click',function(){filterByOcc(this.dataset.oid);});
+      bar.appendChild(btn);
+    });
+    // ✅ خريطة منتج↔مناسبة — نجيبها مرة واحدة
+    var rels = await sbGet('product_occasions', '?select=product_id,occasion_id');
+    occProductMap = {};
+    (rels||[]).forEach(function(r){
+      if(!occProductMap[r.occasion_id]) occProductMap[r.occasion_id]={};
+      occProductMap[r.occasion_id][r.product_id]=true;
+    });
+  } catch(e) { console.error('loadOccasionsBar', e); }
+}
+function filterByOcc(occId) {
+  curOccId = occId;
+  document.querySelectorAll('#occBar .cat-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.oid === occId); });
+  applyFilters();
 }
 
 // ── LOAD PRODUCTS ──
@@ -961,7 +1006,7 @@ async function init() {
   applyI18n();
   var hide = function() { document.getElementById('ld').classList.add('h'); };
   var t = setTimeout(hide, 5000);
-  await Promise.all([loadCats(), loadProds()]);
+  await Promise.all([loadCats(), loadProds(), loadOccasionsBar()]);
   clearTimeout(t); hide();
   loadAnn(); loadStats(); loadEur(); loadRevs(); loadSocial(); loadSEOSettings(); loadAds(); loadBizHours();
   updateWishlistCount(); updateCartCount();
