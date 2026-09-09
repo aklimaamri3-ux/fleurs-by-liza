@@ -214,9 +214,13 @@ var order=null, file=null;
 
 // ✅ فاتورة الزبون — تُبنى فقط من بيانات الطلب الموثوقة المسترجعة من القاعدة
 // (عبر findOrder بالـ id+receipt_token) — لا قيم يُدخلها المتصفح.
-var PAY_LABELS={cod:'الدفع عند الاستلام',ccp:'CCP / Baridimob',iban:'تحويل بنكي IBAN',binance:'Binance',redotpay:'RedotPay',cib:'بطاقة CIB',dahabia:'Dahabia',pickup:'استلام من المحل'};
-var STATUS_LABELS={new:'جديد',confirmed:'مؤكد',shipping:'قيد التوصيل',delivered:'تم التسليم',cancelled:'ملغى'};
-var PSTATUS_LABELS={pending:'بانتظار الدفع',waiting_review:'بانتظار المراجعة',waiting_slickpay:'بانتظار الدفع الإلكتروني',paid:'مدفوع',rejected:'مرفوض'};
+var PAY_LABELS_AR={cod:'الدفع عند الاستلام',ccp:'CCP / Baridimob',iban:'تحويل بنكي IBAN',binance:'Binance',redotpay:'RedotPay',cib:'بطاقة CIB',dahabia:'Dahabia',pickup:'استلام من المحل'};
+var PAY_LABELS_FR={cod:'Paiement à la livraison',ccp:'CCP / Baridimob',iban:'Virement IBAN',binance:'Binance',redotpay:'RedotPay',cib:'Carte CIB',dahabia:'Dahabia',pickup:'Retrait en boutique'};
+var STATUS_LABELS_AR={new:'جديد',confirmed:'مؤكد',shipping:'قيد التوصيل',delivered:'تم التسليم',cancelled:'ملغى'};
+var STATUS_LABELS_FR={new:'Nouveau',confirmed:'Confirmé',shipping:'En livraison',delivered:'Livré',cancelled:'Annulé'};
+// ✅ waiting_review/waiting_slickpay/pending تُعرض دائماً "غير مؤكد" — لا يظهر "مدفوع" إلا بعد تحقق سيرفر-سايد حقيقي
+var PSTATUS_LABELS_AR={pending:'غير مؤكد',waiting_review:'غير مؤكد',waiting_slickpay:'غير مؤكد',paid:'مدفوع',rejected:'مرفوض'};
+var PSTATUS_LABELS_FR={pending:'Non confirmé',waiting_review:'Non confirmé',waiting_slickpay:'Non confirmé',paid:'Payé',rejected:'Rejeté'};
 
 function buildInvoiceHtml(){
   var fr=LANG==='fr';
@@ -225,7 +229,7 @@ function buildInvoiceHtml(){
   var isPickup=order.fulfillment_type==='pickup';
   var subtotal=(Number(order.product_price)||0)*(Number(order.qty)||1);
   var rowsHtml=''
-    +'<tr><td>'+esc(order.product_name||order.product||'')+'</td><td class="ref">'+esc(order.product_id||'')+'</td>'
+    +'<tr><td>'+esc(order.product_name||order.product||'')+'</td><td class="ref">'+esc(order.product_sku||order.product_id||'')+'</td>'
     +'<td>'+String(order.qty||1)+'</td><td>'+money(order.product_price)+' دج</td><td>'+money(subtotal)+' دج</td></tr>';
   var extraRows=[];
   if(isPickup){
@@ -240,9 +244,9 @@ function buildInvoiceHtml(){
   if(isPickup){
     extraRows.push([fr?'Acompte requis (50%)':'الدفعة المقدمة (50%)', money(order.deposit_amount||Math.round(order.total/2))+' دج']);
   }
-  var payLabel=PAY_LABELS[order.payment_method]||order.payment_method||'';
-  var statusLabel=STATUS_LABELS[order.status]||order.status||'';
-  var pstatusLabel=PSTATUS_LABELS[order.payment_status]||order.payment_status||'';
+  var payLabel=(fr?PAY_LABELS_FR:PAY_LABELS_AR)[order.payment_method]||order.payment_method||'';
+  var statusLabel=(fr?STATUS_LABELS_FR:STATUS_LABELS_AR)[order.status]||order.status||'';
+  var pstatusLabel=(fr?PSTATUS_LABELS_FR:PSTATUS_LABELS_AR)[order.payment_status]||order.payment_status||'';
   var html='<div class="hd"><div class="lg">Fleurs<em>❀</em>by liza</div><div class="inv"><b>#'+esc(ref)+'</b><div>'+d.toLocaleDateString('fr-DZ')+' '+d.toLocaleTimeString('fr-DZ',{hour:'2-digit',minute:'2-digit'})+'</div></div></div>'
     +'<div class="cust">'
     +'<div class="row"><span>'+(fr?'Client':'العميل')+'</span><span>'+esc(order.name||'')+'</span></div>'

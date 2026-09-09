@@ -846,8 +846,32 @@ async function init() {
   var t = setTimeout(hide, 5000);
   await Promise.all([loadCats(), loadProds()]);
   clearTimeout(t); hide();
-  loadAnn(); loadStats(); loadEur(); loadRevs(); loadSocial(); loadSEOSettings(); loadAds();
+  loadAnn(); loadStats(); loadEur(); loadRevs(); loadSocial(); loadSEOSettings(); loadAds(); loadBizHours();
   updateWishlistCount();
+}
+
+// ✅ ساعات العمل — إعلامية فقط، لا تمنع الطلب أبداً
+async function loadBizHours(){
+  try{
+    var bh=await getSetting('business_hours');
+    if(!bh||!bh.enabled||!bh.hours)return;
+    var days=['sun','mon','tue','wed','thu','fri','sat'];
+    var today=days[new Date().getDay()];
+    var t=bh.hours[today];
+    if(!t)return;
+    var badge=document.createElement('div');
+    var fr=LANG==='fr';
+    var isOpen=false;
+    if(!t.closed){
+      var now=new Date();var cur=now.getHours()*60+now.getMinutes();
+      var oM=t.open.split(':');var cM=t.close.split(':');
+      var oMin=parseInt(oM[0])*60+parseInt(oM[1]);var cMin=parseInt(cM[0])*60+parseInt(cM[1]);
+      isOpen=cur>=oMin&&cur<cMin;
+    }
+    badge.style.cssText='position:fixed;bottom:1rem;'+(fr?'left':'right')+':1rem;z-index:998;padding:.5rem 1rem;border-radius:2rem;font-size:.75rem;font-weight:700;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.15);background:'+(isOpen?'#27ae60':'#888');
+    badge.textContent=isOpen?(fr?'🟢 Ouvert maintenant':'🟢 مفتوح الآن'):(fr?'🔴 Fermé':'🔴 مغلق حالياً');
+    document.body.appendChild(badge);
+  }catch(e){console.warn('business hours',e.message);}
 }
 init();
 </script>

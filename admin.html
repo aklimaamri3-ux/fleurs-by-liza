@@ -1526,7 +1526,7 @@ function renderProdsGrid(){
   var q=(gv('prodSearchAdmin')||'').toLowerCase();
   var catF=gv('prodCatFilter');
   var list=allProds.filter(function(p){
-    var matchQ=!q||(p.name_ar||'').toLowerCase().indexOf(q)!==-1||(p.name_fr||'').toLowerCase().indexOf(q)!==-1||(p.ref||'').toLowerCase().indexOf(q)!==-1;
+    var matchQ=!q||(p.name_ar||'').toLowerCase().indexOf(q)!==-1||(p.name_fr||'').toLowerCase().indexOf(q)!==-1||(p.sku||'').toLowerCase().indexOf(q)!==-1;
     var matchCat=!catF||p.category_id===catF;
     return matchQ&&matchCat;
   });
@@ -1544,7 +1544,7 @@ function renderProdsGrid(){
       else{var ph=document.createElement('div');ph.className='ph';ph.textContent=p.emoji||'🌹';card.appendChild(ph);}
       var cb=document.createElement('div');cb.className='pcard-a-body';
       var nm=document.createElement('div');nm.className='pcard-a-name';nm.textContent=p.name_ar||p.name||'';cb.appendChild(nm);
-      if(p.ref){var rf=document.createElement('div');rf.style.cssText='font-size:.62rem;color:var(--mt);font-family:var(--font-en)';rf.textContent='Réf: '+p.ref;cb.appendChild(rf);}
+      if(p.sku){var rf=document.createElement('div');rf.style.cssText='font-size:.62rem;color:var(--mt);font-family:var(--font-en)';rf.textContent='Réf: '+p.sku;cb.appendChild(rf);}
       var pr=document.createElement('div');pr.className='pcard-a-price';pr.textContent=money(p.price)+' دج';cb.appendChild(pr);
       var st=document.createElement('div');st.style.cssText='font-size:.65rem;color:'+(isActive?'#27ae60':'#e74c3c');st.textContent=isActive?'✅ نشط':'⏸️ معطل';cb.appendChild(st);
       var acts=document.createElement('div');acts.className='pcard-a-acts';
