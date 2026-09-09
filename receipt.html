@@ -251,8 +251,7 @@ async function findOrder(){
   // ✅ token إلزامي — يمنع تصفح طلبات الآخرين
   if(!RECEIPT_TOKEN){ toast('⚠️ رابط غير صالح — استعملي الرابط اللي وصلك'); return; }
   try{
-    var rows=await sbGet('orders','?id=eq.'+encodeURIComponent(id)
-      +'&receipt_token=eq.'+encodeURIComponent(RECEIPT_TOKEN)+'&limit=1');
+    var rows=await sbRpc('get_order_by_token',{p_id:id,p_token:RECEIPT_TOKEN});
     if(!rows||!rows.length){ toast(l.notFound); return; }
     order=rows[0];
     if(order.payment_status==='paid'){
@@ -328,9 +327,8 @@ async function doUpload(){
   try{
     var url=await uploadImg(file,'receipts');
     // ✅ التحديث مقيّد بالـ token — الزبون ما يقدرش يمس طلب غيره
-    await sbPatch('orders',
-      'id=eq.'+encodeURIComponent(order.id)+'&receipt_token=eq.'+encodeURIComponent(RECEIPT_TOKEN),
-      { receipt_url:url, payment_status:'waiting_review', receipt_at:new Date().toISOString() });
+    var ok=await sbRpc('submit_order_receipt',{p_id:order.id,p_token:RECEIPT_TOKEN,p_receipt_url:url});
+    if(!ok) throw new Error('token mismatch or order no longer pending');
     document.getElementById('p2').classList.add('h');
     document.getElementById('p3').classList.remove('h');
     setStep(3);

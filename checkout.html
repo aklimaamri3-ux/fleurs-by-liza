@@ -163,6 +163,14 @@ async function sbPost(table, data) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+async function sbRpc(fn, params) {
+  var r = await fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+    method: 'POST', body: JSON.stringify(params || {}),
+    headers: Object.assign({}, SB_H, { 'Content-Type': 'application/json' })
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
 async function sbUpsert(table, data) {
   var r = await fetch(SB_URL + '/rest/v1/' + table, {
     method: 'POST', body: JSON.stringify(data),
@@ -538,25 +546,24 @@ async function submitOrder(){
   _submitting=true;
   var btn=document.getElementById('subBtn');
   btn.disabled=true; btn.textContent=l.sending;
-  // ✅ هذه القيم تقديرية للعرض الفوري فقط — السيرفر (trigger) يعيد حسابها من مصدر موثوق دائماً
-  var pr=Number(prod.price)||0, dc=isPickup?0:Number(selW&&selW.home_price||0);
   var oid='FBL'+Date.now();
-  var order={
-    id:oid, name:name, phone:phone, wilaya_id:wid, commune:isPickup?'':commune, address:isPickup?'':addr,
-    delivery_cost:dc, product_id:prod.id,
-    product_name:(LANG==='fr'&&prod.name_fr?prod.name_fr:(prod.name_ar||prod.name||'')),
-    product_emoji:prod.emoji||'🌹', product_price:pr, color:color, qty:qty,
-    payment_method:selPay, fulfillment_type:isPickup?'pickup':'delivery',
-    total:pr*qty+dc, note:note, lang:LANG,
-    email:email||null, // ✅ البريد في الطلب
-    coupon_code:appliedCoupon||null, // ✅ السيرفر يعيد التحقق والتطبيق — لا يُوثق الخصم المعروض هنا
-    client_ref:CLIENT_REF, // ✅ يمنع الطلبات المكررة عند النقر المتعدد
-    created_at:new Date().toISOString()
+  var orderParams={
+    p_id:oid, p_name:name, p_phone:phone, p_wilaya_id:wid, p_commune:isPickup?'':commune, p_address:isPickup?'':addr,
+    p_product_id:prod.id, p_color:color, p_qty:qty,
+    p_payment_method:selPay, p_fulfillment_type:isPickup?'pickup':'delivery',
+    p_note:note, p_lang:LANG,
+    p_email:email||null, // ✅ البريد في الطلب
+    p_coupon_code:appliedCoupon||null, // ✅ السيرفر يعيد التحقق والتطبيق — لا يُوثق الخصم المعروض هنا
+    p_client_ref:CLIENT_REF // ✅ يمنع الطلبات المكررة عند النقر المتعدد
   };
   try{
-    // ✅ نحفظ الطلب — السيرفر (trigger) يعيد حساب السعر/التوصيل/الدفعة المقدمة/الحالة من مصدر موثوق
-    var saved=await sbPost('orders',order);
-    var real=(saved&&saved[0])?saved[0]:order;
+    // ✅ نحفظ الطلب عبر RPC آمن — السيرفر (trigger) يعيد حساب السعر/التوصيل/الدفعة المقدمة/الحالة من مصدر موثوق
+    var saved=await sbRpc('create_order',orderParams);
+    var real=(saved&&saved[0])?saved[0]:{};
+    real.product_name=(LANG==='fr'&&prod.name_fr?prod.name_fr:(prod.name_ar||prod.name||''));
+    real.product_emoji=prod.emoji||'🌹';
+    real.name=name; real.phone=phone; real.commune=isPickup?'':commune; real.address=isPickup?'':addr;
+    real.payment_method=selPay; real.email=email||null;
     var receiptToken=real.receipt_token||'';
 
     // ✅ Telegram — مع receipt_token للتحقق من الملكية
