@@ -1,0 +1,766 @@
+<title>Fleurs by Liza Handoff</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --paper:#faf6f4;
+  --paper-raised:#ffffff;
+  --ink:#221b1d;
+  --ink-soft:#6b5c60;
+  --ink-faint:#9c8b8f;
+  --rose:#a83e58;
+  --rose-ink:#7d2d41;
+  --rose-soft:#f2dde3;
+  --rose-line:#e6c9d1;
+  --ok:#3f7a5c;
+  --ok-soft:#dcece2;
+  --warn:#a9701f;
+  --warn-soft:#f3e3c8;
+  --line:#e6dcd8;
+  --line-soft:#f0e8e5;
+  --code-bg:#f4ece9;
+  --shadow: 0 1px 2px rgba(60,30,35,.05), 0 8px 24px -12px rgba(60,30,35,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1d1517;
+    --paper-raised:#251b1e;
+    --ink:#f2e8e6;
+    --ink-soft:#c2acb1;
+    --ink-faint:#8a7377;
+    --rose:#e08aa0;
+    --rose-ink:#f0aabc;
+    --rose-soft:#3a222a;
+    --rose-line:#4a2e37;
+    --ok:#7ec9a2;
+    --ok-soft:#213a2c;
+    --warn:#e3b264;
+    --warn-soft:#3d2f18;
+    --line:#3a2c2f;
+    --line-soft:#2c2124;
+    --code-bg:#241a1c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1d1517;
+  --paper-raised:#251b1e;
+  --ink:#f2e8e6;
+  --ink-soft:#c2acb1;
+  --ink-faint:#8a7377;
+  --rose:#e08aa0;
+  --rose-ink:#f0aabc;
+  --rose-soft:#3a222a;
+  --rose-line:#4a2e37;
+  --ok:#7ec9a2;
+  --ok-soft:#213a2c;
+  --warn:#e3b264;
+  --warn-soft:#3d2f18;
+  --line:#3a2c2f;
+  --line-soft:#2c2124;
+  --code-bg:#241a1c;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+  font-size:16px;
+  line-height:1.6;
+}
+::selection{ background:var(--rose-soft); color:var(--rose-ink); }
+
+a{ color:var(--rose-ink); text-decoration-color:var(--rose-line); text-underline-offset:2px; }
+a:hover{ text-decoration-color:currentColor; }
+a:focus-visible, button:focus-visible, summary:focus-visible{ outline:2px solid var(--rose); outline-offset:2px; }
+
+.shell{
+  display:grid;
+  grid-template-columns:272px minmax(0,1fr);
+  max-width:1180px;
+  margin:0 auto;
+}
+
+/* ---------- Sidebar ---------- */
+.toc{
+  position:sticky;
+  top:0;
+  align-self:start;
+  height:100vh;
+  overflow-y:auto;
+  padding:2rem 1.25rem 2rem 1.75rem;
+  border-right:1px solid var(--line);
+  scrollbar-width:thin;
+}
+.toc-brand{
+  font-family:'Fraunces', Georgia, serif;
+  font-weight:600;
+  font-size:1.05rem;
+  letter-spacing:.01em;
+  margin:0 0 .15rem;
+  color:var(--ink);
+}
+.toc-sub{
+  font-size:.75rem;
+  color:var(--ink-faint);
+  margin:0 0 1.5rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.toc nav{ display:flex; flex-direction:column; gap:.05rem; }
+.toc nav a{
+  color:var(--ink-soft);
+  text-decoration:none;
+  font-size:.855rem;
+  padding:.3rem .55rem;
+  border-radius:.4rem;
+  display:flex;
+  gap:.5rem;
+}
+.toc nav a:hover{ background:var(--line-soft); color:var(--ink); }
+.toc nav a .n{
+  font-family:'IBM Plex Mono', monospace;
+  color:var(--ink-faint);
+  font-size:.78rem;
+  min-width:1.3rem;
+}
+
+/* ---------- Main column ---------- */
+main{ padding:3.2rem clamp(1.25rem,4vw,4rem) 6rem; min-width:0; }
+
+.cover{
+  padding-bottom:2.4rem;
+  margin-bottom:2.6rem;
+  border-bottom:1px solid var(--line);
+}
+.eyebrow{
+  font-size:.75rem;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--rose-ink);
+  font-weight:600;
+  margin:0 0 .9rem;
+}
+h1.title{
+  font-family:'Fraunces', Georgia, serif;
+  font-weight:600;
+  font-size:clamp(2rem, 4vw, 2.7rem);
+  line-height:1.08;
+  letter-spacing:-.01em;
+  margin:0 0 .9rem;
+  text-wrap:balance;
+  color:var(--ink);
+}
+.dek{
+  font-size:1.05rem;
+  color:var(--ink-soft);
+  max-width:52ch;
+  margin:0 0 1.6rem;
+}
+.meta-row{ display:flex; flex-wrap:wrap; gap:.6rem; }
+.chip{
+  display:inline-flex; align-items:center; gap:.4rem;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:.78rem;
+  padding:.32rem .65rem;
+  border-radius:.5rem;
+  border:1px solid var(--line);
+  background:var(--paper-raised);
+  color:var(--ink-soft);
+}
+.chip b{ color:var(--ink); font-weight:600; }
+.chip.ok{ border-color:var(--ok-soft); background:var(--ok-soft); color:var(--ok); }
+.chip.ok b{ color:var(--ok); }
+.dot{ width:.5rem; height:.5rem; border-radius:50%; background:var(--ok); flex:none; }
+
+section{ margin:0 0 3rem; scroll-margin-top:1.5rem; }
+section > h2{
+  font-family:'Fraunces', Georgia, serif;
+  font-weight:600;
+  font-size:1.5rem;
+  letter-spacing:-.005em;
+  margin:0 0 .3rem;
+  color:var(--ink);
+  display:flex;
+  align-items:baseline;
+  gap:.6rem;
+}
+section > h2 .idx{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:.85rem;
+  font-weight:500;
+  color:var(--rose-ink);
+}
+.section-intro{ color:var(--ink-soft); margin:0 0 1.3rem; max-width:70ch; }
+h3{
+  font-family:'Fraunces', Georgia, serif;
+  font-weight:600;
+  font-size:1.12rem;
+  margin:1.7rem 0 .6rem;
+  color:var(--ink);
+}
+p{ max-width:70ch; margin:0 0 1rem; }
+ul, ol{ max-width:70ch; padding-left:1.3rem; margin:0 0 1.1rem; }
+li{ margin:0 0 .45rem; }
+li::marker{ color:var(--rose-line); }
+strong{ color:var(--ink); font-weight:700;}
+
+code{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:.86em;
+  background:var(--code-bg);
+  padding:.12em .38em;
+  border-radius:.32em;
+  color:var(--rose-ink);
+}
+pre{
+  background:var(--code-bg);
+  border:1px solid var(--line);
+  border-radius:.6rem;
+  padding:1rem 1.15rem;
+  overflow-x:auto;
+  margin:0 0 1.2rem;
+}
+pre code{ background:none; padding:0; color:var(--ink-soft); font-size:.82rem; line-height:1.65; }
+
+.tbl-wrap{ overflow-x:auto; margin:0 0 1.3rem; border:1px solid var(--line); border-radius:.7rem; }
+table{ border-collapse:collapse; width:100%; min-width:480px; font-size:.87rem; }
+thead th{
+  text-align:left;
+  font-size:.72rem;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--ink-faint);
+  font-weight:600;
+  padding:.65rem .9rem;
+  background:var(--line-soft);
+  border-bottom:1px solid var(--line);
+  white-space:nowrap;
+}
+tbody td{
+  padding:.65rem .9rem;
+  border-bottom:1px solid var(--line-soft);
+  vertical-align:top;
+  color:var(--ink-soft);
+}
+tbody tr:last-child td{ border-bottom:none; }
+tbody td:first-child{ color:var(--ink); font-weight:600; font-family:'IBM Plex Mono', monospace; font-size:.82rem; white-space:nowrap; }
+tbody td code{ font-size:.8em; }
+
+.status{
+  display:inline-flex; align-items:center; gap:.35rem;
+  font-size:.72rem; font-weight:700; letter-spacing:.02em;
+  padding:.2rem .55rem; border-radius:1rem;
+  white-space:nowrap;
+}
+.status.working{ background:var(--ok-soft); color:var(--ok); }
+.status.blocked{ background:var(--warn-soft); color:var(--warn); }
+.status.info{ background:var(--rose-soft); color:var(--rose-ink); }
+
+.callout{
+  border:1px solid var(--line);
+  border-left:3px solid var(--rose);
+  background:var(--paper-raised);
+  border-radius:0 .6rem .6rem 0;
+  padding:1rem 1.2rem;
+  margin:0 0 1.3rem;
+  box-shadow:var(--shadow);
+}
+.callout.warn{ border-left-color:var(--warn); }
+.callout.ok{ border-left-color:var(--ok); }
+.callout p:last-child{ margin-bottom:0; }
+.callout-label{
+  font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; font-weight:700;
+  color:var(--warn); margin:0 0 .4rem; display:block;
+}
+.callout.ok .callout-label{ color:var(--ok); }
+.callout.info .callout-label{ color:var(--rose-ink); }
+
+.grid-cards{ display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:.8rem; margin:0 0 1.3rem; }
+.card{
+  border:1px solid var(--line);
+  border-radius:.7rem;
+  padding:.95rem 1.05rem;
+  background:var(--paper-raised);
+}
+.card h4{ margin:0 0 .3rem; font-size:.92rem; color:var(--ink); font-family:'Fraunces',serif; font-weight:600;}
+.card p{ margin:0; font-size:.83rem; color:var(--ink-soft); }
+
+hr.rule{ border:none; border-top:1px solid var(--line); margin:2.6rem 0; }
+
+.taxo{ list-style:none; padding:0; margin:0 0 1.3rem; display:flex; flex-direction:column; gap:.55rem; }
+.taxo li{
+  display:flex; gap:.8rem; align-items:baseline;
+  border-bottom:1px dashed var(--line); padding-bottom:.55rem;
+}
+.taxo b{ min-width:9rem; color:var(--ink); font-weight:700; flex:none; font-size:.9rem;}
+.taxo span{ color:var(--ink-soft); font-size:.9rem; }
+
+footer.end{
+  border-top:1px solid var(--line);
+  margin-top:3rem;
+  padding-top:1.6rem;
+  color:var(--ink-faint);
+  font-size:.83rem;
+}
+
+@media (max-width:860px){
+  .shell{ grid-template-columns:1fr; }
+  .toc{ position:relative; height:auto; border-right:none; border-bottom:1px solid var(--line); padding:1.3rem 1.25rem;}
+  .toc nav{ display:none; }
+}
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <p class="toc-brand">🌹 Fleurs by Liza</p>
+    <p class="toc-sub">Handoff · 2026-09-10</p>
+    <nav>
+      <a href="#s1"><span class="n">01</span>Overview</a>
+      <a href="#s2"><span class="n">02</span>Architecture</a>
+      <a href="#s3"><span class="n">03</span>Database schema</a>
+      <a href="#s4"><span class="n">04</span>RPCs</a>
+      <a href="#s5"><span class="n">05</span>Edge Function</a>
+      <a href="#s6"><span class="n">06</span>RLS &amp; security</a>
+      <a href="#s7"><span class="n">07</span>Payment</a>
+      <a href="#s8"><span class="n">08</span>Yalidine</a>
+      <a href="#s9"><span class="n">09</span>Email / Resend</a>
+      <a href="#s10"><span class="n">10</span>Telegram / WhatsApp</a>
+      <a href="#s11"><span class="n">11</span>Occasions ⚠</a>
+      <a href="#s12"><span class="n">12</span>Delivery pricing</a>
+      <a href="#s13"><span class="n">13</span>Admin features</a>
+      <a href="#s14"><span class="n">14</span>Customer features</a>
+      <a href="#s15"><span class="n">15</span>Cart/promo/reviews</a>
+      <a href="#s16"><span class="n">16</span>Settings &amp; currency</a>
+      <a href="#s17"><span class="n">17</span>Test-data cleanup</a>
+      <a href="#s18"><span class="n">18</span>Secrets required</a>
+      <a href="#s19"><span class="n">19</span>GitHub state</a>
+      <a href="#s20"><span class="n">20</span>Known issues</a>
+      <a href="#s21"><span class="n">21</span>Blocked items</a>
+      <a href="#s22"><span class="n">22</span>Next steps</a>
+      <a href="#s23"><span class="n">23</span>Resuming work</a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="cover">
+      <p class="eyebrow">Project Handoff Report</p>
+      <h1 class="title">Fleurs by Liza — full project state</h1>
+      <p class="dek">A self-contained record of architecture, every feature's tested status, the database and Edge Function, security decisions, and what's still open — written so a new conversation can continue without losing context.</p>
+      <div class="meta-row">
+        <span class="chip"><span class="dot"></span><b>HEAD == origin/main</b></span>
+        <span class="chip">repo <b>aklimaamri3-ux/fleurs-by-liza</b></span>
+        <span class="chip">branch <b>main</b></span>
+        <span class="chip">latest <b>c45dc9d</b></span>
+        <span class="chip">supabase <b>lgpllhbabctsdplqapzi</b></span>
+      </div>
+    </div>
+
+    <section id="s1">
+      <h2><span class="idx">01</span> Overview</h2>
+      <p>"Fleurs by Liza" is a live flower e‑commerce site serving Algeria. It is <strong>guest‑checkout only — there is no customer login/account system, by explicit design.</strong> The storefront is 5 static HTML files with no build step, backed entirely by Supabase (Postgres + RLS + Storage + Edge Functions).</p>
+
+      <div class="callout warn">
+        <span class="callout-label">Standing constraints — do not violate</span>
+        <ul style="margin-bottom:0">
+          <li>No customer accounts/login. Guest checkout only.</li>
+          <li><strong>No Stock/Inventory.</strong> Built once, fully and deliberately removed. Do not reintroduce under any name.</li>
+          <li><strong>Occasions:</strong> owner's recent instructions say "do not add" — but it already shipped earlier in the project's history and exists live today. See <a href="#s11">§11</a> before touching it.</li>
+          <li>Never weaken RLS/auth/security. Never expose secrets in frontend code, logs, or commits.</li>
+          <li>Never claim a feature works without testing it against the real Supabase project.</li>
+          <li>Clean up all test data after testing; never touch real customer/order/business data without confirming it's test data first.</li>
+          <li>Preserve existing working design/features — no reverts. Never fake payments, emails, or integrations.</li>
+          <li>The assistant on this project has a self‑imposed rule to <strong>never log in as admin</strong> — so anything gated behind a real admin JWT cannot be live‑tested from a session; see <a href="#s8">§8</a>.</li>
+          <li>Per feature: implement → test on real Supabase → fix → regression test → commit → push → verify <code>local HEAD == origin/main</code>.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="s2">
+      <h2><span class="idx">02</span> Architecture</h2>
+      <div class="grid-cards">
+        <div class="card"><h4>index.html</h4><p>Homepage/catalog — search, filters, categories, occasions bar, cart, wishlist, ads, reviews, announcement bar, business‑hours badge.</p></div>
+        <div class="card"><h4>product.html</h4><p>Single product — gallery, color variants, add‑to‑cart, WhatsApp/Facebook share, EUR price, recently‑viewed.</p></div>
+        <div class="card"><h4>checkout.html</h4><p>Single‑item and cart checkout, wilaya/commune delivery pricing, coupon, payment method, SlickPay redirect.</p></div>
+        <div class="card"><h4>receipt.html</h4><p>Post‑order status — receipt upload, invoice, delivery proof, reviews, order status.</p></div>
+        <div class="card"><h4>admin.html</h4><p>Full admin dashboard, ~3000+ lines, email/password login gate.</p></div>
+      </div>
+      <p>Backend: Supabase project <code>lgpllhbabctsdplqapzi</code> — Postgres with RLS on every table, one Edge Function (<code>hyper-action</code>, Deno), <code>pg_cron</code> for scheduled trash purge, and 3 storage buckets. Repo: local git at <code>C:\Users\maamr\Downloads</code>, migration/function source under <code>flz_audit\</code>.</p>
+
+      <h3>Trust model — important to preserve</h3>
+      <p>The frontend is fully untrusted. All pricing (product price, delivery cost, coupon discount, deposit amount) is <strong>recomputed server‑side</strong> from authoritative DB state by the <code>orders_secure_insert</code> trigger on every insert into <code>orders</code>. The client only ever sends product IDs, quantities, wilaya/commune, and a coupon code — never a price the server trusts. RLS denies anon direct access to <code>orders</code>; all order operations go through <code>SECURITY DEFINER</code> RPCs that re‑validate everything internally.</p>
+    </section>
+
+    <section id="s3">
+      <h2><span class="idx">03</span> Database schema</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Table</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>products</td><td>Catalog. No stock/inventory columns (removed). Auto <code>sku</code> (<code>FBL-BQ-XXXX</code>).</td></tr>
+          <tr><td>categories</td><td>Product categories.</td></tr>
+          <tr><td>occasions</td><td>Occasions feature — see §11.</td></tr>
+          <tr><td>product_occasions</td><td>Junction: occasions ↔ products.</td></tr>
+          <tr><td>orders</td><td>Central orders table. Price/delivery/total/discount/deposit all server‑computed. Has <code>receipt_token</code>, <code>is_multi_item</code>, <code>yalidine_tracking</code>/<code>yalidine_shipment_id</code>, <code>delivery_proof_url</code>, SKU snapshot.</td></tr>
+          <tr><td>order_items</td><td>Cart order line items. FK to <code>orders</code> is <code>deferrable initially deferred</code> (trigger reads subtotal from here before the parent row commits).</td></tr>
+          <tr><td>order_events</td><td>Order status‑change history.</td></tr>
+          <tr><td>delivery_prices</td><td>Wilaya + commune delivery pricing — see §12.</td></tr>
+          <tr><td>settings</td><td>Single JSONB key/value store (currency, payment, pay_methods, feature_flags, business_hours, seo, promo_bar, announcement, social, legacy reviews).</td></tr>
+          <tr><td>reviews</td><td>Real, delivery‑gated, moderated reviews — see §15.</td></tr>
+          <tr><td>customers</td><td>CRM lookup by phone, used by admin's Customer History tool.</td></tr>
+          <tr><td>profiles</td><td>Admin roles — <code>role='admin'</code> gates every admin RPC/action.</td></tr>
+          <tr><td>track_attempts</td><td>Rate‑limit/abuse tracking for public order tracking.</td></tr>
+          <tr><td>ads</td><td>Homepage ad banners (admin CRUD).</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Storage buckets</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Bucket</th><th>Public</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>products</td><td>Yes</td><td>Product images.</td></tr>
+          <tr><td>receipts</td><td>No</td><td>Customer bank‑transfer receipt photos — admin‑only.</td></tr>
+          <tr><td>delivery_proofs</td><td>No</td><td>Admin‑uploaded proof‑of‑delivery photos — customer sees only via a token‑gated signed URL.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Migrations — all applied, live, in order</h3>
+      <p><code>migration_01_core</code> → <code>migration_27_public_setting_whitelist</code> cover: core schema, admin scaffolding, payment/delivery, payment‑method guard rails, SlickPay fixes, contact links, pickup‑as‑payment, trash/soft‑delete, coupons, receipt‑token security fix, secure order creation, SlickPay status fix, track_order fix, product SKU, business hours, cart/order_items, coupon dates + min‑order, <strong>inventory (20) then full removal (21)</strong>, Occasions (22), delivery proof (23), real reviews (24), feature flags (25) + wiring (26), public‑setting whitelist fix (27).</p>
+      <p><strong>Newest — <code>migration_28_normalize_communes.sql</code></strong> (this session): fixed a critical, nationwide‑live bug — see §12. All files live under <code>flz_audit/</code> and have been applied directly against the live project via <code>supabase db query --linked</code>.</p>
+    </section>
+
+    <section id="s4">
+      <h2><span class="idx">04</span> RPCs</h2>
+      <p class="section-intro">Postgres functions callable from the frontend via PostgREST.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Function</th><th>Access</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>create_order</td><td>anon · SD</td><td>Single‑item order creation; server recomputes everything.</td></tr>
+          <tr><td>create_cart_order</td><td>anon · SD</td><td>Multi‑item order creation.</td></tr>
+          <tr><td>get_order_by_token</td><td>anon</td><td>Fetch one order by id <em>and</em> <code>receipt_token</code> — the only read path (fixes the original leak, §7).</td></tr>
+          <tr><td>get_order_items_by_token</td><td>anon</td><td>Line items for a multi‑item order, same token gate.</td></tr>
+          <tr><td>submit_order_receipt</td><td>anon</td><td>Attach an uploaded receipt image URL, token‑gated.</td></tr>
+          <tr><td>get_payment_info</td><td>anon</td><td>Public subset of <code>settings.payment</code> only.</td></tr>
+          <tr><td>get_public_setting(k)</td><td>anon</td><td>Whitelisted settings reader — see §16 for a whitelist gap that was fixed.</td></tr>
+          <tr><td>validate_coupon / apply_coupon_to_order</td><td>anon / internal</td><td>Dates + minimum order respected; discount always reapplied server‑side.</td></tr>
+          <tr><td>track_order(phone)</td><td>anon, rate‑limited</td><td>Public order tracking. Was completely broken — fixed, now confirmed working.</td></tr>
+          <tr><td>resolve_delivery(wilaya, commune)</td><td>internal</td><td><strong>The delivery‑price authority.</strong> Just fixed — see §12.</td></tr>
+          <tr><td>get_review_status / submit_review</td><td>anon, token‑gated</td><td>Delivery‑gated review flow.</td></tr>
+          <tr><td>is_feature_enabled(key)</td><td>anon</td><td>Feature flag check — fails <strong>open</strong> by design.</td></tr>
+          <tr><td>orders_secure_insert</td><td>trigger</td><td>Central trust boundary — see §2.</td></tr>
+          <tr><td>orders_guard_anon_update</td><td>trigger</td><td>Resets ~20 protected fields on any non‑admin UPDATE; blocks re‑touching a <code>paid</code> order.</td></tr>
+          <tr><td>generate_order_ref / set_order_ref</td><td>internal</td><td>Human‑friendly ref (<code>FBL2026-XXXXXX</code>).</td></tr>
+          <tr><td>products_assign_sku</td><td>trigger</td><td>Auto <code>FBL-BQ-XXXX</code> SKU.</td></tr>
+          <tr><td>purge_expired_trash</td><td>cron · daily 03:00</td><td>Hard‑deletes expired soft‑deleted rows.</td></tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:.85rem;color:var(--ink-faint)">SD = SECURITY DEFINER. Also present: <code>checkout_payment</code>, <code>public_settings</code>, <code>orders_log_changes</code>, <code>orders_set_receipt_token</code> — internal/legacy support functions.</p>
+    </section>
+
+    <section id="s5">
+      <h2><span class="idx">05</span> Edge Function — hyper-action</h2>
+      <p>Single Deno function at <code>flz_audit/supabase/functions/hyper-action/index.ts</code>. <strong>ACTIVE, version 25</strong> (latest deploy: this session's Yalidine commune‑lookup fix). <code>verify_jwt = false</code> — required for the SlickPay webhook, which can't send a Supabase JWT; security instead comes from re‑verifying every webhook call against SlickPay's own API.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Action</th><th>Auth</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>health</td><td>none</td><td><span class="status working">OK</span></td></tr>
+          <tr><td>get_delivery_proof_url</td><td>token‑gated</td><td><span class="status working">OK</span></td></tr>
+          <tr><td>telegram_test / telegram_report</td><td>admin JWT</td><td><span class="status blocked">no admin login</span></td></tr>
+          <tr><td>telegram_notify</td><td>anon, rate‑limited</td><td><span class="status working">tested — {"ok":true}</span></td></tr>
+          <tr><td>send_email</td><td>anon, rate‑limited</td><td><span class="status blocked">Resend sandboxed — §9</span></td></tr>
+          <tr><td>slickpay_create / _check / _webhook</td><td>anon / webhook</td><td><span class="status working">tested — real gateway confirmed</span></td></tr>
+          <tr><td>yalidine_wilayas / _rates / _communes</td><td>admin JWT</td><td><span class="status blocked">no admin login</span></td></tr>
+          <tr><td>yalidine_create_shipment</td><td>admin JWT</td><td><span class="status blocked">no admin login — §8</span></td></tr>
+          <tr><td>eur_rate</td><td>admin JWT</td><td><span class="status blocked">no admin login</span></td></tr>
+        </tbody>
+      </table></div>
+      <p><strong>Rate limits</strong> (per IP+action): <code>telegram_notify</code> 10/min · <code>slickpay_create</code> 20/min · <code>slickpay_check</code> 60/min · <code>slickpay_webhook</code> 120/min · <code>yalidine_create_shipment</code> 30/min · <code>send_email</code> 15/min · <code>get_delivery_proof_url</code> 20/min. CORS allow‑list is controlled by the <code>SITE_URL</code> / <code>EXTRA_ORIGINS</code> secrets, no redeploy needed.</p>
+    </section>
+
+    <section id="s6">
+      <h2><span class="idx">06</span> RLS &amp; security decisions</h2>
+      <p class="section-intro">Do not weaken any of these.</p>
+      <ul>
+        <li><strong>orders</strong> — anon has no direct SELECT/UPDATE. All reads via <code>get_order_by_token</code> (exact token required — the original bug only checked <code>receipt_token IS NOT NULL</code>, letting anyone list every order). All writes via SECURITY DEFINER RPCs.</li>
+        <li><strong>orders_guard_anon_update</strong> — independent defense‑in‑depth: resets protected fields, blocks re‑marking a <code>paid</code> order, restricts which <code>payment_status</code> values a non‑privileged caller can ever set.</li>
+        <li><strong>receipts / delivery_proofs buckets</strong> — private, admin‑only listing; customers get only a short‑lived signed URL scoped to their own order.</li>
+        <li><strong>settings</strong> — anon read‑only, via two separate whitelists (RPC + RLS policy) that must be <strong>kept in sync manually</strong>. No anon write.</li>
+        <li><strong>delivery_prices</strong> — anon read (for the dropdowns), no write. Confirmed this session.</li>
+        <li><strong>Admin‑gated Edge Function actions</strong> — verify a real Supabase Auth JWT against <code>/auth/v1/user</code>, then check <code>profiles.role='admin'</code>.</li>
+        <li><strong>idFilter()</strong> — strict regex allow‑list for order lookups, preventing injection‑adjacent abuse of dynamic filters.</li>
+        <li><strong>SlickPay webhook</strong> — no JWT, but every call is re‑verified against SlickPay's own API before an order is ever marked paid.</li>
+      </ul>
+      <div class="callout ok">
+        <span class="callout-label">Regression‑tested this session — confirmed still true</span>
+        <pre style="margin:0;background:none;border:none;padding:0"><code>anon SELECT orders                → []  blocked
+anon PATCH orders.payment_status  → []  blocked
+anon PATCH delivery_prices        → []  blocked
+anon PATCH settings               → []  blocked
+anon LIST receipts bucket         → []  blocked
+anon LIST delivery_proofs bucket  → []  blocked
+yalidine_wilayas w/ anon key      → {"ok":false,"error":"Invalid token"}</code></pre>
+      </div>
+    </section>
+
+    <section id="s7">
+      <h2><span class="idx">07</span> Payment integration <span class="status working" style="margin-left:.5rem">working — verified live</span></h2>
+      <p>Methods: COD, CCP/Baridimob bank transfer, CIB card, Dahabia, international IBAN/EUR, Binance USD/USDT, RedotPay USDT, in‑store pickup with 50% deposit. All toggleable per‑method from the admin Payment page — COD is always available regardless of the toggle list, by design.</p>
+      <div class="callout ok">
+        <span class="callout-label">Owner‑reported issue — confirmed fixed</span>
+        <p>This session's re‑test clicked all the way through a real checkout with CIB selected and confirmed the browser is genuinely redirected to the real SATIM/CIB gateway (<code>cib.satim.dz</code>), showing merchant "SLICK PAY ALGERIE" and the exact order total (50500.00 DZD matched).</p>
+      </div>
+      <ul>
+        <li>Prod base <code>https://prodapi.slick-pay.com/api/v2</code> (dev: <code>devapi.slick-pay.com</code>).</li>
+        <li>Bearer key <code>&lt;id&gt;|&lt;token&gt;</code>; prefers <code>SLICKPAY_PUBLIC</code> over <code>SLICKPAY_SECRET</code> — confirmed correct.</li>
+        <li>Invoice completion is a top‑level <code>completed</code> (0/1) field, not <code>data.payment_status</code> — this was a real bug, now fixed.</li>
+        <li><code>cib</code>/<code>dahabia</code> orders route into <code>pending</code>, only ever become <code>paid</code> via the re‑verified webhook.</li>
+        <li>An order already <code>paid</code> can never be re‑touched by a non‑admin.</li>
+      </ul>
+      <div class="callout warn">
+        <span class="callout-label">Loose end — not an app bug</span>
+        <p>A stray real SlickPay test invoice titled <code>bouxhbuidai</code> (#3807152) from earlier live testing sits unpaid in the SlickPay merchant dashboard — can't be reached from this environment. (A same‑named test <em>ad banner</em> was found and deleted from the site itself this session.) Owner should delete the invoice from SlickPay's dashboard directly.</p>
+      </div>
+    </section>
+
+    <section id="s8">
+      <h2><span class="idx">08</span> Yalidine integration <span class="status blocked" style="margin-left:.5rem">live test blocked</span></h2>
+      <p><code>YALIDINE_ID</code>/<code>YALIDINE_TOKEN</code> configured. All Yalidine actions are admin‑JWT‑gated by design, to prevent abuse/scraping of the Yalidine API from the public site.</p>
+      <div class="callout info">
+        <span class="callout-label">Fixed this session</span>
+        <p><code>yalidine_create_shipment</code> previously never sent a destination commune ID — our orders only ever store the commune as free text (our own admin‑managed name), never Yalidine's numeric commune ID. <code>to_wilaya_id</code> was sent, <code>to_commune_id</code> was always <code>undefined</code>. Now looks up the matching commune by name against <strong>Yalidine's own live commune list</strong> for that wilaya before creating the shipment. Deployed (function v25, ACTIVE).</p>
+      </div>
+      <p><strong>Genuinely blocked, not faked:</strong> this cannot be live‑fired from a session — it requires a real admin login (§1), and firing <code>yalidine_create_shipment</code> would create a real shipment with a real courier. <strong>The owner needs to test this from the real admin panel</strong> to confirm the commune lookup resolves correctly against Yalidine's production data.</p>
+    </section>
+
+    <section id="s9">
+      <h2><span class="idx">09</span> Email / Resend <span class="status blocked" style="margin-left:.5rem">blocked by owner's own instruction</span></h2>
+      <p><code>RESEND_API_KEY</code> configured; the <code>send_email</code> code path is confirmed working — a direct test succeeded (<code>{"sent":true,...}</code>) sending to the Resend account's own verified address.</p>
+      <p>Resend is currently in <strong>sandbox mode with no verified sending domain</strong>. A real customer email test failed with: <em>"You can only send testing emails to your own email address… verify a domain at resend.com/domains, and change the <code>from</code> address."</em></p>
+      <p><strong>Real customers currently receive zero order‑confirmation emails</strong> — expected and intentional, per the owner's instruction to keep this blocked until a domain is purchased/verified.</p>
+      <p><strong>Next step (owner‑only):</strong> verify a domain in the Resend dashboard, then a future session updates the <code>from</code> address in <code>send_email</code> and redeploys.</p>
+    </section>
+
+    <section id="s10">
+      <h2><span class="idx">10</span> Telegram / WhatsApp</h2>
+      <h3>Telegram <span class="status working">tested working</span></h3>
+      <p><code>telegram_notify</code> (fires automatically after every real checkout) confirmed live this session with a real test order (<code>{"ok":true}</code>). <code>telegram_test</code>/<code>telegram_report</code> are admin‑only and couldn't be live‑fired, but share the same proven <code>sendTG()</code> path. Respects <code>feature_flags.telegram_notifications</code>, fails open.</p>
+      <h3>WhatsApp <span class="status working">UI fully wired</span></h3>
+      <p>No number is ever hardcoded — always read live from <code>settings.payment.whatsapp</code>. The <code>whatsapp_actions</code> flag now gates every customer‑facing touchpoint: the homepage float button, product‑page share button, and both checkout contact popups. Admin's own internal WhatsApp tools (order‑source tagging, quick‑contact) are intentionally <strong>not</strong> gated — they're admin tooling, not customer‑facing.</p>
+    </section>
+
+    <section id="s11">
+      <h2><span class="idx">11</span> Occasions <span class="status blocked" style="margin-left:.5rem">⚠ owner conflict — decision needed</span></h2>
+      <div class="callout warn">
+        <span class="callout-label">Resolve with the owner before touching this</span>
+        <p>Occasions (an "occasion" tag — Valentine's, Wedding, Birthday — filterable on the homepage, assignable per product) was built as a <strong>complete feature</strong> earlier in the project's history: <code>occasions</code>/<code>product_occasions</code> tables, full admin CRUD, a customer filter bar, wired into feature flags.</p>
+        <p>In the most recent turns, the owner has repeatedly said <strong>"do not add Occasions."</strong> Nothing was added to it this session — it was left exactly as‑is — but it does still exist, live, from before that instruction was given.</p>
+        <p><strong>Recommended:</strong> ask the owner whether to (a) keep as‑is, (b) disable via <code>feature_flags.occasions = false</code> (hides everywhere, no schema/data touched), or (c) fully remove — the same way Stock/Inventory was fully removed. Do not decide this unilaterally.</p>
+      </div>
+      <p style="color:var(--ink-soft)">For contrast — <strong>Stock/Inventory is fully and permanently removed.</strong> Built once, then completely reverted per explicit instruction, with <code>orders_secure_insert</code> restored to its exact pre‑inventory shape. Confirmed zero references remain anywhere. Do not reintroduce under any name.</p>
+    </section>
+
+    <section id="s12">
+      <h2><span class="idx">12</span> Delivery pricing — wilaya + commune <span class="status working" style="margin-left:.5rem">critical bug fixed this session</span></h2>
+      <h3>Design (already correct, pre‑existing)</h3>
+      <p><code>delivery_prices</code> has one row per wilaya (<code>home_price</code>, <code>office_price</code>, <code>active</code>) plus a <code>communes</code> JSONB array. <code>resolve_delivery(wilaya_id, commune)</code> is the single authority: a commune with a non‑null <code>home_price</code> override wins; otherwise it falls back to the wilaya's flat rate. Called from <code>orders_secure_insert</code> for both single‑item and cart orders — one code path.</p>
+
+      <div class="callout warn">
+        <span class="callout-label">The critical bug, found and fixed this session</span>
+        <p>Real production data for <strong>57 of 58 wilayas</strong> stored <code>communes</code> as a plain array of strings (<code>["أدرار","رقان",...]</code>) instead of the objects <code>resolve_delivery()</code> requires. Effect: calling it with <em>any</em> real commune raised <code>"invalid commune for this wilaya"</code> — <strong>checkout failed for any customer who selected a commune, nationwide</strong>, for 57 of 58 wilayas. (Only Algiers already had real object‑shaped per‑commune data.)</p>
+      </div>
+
+      <h3>Fix — migration_28_normalize_communes.sql</h3>
+      <ol>
+        <li>Every plain‑string commune converted to <code>{"name": …, "home_price": null, "active": true}</code>. <code>home_price</code> is deliberately <code>null</code>, not <code>0</code> — this falls back correctly to the wilaya's existing rate, i.e. exactly today's real pricing. No name, wilaya price, or existing override (Algiers') was changed.</li>
+        <li><code>resolve_delivery()</code> hardened to also tolerate a plain‑string commune directly, as defense‑in‑depth against this recurring from a future bulk import.</li>
+      </ol>
+      <h3>Client‑side companion bug, also fixed (checkout.html)</h3>
+      <p>The commune <code>&lt;select&gt;</code> had <strong>no <code>onchange</code> handler at all</strong> — even a real price override never updated the on‑screen total before submit (the server always charged correctly regardless, but the preview didn't match). Added a <code>getDeliveryCost()</code> helper mirroring <code>resolve_delivery()</code>'s exact logic, wired into both single‑item and cart summaries. Disabled communes are now also filtered out of the dropdown.</p>
+
+      <div class="callout ok">
+        <span class="callout-label">Verified end‑to‑end</span>
+        <p>A real order submitted through the actual checkout UI — Algiers, commune "الحراش" (a real free‑delivery override, price 0) — succeeded (previously would have failed) with <code>total = 50000</code>, matching the preview exactly. Test order deleted after. Admin CRUD re‑tested live against the normalized data (temporarily set then reverted a real commune price), correctly scoped to one commune without touching others.</p>
+      </div>
+      <p style="font-size:.9rem;color:var(--ink-faint)">Yalidine tie‑in: shipment creation now looks up the correct Yalidine commune ID by matching against Yalidine's own list — see §8.</p>
+    </section>
+
+    <section id="s13">
+      <h2><span class="idx">13</span> Admin features</h2>
+      <p class="section-intro">Login‑gated (Supabase Auth + <code>profiles.role='admin'</code>). Verified working via direct JS calls against real seeded data, since sessions cannot log in as admin.</p>
+      <ul class="taxo">
+        <li><b>Dashboard</b><span>Order counts, revenue, pending‑review counts.</span></li>
+        <li><b>Products</b><span>Full CRUD, search/filter, auto SKU, no stock/inventory fields.</span></li>
+        <li><b>Categories</b><span>Full CRUD.</span></li>
+        <li><b>Occasions</b><span>Full CRUD — see §11 for the "should this exist" caveat.</span></li>
+        <li><b>Orders</b><span>Search/filter, detail modal, manual order entry, delivery‑proof upload, WhatsApp quick‑contact.</span></li>
+        <li><b>Receipts</b><span>Bank‑transfer review queue — CIB/Dahabia correctly excluded (webhook‑only confirmation).</span></li>
+        <li><b>Staff</b><span>Internal admin user management.</span></li>
+        <li><b>Delivery</b><span>Wilaya table + per‑commune pricing sub‑page — see §12.</span></li>
+        <li><b>Payment</b><span>Method toggles, bank/IBAN/Binance/RedotPay details, contact info. Redundant EUR field removed this session.</span></li>
+        <li><b>Announcement / Promo bar</b><span>Homepage banner text/colors, live preview.</span></li>
+        <li><b>Promotions</b><span>Full CRUD, dates, minimum order, real enable/disable, edit flow.</span></li>
+        <li><b>Ads</b><span>Full CRUD — one test ad ("bouxhbuidai") found and deleted this session.</span></li>
+        <li><b>Reviews</b><span>Legacy manual tool + real delivery‑gated moderation UI, side by side.</span></li>
+        <li><b>Reports/Charts</b><span>Real revenue/order analytics.</span></li>
+        <li><b>CRM</b><span>Customer lookup by phone, segment filtering for bulk WhatsApp.</span></li>
+        <li><b>SEO Manager</b><span>Per‑page title/description templates.</span></li>
+        <li><b>Currency</b><span>The single authoritative EUR/USD rate control — see §16.</span></li>
+        <li><b>Scheduled orders</b><span>Future‑dated order handling.</span></li>
+        <li><b>Tracking</b><span>Admin‑side lookup by phone/ref.</span></li>
+        <li><b>Trash</b><span>Soft‑delete/restore, daily cron purge at 03:00.</span></li>
+        <li><b>Settings</b><span>Logo, social stats, push notifications, daily Telegram report, feature‑flags grid (13 independent toggles, server‑enforced, fail open).</span></li>
+      </ul>
+    </section>
+
+    <section id="s14">
+      <h2><span class="idx">14</span> Customer features</h2>
+      <ul>
+        <li><strong>Search</strong> — was completely broken (handler functions referenced in HTML didn't exist anywhere). Fixed, unified with category/occasion filtering.</li>
+        <li><strong>Filters</strong> — category bar, occasions bar, live search, fully composable.</li>
+        <li><strong>Discount badges</strong> — computed from server <code>old_price</code>/<code>price</code>, never client‑editable.</li>
+        <li><strong>Cart</strong> — real multi‑product cart, localStorage‑backed, checks out via <code>create_cart_order</code>.</li>
+        <li><strong>Wishlist</strong> — localStorage‑backed heart icon + counter.</li>
+        <li><strong>Business‑hours badge</strong> — informational only, never blocks checkout.</li>
+        <li><strong>Reviews</strong> — delivery‑gated, star + text, merged with legacy manual reviews.</li>
+        <li><strong>Invoice</strong> — in‑page overlay (popups are blocked in this environment). Bilingual, real SKU, per‑line items for carts, and <strong>never</strong> shows "Payé" unless genuinely paid — a real bug (static "we'll verify soon" text even after full confirmation) found and fixed this session.</li>
+        <li><strong>Delivery proof</strong> — shown only once <code>status='delivered'</code>, via a token‑gated signed URL.</li>
+        <li><strong>Order tracking</strong> — was completely broken (bad column reference); fixed earlier, re‑confirmed working this session.</li>
+        <li><strong>EUR price display</strong> — real bug: only worked after visiting the homepage first in the same tab. A shared product link opened directly — the likely path for this business — showed a stale default (270) instead of the real rate. Fixed this session to fetch <code>settings.currency</code> directly; verified showing "≈ 208 €" at the real rate (240).</li>
+      </ul>
+    </section>
+
+    <section id="s15">
+      <h2><span class="idx">15</span> Cart / promotions / reviews / invoice / tracking</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Feature</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Cart</td><td><span class="status working">working, tested</span> — server‑recomputed pricing throughout.</td></tr>
+          <tr><td>Promotions/Coupons</td><td><span class="status working">working, tested</span> — dates, minimum order, real toggle, server re‑validated on every use.</td></tr>
+          <tr><td>Reviews</td><td><span class="status working">working, tested</span> — delivery‑gated, moderated.</td></tr>
+          <tr><td>Invoice</td><td><span class="status working">working, tested</span> against a real paid order — correct labels, status, SKU.</td></tr>
+          <tr><td>Tracking</td><td><span class="status working">working, tested</span> — real order history returned.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="s16">
+      <h2><span class="idx">16</span> Settings &amp; currency configuration</h2>
+      <p><code>settings</code> is a single JSONB key/value table — <code>currency</code>, <code>payment</code>, <code>pay_methods</code>, <code>feature_flags</code>, <code>business_hours</code>, <code>seo</code>, <code>promo_bar</code>, <code>announcement</code>, <code>social</code>, legacy <code>reviews</code>.</p>
+      <div class="callout ok">
+        <span class="callout-label">Currency — unified this session</span>
+        <p>There used to be <strong>two independent, driftable EUR rates</strong>: <code>settings.currency.eur</code> (admin Currency page, live‑refreshable, drove homepage/product display) and <code>settings.payment.eur_rate</code> (admin Payment page, drove only checkout's IBAN amount) — these could show customers inconsistent pricing. Fixed: checkout's IBAN branch now reads <code>settings.currency.eur</code>, the one source everywhere. The redundant Payment‑page field was removed entirely. <strong>The EUR rate is now controlled from exactly one place</strong> — the admin Currency page — as requested. Verified: product page and checkout IBAN now agree (240 → "208 €" / "≈208.33 €").</p>
+      </div>
+      <p style="font-size:.9rem;color:var(--ink-faint)"><code>get_public_setting()</code>'s whitelist and the separate RLS policy's whitelist had drifted (missing <code>business_hours</code>/<code>feature_flags</code>) — fixed in migration_27. These two whitelists are not derived from each other and must be kept in sync manually going forward.</p>
+    </section>
+
+    <section id="s17">
+      <h2><span class="idx">17</span> Test‑data cleanup status</h2>
+      <p>All test orders, one test product ("Test"/"Tes", no image, placeholder badge), and one test ad ("bouxhbuidai") have been identified as genuine test artifacts and removed, counts verified back to zero. No real customer, order, or business data was deleted at any point. A stray SlickPay invoice (also coincidentally "bouxhbuidai", #3807152) remains only in the SlickPay dashboard — unreachable from this environment, unpaid and harmless; owner may delete it there manually.</p>
+    </section>
+
+    <section id="s18">
+      <h2><span class="idx">18</span> Secrets required</h2>
+      <p class="section-intro">Names only — never place actual values in code, chat, or commits. All already configured as Supabase project secrets for <code>lgpllhbabctsdplqapzi</code>.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Secret</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td>SUPABASE_URL / SERVICE_ROLE_KEY / ANON_KEY / DB_URL / JWKS / PUBLISHABLE_KEYS / SECRET_KEYS</td><td>Project credentials. Anon key is intentionally public, embedded client‑side by design. Service‑role key and DB URL are Edge‑Function‑only, never frontend‑safe.</td></tr>
+          <tr><td>TG_TOKEN, TG_CHAT_ID</td><td>Telegram bot.</td></tr>
+          <tr><td>RESEND_API_KEY</td><td>Email — blocked pending domain verification, §9.</td></tr>
+          <tr><td>SLICKPAY_PUBLIC, SLICKPAY_SECRET, SLICKPAY_ENV</td><td>Payment gateway.</td></tr>
+          <tr><td>YALIDINE_ID, YALIDINE_TOKEN</td><td>Courier integration.</td></tr>
+          <tr><td>SITE_URL, EXTRA_ORIGINS <em>(optional, unset)</em></td><td>CORS allow‑list.</td></tr>
+          <tr><td>SLICKPAY_CONTACT, SLICKPAY_WEBHOOK_SECRET <em>(optional, unset)</em></td><td>Optional webhook HMAC signing.</td></tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:.9rem;color:var(--ink-faint)">To set/rotate: <code>supabase secrets set NAME=value --project-ref lgpllhbabctsdplqapzi</code> (Supabase CLI, logged in, from <code>flz_audit/</code> as workdir).</p>
+    </section>
+
+    <section id="s19">
+      <h2><span class="idx">19</span> GitHub repository &amp; latest state</h2>
+      <ul>
+        <li>Repo: <code>github.com/aklimaamri3-ux/fleurs-by-liza</code> · branch <code>main</code></li>
+        <li>Latest commit: <code>c45dc9d</code> — "Add complete project handoff report"</li>
+        <li><strong><code>local HEAD == origin/main</code>: CONFIRMED TRUE</strong> (<code>c45dc9d8791ee11c9a47a52c42d2dfd206072276</code> on both)</li>
+        <li>Edge Function <code>hyper-action</code>: <strong>ACTIVE, version 25</strong>, matches latest source</li>
+        <li>All 28 migrations applied directly against the live project</li>
+      </ul>
+      <h3>Recent commits</h3>
+      <pre><code>c45dc9d Add complete project handoff report
+48dda7b Fix critical per-commune delivery pricing bug; improve Yalidine commune accuracy
+649ed83 Unify EUR rate into one authoritative setting; remove confirmed test data
+c49d59e Final regression pass: remove leftover test order, verify RLS/storage security
+d23f3fa Fix stale EUR rate on direct product links + misleading paid-order status text
+bbbef6d Wire whatsapp_actions feature flag into customer-facing WhatsApp UI
+3f480cf Real, server-enforced feature flags — not just UI hiding
+57a322d Build a real, delivery-gated, moderated review system
+d63e242 Delivery proof photos: private bucket, admin upload/view/delete
+623ed38 Build Occasions as a complete feature (see §11 caveat)
+13d0378 Fix homepage search (never worked at all)
+8a4f9eb Remove inventory/stock tracking completely, per explicit request
+5e0adb4 Real inventory tracking (superseded by 8a4f9eb)
+ecf799c Complete the coupon-code promotion system
+00c81f2 Real multi-product shopping cart, safely
+1ef817c Product SKU references, bilingual invoice status, business hours
+f662c2e Professional invoice, status emails, wishlist, tracking fix
+283563a Prevent unpaid CIB/SlickPay orders from being markable as paid
+87ea9c5 Complete production SlickPay integration
+4598556 Secure orders table: close anon read/write leak</code></pre>
+      <h3>Files changed this session</h3>
+      <p><code>checkout.html</code> (EUR unification, commune pricing fix), <code>admin.html</code> (redundant EUR field removed), <code>product.html</code> (direct EUR fetch, WhatsApp flag), <code>index.html</code> (WhatsApp flag), <code>receipt.html</code> (paid‑status messaging), <code>flz_audit/supabase/functions/hyper-action/index.ts</code> (Yalidine commune lookup), <code>flz_audit/migration_28_normalize_communes.sql</code> (new), <code>flz_audit/HANDOFF_REPORT.md</code> (new), plus an audit trail of <code>flz_audit/*.sql</code> check/test/cleanup scripts.</p>
+    </section>
+
+    <section id="s20">
+      <h2><span class="idx">20</span> Known issues</h2>
+      <p><strong>None currently known and unfixed</strong> — every bug found this session was fixed and verified. Lower‑confidence areas, worth a fresh pass if issues surface:</p>
+      <ul>
+        <li>Desktop‑specific visual/layout audit was spot‑checked, not exhaustive.</li>
+        <li>Admin pages beyond Delivery/Payment/Currency were verified via direct JS calls in earlier rounds, not freshly re‑clicked‑through this session.</li>
+        <li><code>office_price</code> (wilaya and commune level) is admin‑editable but currently has <strong>no effect anywhere</strong> — no home‑vs‑office/stopdesk choice exists in checkout, and <code>resolve_delivery()</code> never reads it. Not a regression, but part of the delivery admin UI is a no‑op today. Worth clarifying with the owner whether stopdesk delivery is wanted.</li>
+      </ul>
+    </section>
+
+    <section id="s21">
+      <h2><span class="idx">21</span> Blocked items — summary</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Item</th><th>Why blocked</th><th>Unblocked by</th></tr></thead>
+        <tbody>
+          <tr><td>Customer emails</td><td>Resend sandbox, no verified domain</td><td>Owner — buy/verify domain, update <code>from</code> address</td></tr>
+          <tr><td>Live Telegram admin actions</td><td>Requires real admin JWT</td><td>Owner — test from live admin panel</td></tr>
+          <tr><td>Live Yalidine shipment/data fetch</td><td>Requires real admin JWT; would create a real shipment</td><td>Owner — test from live admin panel</td></tr>
+          <tr><td>Stray SlickPay test invoice</td><td>No dashboard access from this environment</td><td>Owner — delete in SlickPay dashboard</td></tr>
+          <tr><td>Occasions keep/disable/remove</td><td>Owner instructions conflict with existing shipped state</td><td>Owner — explicit decision, §11</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="s22">
+      <h2><span class="idx">22</span> Recommended next steps</h2>
+      <ol>
+        <li><strong>Owner decision needed on Occasions</strong> (§11) — keep / flag‑disable / fully remove.</li>
+        <li><strong>Purchase + verify a Resend sending domain</strong>, then a future session updates the <code>from</code> address in <code>send_email</code> and redeploys.</li>
+        <li>From the real admin panel, owner should test <code>telegram_test</code>, and — carefully, since it's a real courier action — one real <code>yalidine_create_shipment</code> call.</li>
+        <li>Clean up the stray SlickPay test invoice from the SlickPay dashboard directly.</li>
+        <li>Decide whether office/stopdesk delivery pricing (§20) is a wanted feature — currently dead admin UI.</li>
+        <li>Optional housekeeping: the accumulated <code>flz_audit/*.sql</code> one‑off scripts are an audit trail, not live app code — safe to prune or archive.</li>
+      </ol>
+    </section>
+
+    <section id="s23">
+      <h2><span class="idx">23</span> How to resume work</h2>
+      <ol>
+        <li><code>cd C:\Users\maamr\Downloads</code> — the live project working directory (git repo, remote configured).</li>
+        <li><code>git log --oneline -10</code> and <code>git status</code> to confirm current state matches §19.</li>
+        <li>Supabase CLI: <code>export PATH="C:\Program Files\nodejs:$APPDATA\npm:$PATH"</code>, then <code>supabase.cmd db query --workdir flz_audit --linked -f &lt;file&gt;.sql</code> for any DB change; <code>supabase.cmd functions deploy hyper-action --workdir flz_audit --project-ref lgpllhbabctsdplqapzi</code> after editing the Edge Function.</li>
+        <li>Re‑read <code>flz_audit/HANDOFF_REPORT.md</code> (the markdown twin of this page) in full before making changes — it's the authoritative source of "what's already true."</li>
+        <li>Preserve every constraint in §1. When in doubt whether something is real data, ask before deleting.</li>
+      </ol>
+    </section>
+
+    <footer class="end">
+      Fleurs by Liza — project handoff · generated 2026-09-10 · companion file <code>flz_audit/HANDOFF_REPORT.md</code> committed at <code>c45dc9d</code>
+    </footer>
+  </main>
+</div>
