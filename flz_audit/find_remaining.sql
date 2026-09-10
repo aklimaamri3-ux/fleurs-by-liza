@@ -1,0 +1,1 @@
+select id, name, client_ref from public.orders where name ilike '%test%' or name ilike '%dup%' or name ilike '%debug%';

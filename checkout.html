@@ -161,6 +161,45 @@ async function sbRpc(fn, params) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
+// ✅ إعادة محاولة تلقائية لطلبات إنشاء الطلب فقط — الشبكات الجزائرية
+// (خصوصاً الموبايل) تنقطع أحياناً في نفس لحظة رجوع رد السيرفر، فتفشل
+// عند الزبون رغم أن الطلب اتسجّل فعلاً عند السيرفر. نعيد المحاولة فقط
+// عند خطأ شبكة/timeout حقيقي (لا عند خطأ تحقق من البيانات — إعادة
+// المحاولة لن تغيّر نتيجته وسيرجع بنفس الخطأ فوراً).
+async function sbRpcWithRetry(fn, params, maxRetries) {
+  maxRetries = (typeof maxRetries === 'number') ? maxRetries : 2;
+  var lastErr;
+  for (var attempt = 0; attempt <= maxRetries; attempt++) {
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 15000) : null;
+    try {
+      var r = await fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+        method: 'POST', body: JSON.stringify(params || {}),
+        headers: Object.assign({}, SB_H, { 'Content-Type': 'application/json' }),
+        signal: ctrl ? ctrl.signal : undefined
+      });
+      if (timer) clearTimeout(timer);
+      if (r.ok) return await r.json();
+      var bodyText = await r.text();
+      if (r.status >= 500 && attempt < maxRetries) {
+        lastErr = new Error(bodyText);
+        await new Promise(function(res){ setTimeout(res, 1500*(attempt+1)); });
+        continue;
+      }
+      throw new Error(bodyText);
+    } catch(e) {
+      if (timer) clearTimeout(timer);
+      var isNetworkErr = e.name==='AbortError' || (e instanceof TypeError);
+      if (isNetworkErr && attempt < maxRetries) {
+        lastErr = e;
+        await new Promise(function(res){ setTimeout(res, 1500*(attempt+1)); });
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastErr;
+}
 async function sbUpsert(table, data) {
   var r = await fetch(SB_URL + '/rest/v1/' + table, {
     method: 'POST', body: JSON.stringify(data),
@@ -582,7 +621,7 @@ async function submitOrder(){
         p_note:note, p_lang:LANG, p_email:email||null,
         p_coupon_code:appliedCoupon||null, p_client_ref:CLIENT_REF
       };
-      saved=await sbRpc('create_cart_order',cartParams);
+      saved=await sbRpcWithRetry('create_cart_order',cartParams);
       try{localStorage.setItem('fl_cart','[]');}catch(e){}
     } else {
       var orderParams={
@@ -595,7 +634,7 @@ async function submitOrder(){
         p_client_ref:CLIENT_REF // ✅ يمنع الطلبات المكررة عند النقر المتعدد
       };
       // ✅ نحفظ الطلب عبر RPC آمن — السيرفر (trigger) يعيد حساب السعر/التوصيل/الدفعة المقدمة/الحالة من مصدر موثوق
-      saved=await sbRpc('create_order',orderParams);
+      saved=await sbRpcWithRetry('create_order',orderParams);
     }
     var real=(saved&&saved[0])?saved[0]:{};
     real.product_name=isCartMode?((real.item_count||cartItems.length)+(LANG==='fr'?' produits':' منتجات')):(LANG==='fr'&&prod.name_fr?prod.name_fr:(prod.name_ar||prod.name||''));
@@ -604,16 +643,22 @@ async function submitOrder(){
     real.payment_method=selPay; real.email=email||null;
     var receiptToken=real.receipt_token||'';
 
-    // ✅ Telegram — مع receipt_token للتحقق من الملكية
-    fetch(SB_URL+'/functions/v1/hyper-action',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SB_ANON,'Authorization':'Bearer '+SB_ANON},
-      body:JSON.stringify({
-        action:'telegram_notify',
-        order:real,
-        token:receiptToken
-      })
-    }).catch(function(){});
+    // ✅ Telegram — مع receipt_token للتحقق من الملكية. ننتظر الإرسال (مع
+    // محاولة واحدة إضافية عند فشل الشبكة) قبل الانتقال لصفحة التأكيد،
+    // حتى لا يغادر المتصفح الصفحة قبل أن تصل الإشعار فعلياً للمتجر
+    async function notifyTelegram(){
+      for(var i=0;i<2;i++){
+        try{
+          await fetch(SB_URL+'/functions/v1/hyper-action',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','apikey':SB_ANON,'Authorization':'Bearer '+SB_ANON},
+            body:JSON.stringify({action:'telegram_notify',order:real,token:receiptToken})
+          });
+          return;
+        }catch(e){ if(i===0) await new Promise(function(res){setTimeout(res,1000);}); }
+      }
+    }
+    await notifyTelegram();
 
     // ✅ إيميل تأكيد — إذا الزبون عنده بريد
     if(email){
@@ -634,6 +679,19 @@ async function submitOrder(){
   }catch(e){
     var msg=String(e.message||'');
     if(msg.indexOf('client_ref')!==-1||msg.indexOf('duplicate')!==-1){
+      // ✅ "مكرر" هنا لا يعني بالضرورة أن الزبون ضغط مرتين — قد يكون طلبها
+      // الأول نجح فعلاً عند السيرفر لكن الرد ضاع بسبب انقطاع الشبكة (شائع
+      // مع الإنترنت الجزائري)، فتحاول محاولة sbRpcWithRetry مرة أخرى
+      // وتصطدم بنفس client_ref. نحاول استرجاع الطلب الحقيقي بدل ترك
+      // الزبونة بلا أي تأكيد لطلب رُسل فعلاً
+      try{
+        var recovered=await sbRpc('get_order_by_client_ref',{p_client_ref:CLIENT_REF});
+        var ro=(recovered&&recovered[0])?recovered[0]:null;
+        if(ro){
+          location.href='receipt.html?order='+encodeURIComponent(ro.id)+'&lang='+LANG+(ro.receipt_token?'&token='+ro.receipt_token:'');
+          return;
+        }
+      }catch(e2){}
       toast(LANG==='fr'?'⚠️ Cette commande a déjà été envoyée':'⚠️ هذا الطلب أُرسل مسبقاً — لا تكرري الإرسال');
       return; // ✅ نبقي الزر معطّل — لا نسمح بإعادة محاولة لنفس الطلب
     }

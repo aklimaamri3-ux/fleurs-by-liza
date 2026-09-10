@@ -1,0 +1,1 @@
+delete from public.orders where client_ref in ('dup-recovery-fixed-ref-xyz789','dup-recovery-debug-ref-2','dup-recovery-debug-ref-3','dup-recovery-debug-ref-4') or id in ('FBLDBG1','FBLDBG2') or name ilike 'DupRecovery%' or name ilike 'DupDebug%';
