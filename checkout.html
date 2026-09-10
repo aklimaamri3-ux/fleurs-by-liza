@@ -79,7 +79,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
     <div class="fg"><label class="fl" id="phoneLabel">رقم الهاتف *</label><input class="fi" id="iPhone" type="tel" placeholder="0555 123 456"></div>
     <div class="frow">
       <div class="fg"><label class="fl" id="wilayaLabel">الولاية *</label><select class="fi" id="iWilaya" onchange="onWilaya()"><option value="">...</option></select></div>
-      <div class="fg"><label class="fl" id="communeLabel">البلدية</label><select class="fi" id="iCommune"><option value="">—</option></select></div>
+      <div class="fg"><label class="fl" id="communeLabel">البلدية</label><select class="fi" id="iCommune" onchange="updateSum()"><option value="">—</option></select></div>
     </div>
     <div class="fg"><label class="fl" id="addrLabel">العنوان</label><textarea class="fi" id="iAddr" rows="2"></textarea></div>
     <div class="frow">
@@ -266,7 +266,7 @@ function cartSubtotal(){
 }
 function updateSum(){
   var isPickup=selPay==='pickup';
-  var dc=isPickup?0:(selW?Number(selW.home_price||0):0);
+  var dc=getDeliveryCost();
   var fr=LANG==='fr';
   if(isCartMode){
     var box=document.getElementById('cartItemsList');box.innerHTML='';
@@ -313,7 +313,7 @@ async function applyCoupon(){
   if(!isCartMode&&!prod){return;}
   if(isCartMode&&!cartItems.length){return;}
   var isPickup=selPay==='pickup';
-  var dc=isPickup?0:(selW?Number(selW.home_price||0):0);
+  var dc=getDeliveryCost();
   var subtotal=isCartMode?(cartSubtotal()+dc):((Number(prod.price)||0)*qty+dc);
   try{
     var r=await fetch(SB_URL+'/rest/v1/rpc/validate_coupon',{
@@ -394,10 +394,33 @@ function onWilaya(){
   if(typeof communes === 'string'){try{communes=JSON.parse(communes);}catch(e){communes=[];}}
   if(communes && communes.length){
     var ch='<option value="">'+(LANG==='fr'?'Choisir...':'اختاري...')+'</option>';
-    communes.forEach(function(cm){ var cn=typeof cm==='string'?cm:(cm.name||cm); ch+='<option value="'+esc(cn)+'">'+esc(cn)+'</option>'; });
+    communes.forEach(function(cm){
+      var cn=typeof cm==='string'?cm:(cm.name||cm);
+      var isActive=typeof cm==='string'?true:(cm.active!==false);
+      if(!isActive) return; // ✅ لا تُعرض بلدية معطّلة من الأدمن للزبون
+      ch+='<option value="'+esc(cn)+'">'+esc(cn)+'</option>';
+    });
     cs.innerHTML=ch;
   } else { cs.innerHTML='<option value="">—</option>'; }
   updateSum();
+}
+
+// ✅ سعر التوصيل الحقيقي: سعر البلدية المخصص إن وُجد ومفعّل، وإلا سعر
+// الولاية الافتراضي — نفس منطق resolve_delivery() في قاعدة البيانات،
+// حتى يطابق الرقم المعروض للزبون الرقم الذي سيُحتسب فعلياً عند التأكيد.
+function getDeliveryCost(){
+  if(selPay==='pickup'||!selW) return 0;
+  var commune=document.getElementById('iCommune')?document.getElementById('iCommune').value:'';
+  var communes=selW.communes;
+  if(typeof communes==='string'){try{communes=JSON.parse(communes);}catch(e){communes=[];}}
+  communes=communes||[];
+  if(commune){
+    var c=communes.find(function(x){ return (typeof x==='string'?x:x.name)===commune; });
+    if(c && typeof c==='object' && c.active!==false && c.home_price!==null && c.home_price!==undefined && c.home_price!==''){
+      return Number(c.home_price)||0;
+    }
+  }
+  return Number(selW.home_price||0);
 }
 
 // ✅ validation الهاتف الجزائري

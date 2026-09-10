@@ -523,13 +523,28 @@ ${tracking ? `<div class="track"><div style="font-size:.75rem;color:#888">رقم
       if (!wilayaId) return err('Missing/invalid wilaya_id', 400)
       const phone     = String(o.phone).replace(/\D/g, '')
       const nameParts = sanitize(o.name || 'Client').split(' ')
+      // ✅ عندنا اسم البلدية نصياً فقط (من نظامنا)، لا معرّف Yalidine
+      // الرقمي — نطابقه مع قائمة بلديات Yalidine الحقيقية لنفس الولاية
+      // حتى تصل الشحنة بمعلومات ولاية/بلدية صحيحة ودقيقة، لا الولاية فقط
+      let toCommuneId: number | undefined = o.commune_id ? (num(o.commune_id) ?? undefined) : undefined
+      if (!toCommuneId && o.commune) {
+        try {
+          const cRes = await jfetch(`https://api.yalidine.app/v1/communes/?wilaya_id=${wilayaId}&page_size=100`, { headers: { 'X-API-ID': id, 'X-API-TOKEN': token } })
+          if (cRes.ok) {
+            const cData = await cRes.json()
+            const wanted = String(o.commune).trim().toLowerCase()
+            const match = (cData.data || []).find((c: any) => String(c.name || '').trim().toLowerCase() === wanted)
+            if (match) toCommuneId = match.id
+          }
+        } catch (e) { console.error('yalidine commune lookup failed:', e) }
+      }
       const payload   = {
         firstname:      nameParts[0] || 'Client',
         familyname:     nameParts.slice(1).join(' ') || '.',
         contact_phone:  phone,
         address:        sanitize(o.address || o.commune || o.wilaya || '').slice(0, 100),
         to_wilaya_id:   wilayaId,
-        to_commune_id:  o.commune_id ? num(o.commune_id) ?? undefined : undefined,
+        to_commune_id:  toCommuneId,
         product_list:   sanitize(o.product_name || 'Bouquet').slice(0, 100),
         price:          Number(o.total) || 0,
         do_insurance:   false, declared_value: Number(o.total) || 0,
