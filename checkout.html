@@ -244,7 +244,7 @@ var PAY=[
   {k:'redotpay',ar:'RedotPay USDT',       fr:'RedotPay USDT',             ic:'🔴'},
   {k:'pickup', ar:'استلام (50% مسبق)',    fr:'Retrait (50% avance)',      ic:'🏪'},
 ];
-var prod=null,qty=1,color='',selW=null,wilayas=[],payInfo={},enabled=['cod','ccp','cib','dahabia','iban','binance','redotpay'],selPay='cod';
+var prod=null,qty=1,color='',selW=null,wilayas=[],payInfo={},curInfo={},enabled=['cod','ccp','cib','dahabia','iban','binance','redotpay'],selPay='cod';
 var isCartMode=false,cartItems=[];
 
 function getLang(){ var p=new URLSearchParams(location.search); return p.get('lang')||LANG; }
@@ -440,7 +440,7 @@ function renderBank(){
       '<div class="brow"><span>Baridimob</span><b>'+esc(payInfo.baridimob||'')+'</b></div>' +
       '<div style="font-size:.73rem;color:#888;margin-top:.5rem">'+(fr?"Après le virement, envoyez le reçu":"بعد التحويل، ارفعي صورة الإيصال")+'</div></div>';
   } else if(selPay==='iban'){
-    var rate=Number(payInfo.eur_rate)||270;
+    var rate=Number(curInfo.eur)||270;
     var eur=prod?(Number(prod.price)||0)*qty/rate:0;
     b.innerHTML='<div class="bank-box">' +
       '<div class="brow"><span>IBAN</span><b>'+esc(payInfo.iban||'')+'</b></div>' +
@@ -519,6 +519,9 @@ async function loadPay(){
     var m=await getSetting('pay_methods');
     if(Array.isArray(m)&&m.length) enabled=m;
   }catch(e){}
+  // ✅ سعر اليورو الموحّد — نفس المصدر المستعمل في الصفحة الرئيسية وصفحة
+  // المنتج (settings.currency)، بدل مصدر منفصل كان يمكن أن يختلف عنه
+  try{ curInfo=await getSetting('currency')||{}; }catch(e){ curInfo={}; }
   renderPay();
 }
 

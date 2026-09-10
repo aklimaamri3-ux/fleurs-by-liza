@@ -333,7 +333,7 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
         <div class="card"><div class="ch"><div class="ct">⚡ تفعيل / تعطيل</div></div><div class="pgrid" id="payToggles" style="grid-template-columns:repeat(auto-fit,minmax(145px,1fr))"></div></div>
         <div class="card"><div class="ch"><div class="ct">🏦 معلومات الحساب</div></div>
           <div class="frow"><div class="fg"><label class="fl">الاسم الكامل</label><input class="fi" id="piHolder"></div><div class="fg"><label class="fl">رقم CCP</label><input class="fi" id="piCCP"></div></div>
-          <div class="frow"><div class="fg"><label class="fl">Baridimob (RIP 20)</label><input class="fi" id="piBaridi"></div><div class="fg"><label class="fl">سعر اليورو (دج)</label><input class="fi" id="piEUR" type="number"></div></div>
+          <div class="frow"><div class="fg"><label class="fl">Baridimob (RIP 20)</label><input class="fi" id="piBaridi"></div><div class="fg"></div></div>
           <div class="frow"><div class="fg"><label class="fl">IBAN</label><input class="fi" id="piIBAN"></div><div class="fg"><label class="fl">SWIFT/BIC</label><input class="fi" id="piSWIFT"></div></div>
           <div class="frow"><div class="fg"><label class="fl">IBAN Titulaire</label><input class="fi" id="piIBANH"></div><div class="fg"><label class="fl">Binance ID</label><input class="fi" id="piBinID"></div></div>
           <div class="frow"><div class="fg"><label class="fl">Binance Adresse USDT</label><input class="fi" id="piBinAddr"></div><div class="fg"><label class="fl">RedotPay ID</label><input class="fi" id="piRedotID" placeholder="RDP..."></div></div>
@@ -2473,7 +2473,7 @@ async function deleteCommune(wid,idx){
 
 // ═══ PAYMENT ═══
 async function loadPayPage(){
-  try{var info=await getSetting('payment');if(info){payInfo=info;sv('piHolder',info.holder);sv('piCCP',info.ccp);sv('piBaridi',info.baridimob);sv('piEUR',info.eur_rate);sv('piIBAN',info.iban);sv('piSWIFT',info.swift);sv('piIBANH',info.iban_holder);sv('piBinID',info.binance_id);sv('piBinAddr',info.binance_addr);sv('piRedotID',info.redotpay_id);sv('piWA',info.whatsapp);sv('piIG',info.instagram);sv('piFB',info.facebook);}}catch(e){}
+  try{var info=await getSetting('payment');if(info){payInfo=info;sv('piHolder',info.holder);sv('piCCP',info.ccp);sv('piBaridi',info.baridimob);sv('piIBAN',info.iban);sv('piSWIFT',info.swift);sv('piIBANH',info.iban_holder);sv('piBinID',info.binance_id);sv('piBinAddr',info.binance_addr);sv('piRedotID',info.redotpay_id);sv('piWA',info.whatsapp);sv('piIG',info.instagram);sv('piFB',info.facebook);}}catch(e){}
   try{var m=await getSetting('pay_methods');if(Array.isArray(m)&&m.length)enabledPay=m;}catch(e){}
   renderPayToggles();
 }
@@ -2508,7 +2508,7 @@ async function savePayInfo(){
   if(wa&&!/^\d{10,15}$/.test(wa)){toast('⚠️ رقم واتساب غير صحيح — أدخلي الأرقام فقط مثل 213555123456');return;}
   var data={
     holder:gv('piHolder'),ccp:gv('piCCP'),baridimob:gv('piBaridi'),
-    eur_rate:parseInt(gv('piEUR'))||270,iban:gv('piIBAN'),swift:gv('piSWIFT'),
+    iban:gv('piIBAN'),swift:gv('piSWIFT'),
     iban_holder:gv('piIBANH'),binance_id:gv('piBinID'),binance_addr:gv('piBinAddr'),
     binance_network:'TRC20',redotpay_id:gv('piRedotID'),
     whatsapp:wa,instagram:gv('piIG'),facebook:gv('piFB')
