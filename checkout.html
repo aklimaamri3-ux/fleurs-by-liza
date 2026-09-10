@@ -42,12 +42,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
 .cp-links{display:flex;flex-direction:column;gap:.5rem;}
 .cp-links a{padding:.8rem;border-radius:.8rem;background:var(--pkp);color:var(--pk2);font-weight:600;font-size:.82rem;}
 .pop-close{margin-top:1rem;color:var(--mt);font-size:.77rem;cursor:pointer;}
-.succ-ov{position:fixed;inset:0;background:var(--wh);z-index:3000;display:none;align-items:center;justify-content:center;flex-direction:column;padding:2rem;text-align:center;}
-.succ-ov.sh{display:flex;}
-.succ-emo{font-size:4rem;margin-bottom:1rem;}
-.succ-ov h2{font-family:var(--font-serif);margin-bottom:.55rem;font-weight:400;font-size:1.6rem;}
-.succ-ov p{color:var(--mt);margin-bottom:1.5rem;font-size:.85rem;}
-.succ-btn{background:var(--pk2);color:var(--wh);padding:.9rem 2.2rem;border-radius:3rem;font-weight:700;display:inline-block;}
 #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--blk);color:#fff;padding:.68rem 1.3rem;border-radius:2rem;font-size:.79rem;display:none;z-index:1000;}
 .h{display:none!important;}
 </style>
@@ -125,12 +119,6 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
     </div>
     <div class="pop-close" onclick="closeCp()" id="cpClose">إغلاق</div>
   </div>
-</div>
-<div class="succ-ov" id="succOv">
-  <div class="succ-emo">🎉</div>
-  <h2 id="succTitle">تم تأكيد طلبك!</h2>
-  <p id="succMsg">سنتصل بك قريباً لتأكيد التوصيل 🌹</p>
-  <a href="index.html" class="succ-btn" id="succBtn">العودة للرئيسية</a>
 </div>
 <div id="toast"></div>
 <script>
@@ -231,20 +219,17 @@ function toast(msg, dur) {
 
 
 var L={
-  ar:{sumTitle:'🌹 ملخص الطلب',delivTitle:'📦 معلومات التوصيل',payTitle:'💳 طريقة الدفع',nameLabel:'الاسم الكامل *',phoneLabel:'رقم الهاتف *',wilayaLabel:'الولاية *',communeLabel:'البلدية',addrLabel:'العنوان',noteLabel:'ملاحظة / رسالة الهدية',sumQtyLabel:'الكمية',sumDelLabel:'التوصيل',sumTotLabel:'المجموع',subBtn:'✅ تأكيد الطلب',succTitle:'تم تأكيد طلبك!',succMsg:'سنتصل بك قريباً لتأكيد التوصيل 🌹',succBtn:'العودة للرئيسية',cpTitle:'هذه الطريقة غير متاحة',cpSub:'تواصلي معنا لإتمام طلبك',cpClose:'إغلاق',nameErr:'⚠️ أدخلي الاسم',phoneErr:'⚠️ رقم الهاتف غير صحيح',wilayaErr:'⚠️ اختاري الولاية',sending:'⏳ جاري الإرسال...'},
-  fr:{sumTitle:'🌹 Résumé commande',delivTitle:'📦 Informations livraison',payTitle:'💳 Moyen de paiement',nameLabel:'Nom complet *',phoneLabel:'Téléphone *',wilayaLabel:'Wilaya *',communeLabel:'Commune',addrLabel:'Adresse',noteLabel:'Note / Message cadeau',sumQtyLabel:'Quantité',sumDelLabel:'Livraison',sumTotLabel:'Total',subBtn:'✅ Confirmer la commande',succTitle:'Commande confirmée!',succMsg:'Nous vous contacterons bientôt 🌹',succBtn:'Retour accueil',cpTitle:'Ce moyen n\'est pas disponible',cpSub:'Contactez-nous pour finaliser',cpClose:'Fermer',nameErr:'⚠️ Entrez votre nom',phoneErr:'⚠️ Numéro incorrect',wilayaErr:'⚠️ Choisissez une wilaya',sending:'⏳ Envoi en cours...'}
+  ar:{sumTitle:'🌹 ملخص الطلب',delivTitle:'📦 معلومات التوصيل',payTitle:'💳 طريقة الدفع',nameLabel:'الاسم الكامل *',phoneLabel:'رقم الهاتف *',wilayaLabel:'الولاية *',communeLabel:'البلدية',addrLabel:'العنوان',noteLabel:'ملاحظة / رسالة الهدية',sumQtyLabel:'الكمية',sumDelLabel:'التوصيل',sumTotLabel:'المجموع',subBtn:'✅ تأكيد الطلب',cpTitle:'هذه الطريقة غير متاحة',cpSub:'تواصلي معنا لإتمام طلبك',cpClose:'إغلاق',nameErr:'⚠️ أدخلي الاسم',phoneErr:'⚠️ رقم الهاتف غير صحيح',wilayaErr:'⚠️ اختاري الولاية',sending:'⏳ جاري الإرسال...'},
+  fr:{sumTitle:'🌹 Résumé commande',delivTitle:'📦 Informations livraison',payTitle:'💳 Moyen de paiement',nameLabel:'Nom complet *',phoneLabel:'Téléphone *',wilayaLabel:'Wilaya *',communeLabel:'Commune',addrLabel:'Adresse',noteLabel:'Note / Message cadeau',sumQtyLabel:'Quantité',sumDelLabel:'Livraison',sumTotLabel:'Total',subBtn:'✅ Confirmer la commande',cpTitle:'Ce moyen n\'est pas disponible',cpSub:'Contactez-nous pour finaliser',cpClose:'Fermer',nameErr:'⚠️ Entrez votre nom',phoneErr:'⚠️ Numéro incorrect',wilayaErr:'⚠️ Choisissez une wilaya',sending:'⏳ Envoi en cours...'}
 };
 var PAY=[
-  {k:'cod',   ar:'الدفع عند الاستلام',    fr:'Paiement à la livraison',   ic:'💵'},
   {k:'ccp',   ar:'CCP / Baridimob',       fr:'CCP / Baridimob',           ic:'🏦'},
-  {k:'cib',   ar:'بطاقة CIB',             fr:'Carte CIB',                 ic:'💳'},
-  {k:'dahabia',ar:'Dahabia',              fr:'Dahabia',                   ic:'💚'},
   {k:'iban',  ar:'IBAN دولي EUR',         fr:'Virement IBAN EUR',         ic:'🌍'},
   {k:'binance',ar:'Binance USD / USDT',   fr:'Binance USD / USDT',        ic:'🟡'},
   {k:'redotpay',ar:'RedotPay USDT',       fr:'RedotPay USDT',             ic:'🔴'},
   {k:'pickup', ar:'استلام (50% مسبق)',    fr:'Retrait (50% avance)',      ic:'🏪'},
 ];
-var prod=null,qty=1,color='',selW=null,wilayas=[],payInfo={},curInfo={},enabled=['cod','ccp','cib','dahabia','iban','binance','redotpay'],selPay='cod';
+var prod=null,qty=1,color='',selW=null,wilayas=[],payInfo={},curInfo={},enabled=['ccp','iban','binance','redotpay'],selPay='ccp';
 var isCartMode=false,cartItems=[];
 
 function getLang(){ var p=new URLSearchParams(location.search); return p.get('lang')||LANG; }
@@ -433,7 +418,7 @@ function renderPay(){
   var g=document.getElementById('payGrid');
   g.innerHTML='';
   PAY.forEach(function(m){
-    var on=m.k==='cod'||enabled.indexOf(m.k)!==-1; // ✅ COD is always available — never gated by admin's list
+    var on=enabled.indexOf(m.k)!==-1;
     var name=LANG==='fr'?m.fr:m.ar;
     var div=document.createElement('div');
     div.className='pay-opt'+(m.k===selPay?' sel':'')+(on?'':' dis');
@@ -447,7 +432,7 @@ function renderPay(){
 }
 
 function clickPay(k){
-  var on=k==='cod'||enabled.indexOf(k)!==-1;
+  var on=enabled.indexOf(k)!==-1;
   if(!on) return; // معطّل — لا يفعل شيء
   selPay=k; renderPay(); updateSum();
 }
@@ -455,7 +440,6 @@ function clickPay(k){
 function renderBank(){
   var b=document.getElementById('bankBox');
   var fr=LANG==='fr';
-  if(selPay==='cod'){ b.innerHTML=''; return; }
   if(selPay==='ccp'){
     b.innerHTML='<div class="bank-box">' +
       '<div class="brow"><span>'+(fr?'Nom':'الاسم')+'</span><b>'+esc(payInfo.holder||'')+'</b></div>' +
@@ -547,46 +531,6 @@ async function loadPay(){
   try{ curInfo=await getSetting('currency')||{}; }catch(e){ curInfo={}; }
   renderPay();
 }
-
-async function openSlickPay(orderId, order) {
-  try {
-    // ── SlickPay via Edge Function ──
-    var r = await fetch(SB_URL+'/functions/v1/hyper-action', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'apikey': SB_ANON, 'Authorization': 'Bearer '+SB_ANON},
-      body: JSON.stringify({
-        action: 'slickpay_create',
-        order_id: orderId,
-        amount: order.total,
-        name: order.name,
-        phone: order.phone,
-        product: order.product_name || ''
-      })
-    });
-    if (r.ok) {
-      var d = await r.json();
-      if (d.payment_url) {
-        // ✅ payment_status يُحدَّث سيرفر-سايد من slickpay_create نفسها
-        location.href = d.payment_url;
-        return;
-      }
-    } else {
-      console.error('SlickPay create failed:', await r.text().catch(function(){return '';}));
-    }
-  } catch(e) {
-    console.error('SlickPay exception:', e);
-  }
-
-  var ps = await getSetting('pay_methods') || {};
-  var wa=(payInfo.whatsapp||'').replace(/\D/g,'')&&featOn('whatsapp_actions')?(payInfo.whatsapp||'').replace(/\D/g,''):'';
-  document.getElementById('cpWa').href = wa ? 'https://wa.me/'+wa : '#';
-  document.getElementById('cpWa').style.display = wa ? '' : 'none';
-  document.getElementById('cpIg').href = 'https://instagram.com/'+(payInfo.instagram||'fleurs_byliza');
-  document.getElementById('cpTitle').textContent = LANG==='fr' ? 'Problème de paiement' : 'خطأ في بوابة الدفع';
-  document.getElementById('cpSub').textContent = LANG==='fr' ? 'Contactez-nous pour finaliser' : 'تواصلي معنا لإتمام الدفع';
-  document.getElementById('cpOv').classList.add('sh');
-}
-
 
 var _submitting=false;
 var CLIENT_REF=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('cr'+Date.now()+Math.random().toString(36).slice(2));
@@ -684,20 +628,9 @@ async function submitOrder(){
       }).catch(function(){});
     }
 
-    // ✅ redirect حسب طريقة الدفع — pickup و التحويلات البنكية تحتاج رفع إيصال
-    if(isPickup||['ccp','iban','binance','redotpay'].indexOf(selPay)!==-1){
-      location.href='receipt.html?order='+encodeURIComponent(real.id)+'&lang='+LANG+(receiptToken?'&token='+receiptToken:'');
-    } else if(selPay==='cod'){
-      document.getElementById('succTitle').textContent=l.succTitle;
-      document.getElementById('succMsg').textContent=l.succMsg;
-      document.getElementById('succBtn').textContent=l.succBtn;
-      document.getElementById('succOv').classList.add('sh');
-    } else if(selPay==='cib'||selPay==='dahabia'){
-      await openSlickPay(real.id, real);
-    } else {
-      document.getElementById('succMsg').textContent=LANG==='fr'?'Vous serez redirigé vers le paiement 💳':'سيتم تحويلك لإتمام الدفع 💳';
-      document.getElementById('succOv').classList.add('sh');
-    }
+    // ✅ redirect حسب طريقة الدفع — كل الطرق المتبقية (pickup + التحويلات
+    // البنكية) تحتاج رفع إيصال، فهذا هو المسار الوحيد الممكن الآن
+    location.href='receipt.html?order='+encodeURIComponent(real.id)+'&lang='+LANG+(receiptToken?'&token='+receiptToken:'');
   }catch(e){
     var msg=String(e.message||'');
     if(msg.indexOf('client_ref')!==-1||msg.indexOf('duplicate')!==-1){

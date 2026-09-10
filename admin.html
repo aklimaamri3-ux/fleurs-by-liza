@@ -696,7 +696,7 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
             <div class="fg"><label class="fl">وقت التوصيل المفضل</label><select class="fi" id="schTime"><option value="morning">🌅 صباحاً (9-12)</option><option value="afternoon">☀️ بعد الزوال (12-17)</option><option value="evening">🌙 مساءً (17-21)</option></select></div>
           </div>
           <div class="fg"><label class="fl">رسالة مع الهدية 💌</label><textarea class="fi" id="schMsg" rows="2" placeholder="كل عام وأنت بخير..."></textarea></div>
-          <div class="fg"><label class="fl">طريقة الدفع</label><select class="fi" id="schPay"><option value="cod">💵 عند الاستلام</option><option value="ccp">🏦 CCP</option></select></div>
+          <div class="fg"><label class="fl">طريقة الدفع</label><select class="fi" id="schPay"><option value="ccp">🏦 CCP</option><option value="iban">🌍 IBAN EUR</option><option value="binance">🟡 Binance</option><option value="redotpay">🔴 RedotPay</option><option value="pickup">🏪 استلام (50% مسبق)</option></select></div>
           <button class="btn btn-p" onclick="saveScheduledOrder()">🎁 جدولة الطلب</button>
         </div>
         <div class="card">
@@ -904,13 +904,11 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
     <div class="frow">
       <div class="fg"><label class="fl">طريقة الدفع</label>
         <select class="fi" id="manPay">
-          <option value="cod">💵 الدفع عند الاستلام</option>
           <option value="ccp">🏦 CCP / Baridimob</option>
-          <option value="cib">💳 CIB</option>
-          <option value="dahabia">💚 Dahabia</option>
           <option value="iban">🌍 IBAN EUR</option>
           <option value="binance">🟡 Binance</option>
           <option value="redotpay">🔴 RedotPay</option>
+          <option value="pickup">🏪 استلام (50% مسبق)</option>
         </select>
       </div>
       <div class="fg"><label class="fl">حالة الدفع</label>
@@ -1430,7 +1428,7 @@ function printBL(o){
 }
 
 // ═══ STATE ═══
-var allProds=[],allOrders=[],allWilayas=[],allCats=[],enabledPay=['cod','ccp','iban','binance'],payInfo={};
+var allProds=[],allOrders=[],allWilayas=[],allCats=[],enabledPay=['ccp','iban','binance','redotpay','pickup'],payInfo={};
 // ✅ Logo URL — يتحدث من إعدادات الأدمن
 // ✅ LOGO_URL — نتحقق أنه supabase storage فقط قبل أي استعمال
 var LOGO_URL='';
@@ -1440,10 +1438,7 @@ function safeLogo(){return _safeLogoRx.test(LOGO_URL)?LOGO_URL:'';}
 function setLogoUrl(url){if(url&&_safeLogoRx.test(url))LOGO_URL=url;}
 var pendingImgs=[],existingImgUrls=[];
 var PAY_LIST=[
-  {k:'cod',n:'الدفع عند الاستلام',ic:'💵'},
   {k:'ccp',n:'CCP / Baridimob',ic:'🏦'},
-  {k:'cib',n:'بطاقة CIB',ic:'💳'},
-  {k:'dahabia',n:'Dahabia',ic:'💚'},
   {k:'iban',n:'IBAN EUR',ic:'🌍'},
   {k:'binance',n:'Binance USDT',ic:'🟡'},
   {k:'redotpay',n:'RedotPay USDT',ic:'🔴'},
@@ -1938,7 +1933,7 @@ async function openManualOrder(){
   renderManProdOptions(prods);
   // صفّر الحقول
   ['manName','manPhone','manAddress','manColor','manNote','manProdSearch'].forEach(function(id){sv(id,'');});
-  sv('manQty','1');sv('manDelivery','0');sv('manPay','cod');sv('manPayStatus','pending');sv('manDepositStatus','pending');
+  sv('manQty','1');sv('manDelivery','0');sv('manPay','ccp');sv('manPayStatus','pending');sv('manDepositStatus','pending');
   document.getElementById('manCommune').innerHTML='<option value="">— اختاري —</option>';
   document.getElementById('manSummary').style.display='none';
   document.getElementById('manProdRef').textContent='';
@@ -2480,18 +2475,16 @@ async function loadPayPage(){
 function renderPayToggles(){
   var box=document.getElementById('payToggles');box.innerHTML='';
   PAY_LIST.forEach(function(m){
-    var isCod=m.k==='cod';
-    var on=isCod||enabledPay.indexOf(m.k)!==-1; // ✅ COD is always on — no config needed
+    var on=enabledPay.indexOf(m.k)!==-1;
     var card=document.createElement('div');card.className='card';card.style.padding='.85rem';
     var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:center';
-    var lbl=document.createElement('span');lbl.style.cssText='font-size:.8rem;font-weight:600';lbl.textContent=m.ic+' '+m.n+(isCod?' (دائماً مفعّل)':'');
+    var lbl=document.createElement('span');lbl.style.cssText='font-size:.8rem;font-weight:600';lbl.textContent=m.ic+' '+m.n;
     var tgl=document.createElement('div');tgl.className='tgl'+(on?' on':'');
     tgl.dataset.key=m.k;
-    if(isCod){tgl.style.opacity='.4';tgl.style.pointerEvents='none';}
-    else tgl.addEventListener('click',function(){togglePay(this.dataset.key,this);});
+    tgl.addEventListener('click',function(){togglePay(this.dataset.key,this);});
     row.appendChild(lbl);row.appendChild(tgl);card.appendChild(row);
     // ✅ عرض العملة
-    var currency = {iban:'EUR 🇪🇺',binance:'USDT 💰',redotpay:'USDT 💰',ccp:'DZD 🇩🇿',cod:'DZD 🇩🇿',cib:'DZD 🇩🇿',dahabia:'DZD 🇩🇿',pickup:'DZD 50% 🏪'}[m.k];
+    var currency = {iban:'EUR 🇪🇺',binance:'USDT 💰',redotpay:'USDT 💰',ccp:'DZD 🇩🇿',pickup:'DZD 50% 🏪'}[m.k];
     if(currency){var cur=document.createElement('div');cur.style.cssText='font-size:.65rem;color:var(--mt);margin-top:.3rem';cur.textContent=currency;card.appendChild(cur);}
     box.appendChild(card);
   });
