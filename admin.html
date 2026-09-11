@@ -510,6 +510,11 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
       <div class="page" id="page-reports">
         <div class="pg-title">📈 التقارير</div>
         <div class="pgrid" id="repStats" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:1rem"></div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="ch"><div class="ct">💹 تقرير الأرباح</div></div>
+          <p style="font-size:.78rem;color:var(--mt);margin-bottom:.6rem">يبعث لتيليغرام: عدد الطلبات، إجمالي المشتريات من الجملة (سعر التكلفة × الكمية)، والأرباح — في كل مرة تضغطي فيها</p>
+          <button class="btn btn-p" onclick="sendProfitReport()">📤 إرسال تقرير الأرباح الآن</button>
+        </div>
         <!-- تاريخ الزبون -->
         <div class="card" style="margin-bottom:1rem">
           <div class="ch"><div class="ct">👤 تاريخ الزبون</div></div>
@@ -2979,6 +2984,34 @@ async function updateOrdStatus(id){
 }
 
 // ═══ تقرير صباحي تيليغرام ═══
+// ✅ تقرير الأرباح — يُرسل عند كل ضغطة، يشمل كل الطلبات غير الملغاة
+// (لا يتقيّد بتاريخ معيّن مثل التقرير اليومي)
+async function sendProfitReport(){
+  var tok=sessionStorage.getItem(TOK);if(!tok){toast('⚠️ يجب تسجيل الدخول');return;}
+  try{
+    var orders=await sbGet('orders','?status=not.eq.cancelled&order=created_at.desc&limit=2000');
+    if(!orders||!orders.length){toast('لا توجد طلبات بعد');return;}
+    var prods=allProds.length?allProds:await sbGet('products','?select=id,cost_price').catch(function(){return [];});
+    var revenue=orders.reduce(function(s,o){return s+(Number(o.total)||0);},0);
+    var cost=orders.reduce(function(s,o){
+      var p=prods.find(function(x){return x.id===o.product_id;});
+      return s+(p&&p.cost_price?Number(p.cost_price)*(Number(o.qty)||1):0);
+    },0);
+    var profit=revenue-cost;
+    var hasCost=orders.some(function(o){var p=prods.find(function(x){return x.id===o.product_id;});return p&&p.cost_price;});
+    var msg='💹 *تقرير الأرباح*\n\n📦 عدد الطلبات: '+orders.length+
+      '\n💰 إجمالي الإيرادات: '+money(revenue)+' دج'+
+      '\n🛒 إجمالي المشتريات من الجملة: '+(hasCost?money(cost)+' دج':'— (سعر التكلفة غير مُدخل لبعض المنتجات)')+
+      '\n📈 الأرباح: '+(hasCost?money(profit)+' دج':'—')+
+      '\n\n— Fleurs by Liza 🌹';
+    var r=await fetch(SB_URL+'/functions/v1/hyper-action',{
+      method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},
+      body:JSON.stringify({action:'telegram_report',message:msg})});
+    var d=await r.json();
+    if(!r.ok||d.ok===false)throw new Error(d.error||'فشل الإرسال');
+    toast('✅ تم إرسال تقرير الأرباح لتيليغرام');
+  }catch(e){toast('❌ '+e.message);}
+}
 async function sendDailyReport(){
   var tok=sessionStorage.getItem(TOK);if(!tok)return;
   try{
