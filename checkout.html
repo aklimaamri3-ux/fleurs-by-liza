@@ -86,6 +86,11 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
       </select>
     </div>
   </div>
+  <div class="fg" style="display:flex;align-items:center;gap:.5rem">
+    <input type="checkbox" id="iIsGift" onchange="onGiftToggle()" style="width:1.1rem;height:1.1rem">
+    <label for="iIsGift" id="giftLabel" style="font-size:.85rem;font-weight:600;cursor:pointer">🎁 هذا الطلب هدية</label>
+  </div>
+  <div class="fg h" id="giftPhoneRow"><label class="fl" id="giftPhoneLabel">📞 رقم هاتف المرسل *</label><input class="fi" id="iGiftPhone" type="tel" placeholder="0555 123 456"></div>
   <div class="fg"><label class="fl" id="noteLabel">ملاحظة / رسالة الهدية</label><textarea class="fi" id="iNote" rows="2"></textarea></div>
     <div class="fg"><label class="fl" id="emailLabel">📧 البريد الإلكتروني (اختياري — لاستلام الفاتورة)</label><input class="fi" id="iEmail" type="email" placeholder="exemple@gmail.com" autocomplete="email"></div>
   </div>
@@ -258,8 +263,8 @@ function toast(msg, dur) {
 
 
 var L={
-  ar:{sumTitle:'🌹 ملخص الطلب',delivTitle:'📦 معلومات التوصيل',payTitle:'💳 طريقة الدفع',nameLabel:'الاسم الكامل *',phoneLabel:'رقم الهاتف *',wilayaLabel:'الولاية *',communeLabel:'البلدية',addrLabel:'العنوان',noteLabel:'ملاحظة / رسالة الهدية',sumQtyLabel:'الكمية',sumDelLabel:'التوصيل',sumTotLabel:'المجموع',subBtn:'✅ تأكيد الطلب',cpTitle:'هذه الطريقة غير متاحة',cpSub:'تواصلي معنا لإتمام طلبك',cpClose:'إغلاق',nameErr:'⚠️ أدخلي الاسم',phoneErr:'⚠️ رقم الهاتف غير صحيح',wilayaErr:'⚠️ اختاري الولاية',sending:'⏳ جاري الإرسال...'},
-  fr:{sumTitle:'🌹 Résumé commande',delivTitle:'📦 Informations livraison',payTitle:'💳 Moyen de paiement',nameLabel:'Nom complet *',phoneLabel:'Téléphone *',wilayaLabel:'Wilaya *',communeLabel:'Commune',addrLabel:'Adresse',noteLabel:'Note / Message cadeau',sumQtyLabel:'Quantité',sumDelLabel:'Livraison',sumTotLabel:'Total',subBtn:'✅ Confirmer la commande',cpTitle:'Ce moyen n\'est pas disponible',cpSub:'Contactez-nous pour finaliser',cpClose:'Fermer',nameErr:'⚠️ Entrez votre nom',phoneErr:'⚠️ Numéro incorrect',wilayaErr:'⚠️ Choisissez une wilaya',sending:'⏳ Envoi en cours...'}
+  ar:{sumTitle:'🌹 ملخص الطلب',delivTitle:'📦 معلومات التوصيل',payTitle:'💳 طريقة الدفع',nameLabel:'الاسم الكامل *',phoneLabel:'رقم الهاتف *',wilayaLabel:'الولاية *',communeLabel:'البلدية',addrLabel:'العنوان',noteLabel:'ملاحظة / رسالة الهدية',sumQtyLabel:'الكمية',sumDelLabel:'التوصيل',sumTotLabel:'المجموع',subBtn:'✅ تأكيد الطلب',cpTitle:'هذه الطريقة غير متاحة',cpSub:'تواصلي معنا لإتمام طلبك',cpClose:'إغلاق',nameErr:'⚠️ أدخلي الاسم',phoneErr:'⚠️ رقم الهاتف غير صحيح',wilayaErr:'⚠️ اختاري الولاية',sending:'⏳ جاري الإرسال...',giftLabel:'🎁 هذا الطلب هدية',giftPhoneLabel:'📞 رقم هاتف المرسل *',giftPhoneErr:'⚠️ أدخلي رقم هاتف المرسل'},
+  fr:{sumTitle:'🌹 Résumé commande',delivTitle:'📦 Informations livraison',payTitle:'💳 Moyen de paiement',nameLabel:'Nom complet *',phoneLabel:'Téléphone *',wilayaLabel:'Wilaya *',communeLabel:'Commune',addrLabel:'Adresse',noteLabel:'Note / Message cadeau',sumQtyLabel:'Quantité',sumDelLabel:'Livraison',sumTotLabel:'Total',subBtn:'✅ Confirmer la commande',cpTitle:'Ce moyen n\'est pas disponible',cpSub:'Contactez-nous pour finaliser',cpClose:'Fermer',nameErr:'⚠️ Entrez votre nom',phoneErr:'⚠️ Numéro incorrect',wilayaErr:'⚠️ Choisissez une wilaya',sending:'⏳ Envoi en cours...',giftLabel:'🎁 Cette commande est un cadeau',giftPhoneLabel:'📞 Téléphone de l\'expéditeur *',giftPhoneErr:'⚠️ Entrez le téléphone de l\'expéditeur'}
 };
 var PAY=[
   {k:'ccp',   ar:'CCP / Baridimob',       fr:'CCP / Baridimob',           ic:'🏦'},
@@ -283,6 +288,10 @@ function applyLang(){
   document.getElementById('iNote').placeholder=fr?'Message pour la carte cadeau...':'رسالة الهدية...';
 }
 function getL(){ return L[LANG]||L.ar; }
+function onGiftToggle(){
+  var on=document.getElementById('iIsGift').checked;
+  document.getElementById('giftPhoneRow').classList.toggle('h',!on);
+}
 
 var appliedCoupon=null,appliedDiscount=0;
 function cartSubtotal(){
@@ -591,9 +600,13 @@ async function submitOrder(){
   var addr=document.getElementById('iAddr').value.trim();
   var note=document.getElementById('iNote').value.trim();
   var email=document.getElementById('iEmail').value.trim().toLowerCase();
+  var isGift=document.getElementById('iIsGift').checked;
+  var giftPhoneRaw=document.getElementById('iGiftPhone').value.trim();
+  var giftPhone=giftPhoneRaw.replace(/[\s\-\.]/g,'');
   if(!name){ toast(l.nameErr); return; }
   if(!phone||!validatePhone(rawPhone)){ toast(l.phoneErr+' — مثال: 0555 123 456'); return; }
   if(!isPickup&&(!selW||!wid)){ toast(l.wilayaErr); return; }
+  if(isGift&&(!giftPhone||!validatePhone(giftPhoneRaw))){ toast(l.giftPhoneErr+' — مثال: 0555 123 456'); return; }
   if(isCartMode){ if(!cartItems.length){ toast('⚠️'); return; } }
   else if(!prod){ toast('⚠️'); return; }
   // ✅ تحقق البريد إذا أُدخل
@@ -613,13 +626,18 @@ async function submitOrder(){
   var oid='FBL'+Date.now();
   var saved;
   try{
+    // ✅ عند تفعيل "هدية" نستعمل نفس حقل الملاحظة كرسالة الهدية (تُحفظ في
+    // عمود gift_message المنفصل)، بدل تكرار نفس الحقل مرتين في الواجهة
+    var giftMsg=isGift?(note||null):null;
+    var noteToSend=isGift?'':note;
     if(isCartMode){
       var cartParams={
         p_id:oid, p_items:cartItems.map(function(it){return {product_id:it.product_id,qty:it.qty};}),
         p_name:name, p_phone:phone, p_wilaya_id:wid, p_commune:isPickup?'':commune, p_address:isPickup?'':addr,
         p_payment_method:selPay, p_fulfillment_type:isPickup?'pickup':'delivery',
-        p_note:note, p_lang:LANG, p_email:email||null,
-        p_coupon_code:appliedCoupon||null, p_client_ref:CLIENT_REF
+        p_note:noteToSend, p_lang:LANG, p_email:email||null,
+        p_coupon_code:appliedCoupon||null, p_client_ref:CLIENT_REF,
+        p_is_gift:isGift, p_gift_sender_phone:isGift?giftPhone:null, p_gift_message:giftMsg
       };
       saved=await sbRpcWithRetry('create_cart_order',cartParams);
       try{localStorage.setItem('fl_cart','[]');}catch(e){}
@@ -628,10 +646,11 @@ async function submitOrder(){
         p_id:oid, p_name:name, p_phone:phone, p_wilaya_id:wid, p_commune:isPickup?'':commune, p_address:isPickup?'':addr,
         p_product_id:prod.id, p_color:color, p_qty:qty,
         p_payment_method:selPay, p_fulfillment_type:isPickup?'pickup':'delivery',
-        p_note:note, p_lang:LANG,
+        p_note:noteToSend, p_lang:LANG,
         p_email:email||null, // ✅ البريد في الطلب
         p_coupon_code:appliedCoupon||null, // ✅ السيرفر يعيد التحقق والتطبيق — لا يُوثق الخصم المعروض هنا
-        p_client_ref:CLIENT_REF // ✅ يمنع الطلبات المكررة عند النقر المتعدد
+        p_client_ref:CLIENT_REF, // ✅ يمنع الطلبات المكررة عند النقر المتعدد
+        p_is_gift:isGift, p_gift_sender_phone:isGift?giftPhone:null, p_gift_message:giftMsg
       };
       // ✅ نحفظ الطلب عبر RPC آمن — السيرفر (trigger) يعيد حساب السعر/التوصيل/الدفعة المقدمة/الحالة من مصدر موثوق
       saved=await sbRpcWithRetry('create_order',orderParams);
