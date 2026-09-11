@@ -105,6 +105,20 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
   .sb{position:fixed;right:-215px;top:0;bottom:0;z-index:1000;transition:.3s;}
   .sb.open{right:0;}.main{padding:.85rem;}.frow{grid-template-columns:1fr;}.menu-tog{display:block;}
 }
+
+/* ✅ طباعة الفاتورة/بون الإرسال — overlay داخل الصفحة بدل window.open()
+   (كانت popups تُحجب بصمت في متصفحات كثيرة، خصوصاً الموبايل — الزر لم
+   يكن يفعل شيئاً على الإطلاق حينها) */
+#printOv{position:fixed;inset:0;background:rgba(20,10,15,.6);z-index:4000;display:none;align-items:flex-start;justify-content:center;padding:1.2rem;overflow-y:auto;}
+#printOv.sh{display:flex;}
+#printOv .sheet{background:#fff;border-radius:.8rem;max-width:640px;width:100%;margin-top:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+#printOv .sheet-actions{display:flex;gap:.6rem;padding:.9rem;position:sticky;top:0;background:#fff;border-radius:.8rem .8rem 0 0;border-bottom:1px solid #eee;}
+@media print{
+  body>*:not(#printOv){display:none!important}
+  #printOv{position:static!important;background:#fff!important;padding:0!important;display:block!important}
+  #printOv .sheet{box-shadow:none!important;margin:0!important;max-width:100%!important;border-radius:0!important}
+  #printOv .sheet-actions{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -925,6 +939,7 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
 </div>
 
 <div id="toast"></div>
+<div id="printOv"><div class="sheet"><div class="sheet-actions"><button class="btn btn-p" style="flex:1" onclick="window.print()">🖨️ طباعة</button><button class="btn btn-o" onclick="closePrintOv()">✕ إغلاق</button></div><div id="printOvBody"></div></div></div>
 <script>
 // ═══ FLEURS BY LIZA — ADMIN v2 ═══
 // ✅ SVC key removed from client — all sensitive ops via Edge Function
@@ -1310,121 +1325,94 @@ function exportCSV(){
 }
 
 // ✅ فاتورة احترافية — logo + صورة المنتج + توقيع
+function closePrintOv(){document.getElementById('printOv').classList.remove('sh');}
 function printInvoice(o){
-  var w=window.open('','_blank');if(!w)return;
   var pr=Number(o.product_price||o.price||0),dc=Number(o.delivery_cost||0),tot=Number(o.total||0);
-  var cp=Number(o.cost_price||0);
-  var profit=cp>0?tot-cp-dc:null;
   var d=new Date(o.created_at||Date.now());
   var ref=o.ref||o.id||'';
-  // صورة المنتج
-  var prodImg='';
-  var prod=allProds.find(function(x){return x.id===o.product_id;});
-  if(prod&&prod.media_items&&prod.media_items.length){
-    for(var i=0;i<prod.media_items.length;i++){
-      if(prod.media_items[i]&&prod.media_items[i].type==='image'&&_safeStorageRx.test(prod.media_items[i].src)){
-        prodImg=prod.media_items[i].src;break;
-      }
-    }
-  }
-  w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>Facture — '+ef(ref)+'</title>');
-  w.document.write('<style>');
-  w.document.write('@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,600&display=swap");');
-  w.document.write('*{margin:0;padding:0;box-sizing:border-box}body{font-family:Tajawal,Arial,sans-serif;color:#1a1a1a;background:#fff;padding:2rem;max-width:620px;margin:auto}');
-  w.document.write('.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #e91e8c;padding-bottom:1rem;margin-bottom:1.5rem}');
-  w.document.write('.logo-area .logo{font-family:"Cormorant Garamond",serif;font-size:1.8rem;font-weight:600;color:#0d0d0d}.logo-area .logo em{color:#c8963c;font-style:italic}');
-  w.document.write('.logo-area .sub{font-size:.6rem;letter-spacing:.25em;color:#888;margin-top:.1rem}');
-  w.document.write('.logo-img{height:60px;object-fit:contain}');
-  w.document.write('.inv-info{text-align:left}.inv-num{font-size:1rem;font-weight:700;color:#e91e8c}.inv-date{font-size:.75rem;color:#888;margin-top:.2rem}');
-  w.document.write('.section{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}');
-  w.document.write('.box{background:#f8f7f5;border-radius:.6rem;padding:.8rem}.box-title{font-size:.65rem;font-weight:700;color:#888;letter-spacing:.1em;margin-bottom:.5rem}');
-  w.document.write('.box-row{font-size:.82rem;padding:.2rem 0;border-bottom:1px solid rgba(0,0,0,.05)}.box-row:last-child{border:none}');
-  w.document.write('.prod-row{display:flex;gap:1rem;background:#fce4f3;border-radius:.8rem;padding:.8rem;margin-bottom:1rem;align-items:center}');
-  w.document.write('.prod-img{width:70px;height:70px;object-fit:cover;border-radius:.5rem;flex-shrink:0}');
-  w.document.write('.prod-ph{width:70px;height:70px;border-radius:.5rem;background:#e91e8c;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0}');
-  w.document.write('.prod-info .name{font-weight:700;font-size:.95rem}.prod-info .qty{font-size:.75rem;color:#888;margin-top:.2rem}');
-  w.document.write('.totals{border:1.5px solid #e91e8c;border-radius:.8rem;padding:.8rem;margin-bottom:1rem}');
-  w.document.write('.tot-row{display:flex;justify-content:space-between;font-size:.83rem;padding:.25rem 0}');
-  w.document.write('.tot-final{font-size:1.1rem;font-weight:800;color:#e91e8c;border-top:1px solid #e91e8c;margin-top:.4rem;padding-top:.4rem}');
-  w.document.write('.signature{text-align:center;margin-top:1.8rem;padding-top:1rem;border-top:1px dashed #ddd}');
-  w.document.write('.sig-name{font-family:"Cormorant Garamond",serif;font-size:1.4rem;font-weight:600;color:#c8963c;margin:.3rem 0}');
-  w.document.write('.sig-sub{font-size:.65rem;color:#888;letter-spacing:.2em}');
-  w.document.write('.thanks{font-size:.75rem;color:#888;margin-top:.3rem}');
-  w.document.write('@media print{.no-print{display:none}}');
-  w.document.write('</style></head><body>');
-  // Header
-  w.document.write('<div class="header">');
-  w.document.write('<div class="logo-area"><div class="logo">Fleurs<em>❀</em>by liza</div><div class="sub">FLOWER SHOP — ALGÉRIE</div></div>');
   var logoSrc=safeLogo();
-  w.document.write('<img src="'+(logoSrc?logoSrc:'')+'" class="logo-img" onerror="this.style.display=\'none\'">');
-  w.document.write('<div class="inv-info"><div class="inv-num">FACTURE #'+ef(ref.length>8?ref.slice(-8):ref)+'</div><div class="inv-date">'+d.toLocaleDateString('fr-DZ')+' à '+d.toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'})+'</div></div>');
-  w.document.write('</div>');
-  // معلومات الزبون + الشحن
-  w.document.write('<div class="section">');
-  w.document.write('<div class="box"><div class="box-title">👤 INFORMATIONS CLIENT</div>');
-  w.document.write('<div class="box-row">'+ef(o.name||'')+'</div>');
-  w.document.write('<div class="box-row">'+ef(o.phone||'')+'</div>');
-  if(o.email)w.document.write('<div class="box-row">'+ef(o.email)+'</div>');
-  w.document.write('</div>');
-  w.document.write('<div class="box"><div class="box-title">📦 LIVRAISON</div>');
-  w.document.write('<div class="box-row">'+ef(o.wilaya||'')+(o.commune?' — '+ef(o.commune):'')+'</div>');
-  if(o.address)w.document.write('<div class="box-row">'+ef(o.address)+'</div>');
-  w.document.write('<div class="box-row">'+ef(o.payment_method||'')+'</div>');
-  w.document.write('</div></div>');
-  // المنتج
-  w.document.write('<div class="prod-row">');
-  if(prodImg)w.document.write('<img src="'+prodImg+'" class="prod-img">');
-  else w.document.write('<div class="prod-ph">'+(o.product_emoji||'🌹')+'</div>');
-  w.document.write('<div class="prod-info"><div class="name">'+(o.product_emoji||'')+'  '+ef(o.product_name||o.product||'')+(o.color?' ('+ef(o.color)+')':'')+'</div>');
-  w.document.write('<div class="qty">الكمية: ×'+(o.qty||1)+'</div>');
-  if(o.note)w.document.write('<div class="qty" style="color:#e91e8c">ملاحظة: '+ef(o.note)+'</div>');
-  w.document.write('</div></div>');
-  // الإجماليات
-  w.document.write('<div class="totals">');
-  w.document.write('<div class="tot-row"><span>سعر المنتج</span><span>'+money(pr)+' دج</span></div>');
-  w.document.write('<div class="tot-row"><span>التوصيل</span><span>'+money(dc)+' دج</span></div>');
-  w.document.write('<div class="tot-row tot-final"><span>المجموع الكلي</span><span>'+money(tot)+' دج</span></div>');
-  w.document.write('</div>');
-  // التوقيع
-  w.document.write('<div class="signature">');
-  var logoSrc2=safeLogo();
-  w.document.write('<img src="'+(logoSrc2?logoSrc2:'')+'" style="height:45px;object-fit:contain;margin-bottom:.3rem" onerror="this.style.display=\'none\'">');
-  w.document.write('<div class="sig-name">Fleurs ❀ by liza</div>');
-  w.document.write('<div class="sig-sub">FLOWER SHOP — ALGÉRIE</div>');
-  w.document.write('<div class="thanks">شكراً لثقتك بنا 🌹 — Merci pour votre confiance</div>');
-  w.document.write('</div>');
-  w.document.write('<br><button class="no-print" onclick="window.print()" style="width:100%;padding:.7rem;background:#e91e8c;color:#fff;border:none;border-radius:.5rem;cursor:pointer;font-size:.9rem;font-family:Tajawal,sans-serif">🖨️ طباعة الفاتورة</button>');
-  w.document.write('</body></html>');
-  w.document.close();
+  var html=''+
+  '<div style="font-family:Tajawal,Arial,sans-serif;color:#1a1a1a;padding:2rem;max-width:640px;margin:auto">'+
+    // ✅ Logo كبير في الأعلى
+    '<div style="text-align:center;margin-bottom:1.2rem">'+
+      (logoSrc?'<img src="'+logoSrc+'" style="height:80px;object-fit:contain" onerror="this.style.display=\'none\'">':'')+
+      '<div style="font-family:Georgia,serif;font-size:1.7rem;font-weight:600;margin-top:.3rem">Fleurs <em style="color:#c8963c;font-style:italic">❀</em> by liza</div>'+
+      '<div style="font-size:.62rem;letter-spacing:.25em;color:#888">FLOWER SHOP — ALGÉRIE</div>'+
+    '</div>'+
+    '<div style="border-top:3px solid #e91e8c;margin-bottom:1.3rem"></div>'+
+    // ✅ Réf كبير بارز
+    '<div style="text-align:center;background:#fce4f3;border-radius:.8rem;padding:.8rem;margin-bottom:1.2rem">'+
+      '<div style="font-size:.65rem;color:#a8467c;letter-spacing:.1em;font-weight:700">رقم الفاتورة — FACTURE N°</div>'+
+      '<div style="font-size:1.7rem;font-weight:900;color:#e91e8c;font-family:monospace,Tajawal">#'+ef(ref)+'</div>'+
+      '<div style="font-size:.75rem;color:#888;margin-top:.2rem">'+d.toLocaleDateString('fr-DZ')+' — '+d.toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'})+'</div>'+
+    '</div>'+
+    // ✅ معلومات المتجر يمين، الزبون يسار
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem">'+
+      '<div style="background:#f8f7f5;border-radius:.6rem;padding:.9rem;order:1">'+
+        '<div style="font-size:.65rem;font-weight:700;color:#888;letter-spacing:.08em;margin-bottom:.5rem">🏬 المتجر — VENDEUR</div>'+
+        '<div style="font-size:.85rem;font-weight:700">Fleurs by liza</div>'+
+        '<div style="font-size:.8rem;color:#555;margin-top:.2rem">'+ef((payInfo&&payInfo.whatsapp)?('واتساب: '+payInfo.whatsapp):'')+'</div>'+
+      '</div>'+
+      '<div style="background:#f8f7f5;border-radius:.6rem;padding:.9rem;order:2">'+
+        '<div style="font-size:.65rem;font-weight:700;color:#888;letter-spacing:.08em;margin-bottom:.5rem">👤 الزبون — CLIENT</div>'+
+        '<div style="font-size:.85rem;font-weight:700">'+ef(o.name||'')+'</div>'+
+        '<div style="font-size:.8rem;color:#555;margin-top:.2rem">'+ef(o.phone||'')+'</div>'+
+        (o.email?'<div style="font-size:.8rem;color:#555">'+ef(o.email)+'</div>':'')+
+        '<div style="font-size:.8rem;color:#555;margin-top:.2rem">'+ef(o.wilaya||'')+(o.commune?' — '+ef(o.commune):'')+'</div>'+
+        (o.address?'<div style="font-size:.78rem;color:#888">'+ef(o.address)+'</div>':'')+
+      '</div>'+
+    '</div>'+
+    // ✅ جدول المنتجات بألوان متناوبة
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:1.2rem;font-size:.83rem">'+
+      '<thead><tr style="background:#e91e8c;color:#fff">'+
+        '<th style="padding:.6rem;text-align:right;font-size:.72rem">المنتج</th>'+
+        '<th style="padding:.6rem;text-align:center;font-size:.72rem">الكمية</th>'+
+        '<th style="padding:.6rem;text-align:left;font-size:.72rem">السعر</th>'+
+      '</tr></thead>'+
+      '<tbody><tr style="background:#fdf0f6">'+
+        '<td style="padding:.6rem">'+(o.product_emoji||'🌹')+' '+ef(o.product_name||o.product||'')+(o.color?' ('+ef(o.color)+')':'')+'</td>'+
+        '<td style="padding:.6rem;text-align:center;font-family:monospace">×'+(o.qty||1)+'</td>'+
+        '<td style="padding:.6rem;text-align:left;font-family:monospace">'+money(pr)+' دج</td>'+
+      '</tr></tbody>'+
+    '</table>'+
+    (o.note?'<div style="font-size:.78rem;color:#e91e8c;background:#fce4f3;border-radius:.5rem;padding:.5rem .7rem;margin-bottom:1rem">📝 '+ef(o.note)+'</div>':'')+
+    // ✅ مجموع واضح مع breakdown
+    '<div style="border:1.5px solid #e91e8c;border-radius:.8rem;padding:.9rem;margin-bottom:1.2rem">'+
+      '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:.25rem 0"><span>سعر المنتج</span><span style="font-family:monospace">'+money(pr)+' دج</span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:.25rem 0"><span>التوصيل</span><span style="font-family:monospace">'+money(dc)+' دج</span></div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:1.15rem;font-weight:800;color:#e91e8c;border-top:1px solid #e91e8c;margin-top:.4rem;padding-top:.5rem"><span>المجموع الكلي</span><span style="font-family:monospace">'+money(tot)+' دج</span></div>'+
+      '<div style="font-size:.75rem;color:#888;margin-top:.3rem">طريقة الدفع: '+ef(o.payment_method||'')+'</div>'+
+    '</div>'+
+    // ✅ footer
+    '<div style="text-align:center;padding-top:1rem;border-top:1px dashed #ddd">'+
+      '<div style="font-size:.85rem;font-weight:700;color:#c8963c">Merci pour votre confiance — Fleurs by Liza 🌹</div>'+
+    '</div>'+
+  '</div>';
+  document.getElementById('printOvBody').innerHTML=html;
+  document.getElementById('printOv').classList.add('sh');
 }
 // ✅ Bon de livraison
 function printBL(o){
-  var w=window.open('','_blank');
-  if(!w)return;
   var ref=o.ref||o.id||'';
   var refShort=ref.length>10?ref.slice(-10):ref;
-  w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>BL #'+ef(refShort)+'</title>');
-  w.document.write('<style>body{font-family:Tajawal,Arial,sans-serif;padding:1.5rem;color:#111;max-width:500px;margin:auto;border:2px solid #111}');
-  w.document.write('.logo{font-size:1.3rem;font-weight:700;color:#c8963c}.bl-title{font-size:1.1rem;font-weight:700;text-align:center;margin:1rem 0;border:1px dashed #999;padding:.4rem}');
-  w.document.write('.row{display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid #eee;font-size:.88rem}');
-  w.document.write('.val{font-weight:700}.tot{font-size:1.1rem;color:#e91e8c;font-weight:800}');
-  w.document.write('@media print{button{display:none}}');
-  w.document.write('</style></head><body>');
-  w.document.write('<div class="logo">Fleurs ❀ by liza</div>');
-  w.document.write('<div class="bl-title">📦 بون الإرسال / Bon de Livraison</div>');
-  w.document.write('<div class="row"><span>Réf</span><span class="val" style="color:#e91e8c;font-size:1rem">#'+ef(refShort)+'</span></div>');
-  w.document.write('<div class="row"><span>التاريخ</span><span class="val">'+new Date(o.created_at||Date.now()).toLocaleDateString('ar-DZ')+'</span></div>');
-  w.document.write('<div class="row"><span>الزبون</span><span class="val">'+ef(o.name)+'</span></div>');
-  w.document.write('<div class="row"><span>الهاتف</span><span class="val">'+ef(o.phone)+'</span></div>');
-  w.document.write('<div class="row"><span>الولاية</span><span class="val">'+ef(o.wilaya||'')+'</span></div>');
-  w.document.write('<div class="row"><span>البلدية</span><span class="val">'+ef(o.commune||'—')+'</span></div>');
-  w.document.write('<div class="row"><span>العنوان</span><span class="val">'+ef(o.address||'—')+'</span></div>');
-  w.document.write('<div class="row"><span>المنتج</span><span class="val">'+(o.product_emoji||'🌹')+' '+ef(o.product_name||o.product||'')+(o.color?' / '+ef(o.color):'')+'  ×'+(o.qty||1)+'</span></div>');
-  w.document.write('<div class="row"><span>المجموع (COD)</span><span class="val tot">'+Number(o.total||0).toLocaleString('fr-DZ')+' دج</span></div>');
-  if(o.note)w.document.write('<div class="row"><span>ملاحظة</span><span class="val">'+ef(o.note)+'</span></div>');
-  w.document.write('<br><button onclick="window.print()" style="width:100%;padding:.65rem;background:#111;color:#fff;border:none;border-radius:.5rem;cursor:pointer;font-size:.88rem">🖨️ طباعة</button>');
-  w.document.write('</body></html>');
-  w.document.close();
+  var row=function(label,val,valStyle){return '<div style="display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid #eee;font-size:.88rem"><span>'+label+'</span><span style="font-weight:700'+(valStyle||'')+'">'+val+'</span></div>';};
+  var html=''+
+  '<div style="font-family:Tajawal,Arial,sans-serif;padding:2rem;color:#111;max-width:520px;margin:auto;border:2px solid #111;border-radius:.5rem">'+
+    '<div style="font-size:1.3rem;font-weight:700;color:#c8963c;text-align:center">Fleurs ❀ by liza</div>'+
+    '<div style="font-size:1.1rem;font-weight:700;text-align:center;margin:1rem 0;border:1px dashed #999;padding:.5rem;border-radius:.4rem">📦 بون الإرسال / Bon de Livraison</div>'+
+    row('Réf','#'+ef(refShort),';color:#e91e8c;font-size:1rem')+
+    row('التاريخ',new Date(o.created_at||Date.now()).toLocaleDateString('ar-DZ'))+
+    row('الزبون',ef(o.name||''))+
+    row('الهاتف',ef(o.phone||''))+
+    row('الولاية',ef(o.wilaya||''))+
+    row('البلدية',ef(o.commune||'—'))+
+    row('العنوان',ef(o.address||'—'))+
+    row('المنتج',(o.product_emoji||'🌹')+' '+ef(o.product_name||o.product||'')+(o.color?' / '+ef(o.color):'')+' ×'+(o.qty||1))+
+    row('المجموع',money(o.total)+' دج',';font-size:1.1rem;color:#e91e8c;font-weight:800')+
+    (o.note?row('ملاحظة',ef(o.note)):'')+
+  '</div>';
+  document.getElementById('printOvBody').innerHTML=html;
+  document.getElementById('printOv').classList.add('sh');
 }
 
 // ═══ STATE ═══
