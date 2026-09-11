@@ -499,6 +499,10 @@ async function onFile(f){
     var img=document.getElementById('prevImg');
     img.src=e.target.result; img.style.display='block';
     document.getElementById('upBtn').disabled=false;
+    // ✅ الرفع نفسه هو الـ trigger — يبدأ تلقائياً بمجرد اختيار/إفلات
+    // الصورة، بلا حاجة لضغط زر تأكيد إضافي. الزر يبقى ظاهراً فقط
+    // كإعادة محاولة يدوية إذا فشل الرفع التلقائي.
+    doUpload();
   };
   reader.readAsDataURL(f);
 }
