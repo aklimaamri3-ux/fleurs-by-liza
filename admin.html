@@ -1894,6 +1894,8 @@ function viewOrder(id){
   var hr=document.createElement('hr');hr.style.cssText='margin:.8rem 0;border-color:var(--bd)';body.appendChild(hr);
   // ملاحظة داخلية
   var ntD=document.createElement('div');ntD.className='fg';var ntL=document.createElement('label');ntL.className='fl';ntL.textContent='📝 ملاحظة داخلية (لا يراها الزبون)';var ntA=document.createElement('textarea');ntA.className='fi';ntA.id='ordNote';ntA.rows=2;ntA.placeholder='...';ntA.value=o.internal_note||'';ntD.appendChild(ntL);ntD.appendChild(ntA);body.appendChild(ntD);
+  // ✅ رقم التتبع — يُدخل يدوياً إذا ما اشتغلش Yalidine تلقائياً، يظهر للزبون في receipt.html
+  var trD=document.createElement('div');trD.className='fg';var trL=document.createElement('label');trL.className='fl';trL.textContent='🔍 رقم التتبع (يدوي — إذا ما اشتغلش Yalidine تلقائياً)';var trI=document.createElement('input');trI.className='fi';trI.id='ordTracking';trI.placeholder='مثلاً: yal-123456789';trI.value=o.yalidine_tracking||'';trD.appendChild(trL);trD.appendChild(trI);body.appendChild(trD);
   // تحديث الحالة
   var stD=document.createElement('div');stD.className='fg';var stL=document.createElement('label');stL.className='fl';stL.textContent='تحديث الحالة';var stS=document.createElement('select');stS.className='fi';stS.id='ordSS';[['new','🆕 جديد'],['confirmed','✅ مؤكد'],['shipping','🚚 في الطريق'],['delivered','📦 تم التوصيل'],['cancelled','❌ ملغى']].forEach(function(op){var opt=document.createElement('option');opt.value=op[0];opt.textContent=op[1];stS.appendChild(opt);});stD.appendChild(stL);stD.appendChild(stS);body.appendChild(stD);
   var saveBtn=document.createElement('button');saveBtn.className='btn btn-p';saveBtn.style.width='100%';saveBtn.textContent='💾 حفظ التحديثات';saveBtn.dataset.id=String(o.id||'');saveBtn.addEventListener('click',function(){updateOrdStatus(this.dataset.id);});body.appendChild(saveBtn);
@@ -2981,10 +2983,12 @@ function waStatusMsg(o,newStatus){
 }
 async function updateOrdStatus(id){
   var s=gv('ordSS'),note=document.getElementById('ordNote')?document.getElementById('ordNote').value:'';
+  var tracking=document.getElementById('ordTracking')?document.getElementById('ordTracking').value.trim():'';
   var upd={status:s};if(note.trim())upd.internal_note=note.trim();
+  if(document.getElementById('ordTracking'))upd.yalidine_tracking=tracking||null;
   try{
     await sbPatch('orders','id=eq.'+encodeURIComponent(id),upd);
-    var o=allOrders.find(function(x){return x.id===id;});if(o){o.status=s;if(note.trim())o.internal_note=note.trim();}
+    var o=allOrders.find(function(x){return x.id===id;});if(o){o.status=s;if(note.trim())o.internal_note=note.trim();o.yalidine_tracking=tracking||null;}
     toast('✅ تم التحديث');
     if(o&&o.phone&&['confirmed','shipping','delivered','cancelled'].indexOf(s)!==-1){
       var msg=waStatusMsg(o,s);

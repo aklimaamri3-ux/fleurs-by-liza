@@ -101,6 +101,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
       <div class="succ-emo">✅</div>
       <div class="ttl" id="p3Title">تم استلام الإيصال!</div>
       <div class="sub" id="p3Sub">سنراجع دفعتك ونؤكد طلبك قريباً 🌹</div>
+      <div id="trackingBox" class="h" style="margin-top:.8rem;background:#f3f3f3;border-radius:.6rem;padding:.6rem .9rem;font-size:.83rem"></div>
       <div id="deliveryProofBox" class="h" style="margin-top:1rem"></div>
       <div id="reviewBox" class="h" style="margin-top:1rem;text-align:right"></div>
       <button class="btn" style="display:block;box-sizing:border-box;text-align:center;margin-top:1rem;background:#111" id="p3Invoice" onclick="printInvoice()">🖨️ طباعة الفاتورة</button>
@@ -338,6 +339,12 @@ async function findOrder(){
       } else {
         t.textContent=fr2?'Paiement confirmé ✅':'تم تأكيد الدفع ✅';
         s.textContent=fr2?'Votre commande est confirmée et en préparation 🌹':'تم تأكيد طلبك وجاري تحضيره 🌹';
+      }
+      // ✅ رقم التتبع — تلقائي من Yalidine أو مُدخل يدوياً من الأدمن، نفس الحقل
+      var trBox=document.getElementById('trackingBox');
+      if(trBox&&order.yalidine_tracking&&featureFlags.tracking!==false){
+        trBox.textContent=(fr2?'📦 Numéro de suivi: ':'📦 رقم التتبع: ')+order.yalidine_tracking;
+        trBox.classList.remove('h');
       }
       loadDeliveryProof();
       loadReviewBox();
