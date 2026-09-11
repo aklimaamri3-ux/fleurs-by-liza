@@ -14,13 +14,20 @@
 
 const SB_URL = Deno.env.get('SUPABASE_URL')!
 const SB_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-// ✅ SITE_URL configurable via secret — falls back to the dev placeholder
-// until the real domain is set (site is not deployed yet).
-const SITE = Deno.env.get('SITE_URL') || 'https://maamri3-ux.github.io'
+// ✅ SITE_URL configurable via secret — the real live GitHub Pages
+// origin (https://aklimaamri3-ux.github.io — origin only, no /repo-name/
+// path; CORS Origin matching is scheme+host+port only). The previous
+// default here ('maamri3-ux.github.io', missing the 'akli' prefix) was
+// a typo that pointed at a domain that has never existed (confirmed:
+// 404), which silently broke every admin-side call to this function
+// from the real deployed site — CORS blocked the response before it
+// ever reached the browser's JS, surfacing as a generic "Failed to
+// fetch" with no useful error.
+const SITE = Deno.env.get('SITE_URL') || 'https://aklimaamri3-ux.github.io'
 
 // ✅ CORS: قائمة بيضاء — القيمة الأساسية + أي نطاقات إضافية من EXTRA_ORIGINS
 const ALLOWED_ORIGINS = new Set([
-  'https://maamri3-ux.github.io',
+  'https://aklimaamri3-ux.github.io',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:8843', // local dev/test static server
