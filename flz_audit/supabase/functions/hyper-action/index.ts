@@ -32,17 +32,20 @@ const ALLOWED_ORIGINS = new Set([
 const ADMIN_ACTIONS = new Set([
   'yalidine_wilayas', 'yalidine_rates', 'yalidine_communes',
   'yalidine_create_shipment', 'telegram_test', 'eur_rate', 'telegram_report',
+  'get_receipt_url', 'get_admin_delivery_proof_url',
 ])
 
 // ✅ Rate limiting لكل IP + action
 const RATE_LIMIT: Record<string, { limit: number; windowMs: number }> = {
-  telegram_notify:          { limit: 10,  windowMs: 60_000 },
-  slickpay_create:          { limit: 20,  windowMs: 60_000 },
-  slickpay_check:           { limit: 60,  windowMs: 60_000 },
-  slickpay_webhook:         { limit: 120, windowMs: 60_000 },
-  yalidine_create_shipment: { limit: 30,  windowMs: 60_000 },
-  send_email:               { limit: 15,  windowMs: 60_000 },
-  get_delivery_proof_url:   { limit: 20,  windowMs: 60_000 },
+  telegram_notify:              { limit: 10,  windowMs: 60_000 },
+  slickpay_create:              { limit: 20,  windowMs: 60_000 },
+  slickpay_check:               { limit: 60,  windowMs: 60_000 },
+  slickpay_webhook:             { limit: 120, windowMs: 60_000 },
+  yalidine_create_shipment:     { limit: 30,  windowMs: 60_000 },
+  send_email:                   { limit: 15,  windowMs: 60_000 },
+  get_delivery_proof_url:       { limit: 20,  windowMs: 60_000 },
+  get_receipt_url:              { limit: 60,  windowMs: 60_000 },
+  get_admin_delivery_proof_url: { limit: 60,  windowMs: 60_000 },
 }
 const hits = new Map<string, { count: number; resetAt: number }>()
 
@@ -64,6 +67,22 @@ function idFilter(v: any): string | null {
 function num(v: any): number | null {
   const s = String(v ?? '').trim()
   return RE_NUM.test(s) ? Number(s) : null
+}
+
+// ✅ uploadImg() in admin.html stores the FULL public-style URL
+// (".../storage/v1/object/public/<bucket>/<name>") even for private
+// buckets, but a receipt uploaded by a customer may only ever have
+// stored the bare object name. This normalizes either shape down to
+// just "<bucket>/<name>" — what Storage's /object/sign/ endpoint
+// actually expects — so signing works regardless of which upload
+// path wrote the value.
+function storagePath(urlOrName: string, bucket: string): string {
+  const s = String(urlOrName || '').trim()
+  if (!s) return ''
+  const m = s.match(/\/storage\/v1\/object\/(?:public|sign|authenticated)?\/?([^?]+)/)
+  if (m) return m[1].replace(/^\/+/, '')
+  if (s.startsWith(bucket + '/')) return s
+  return `${bucket}/${s.replace(/^\/+/, '')}`
 }
 
 Deno.serve(async (req) => {
@@ -136,7 +155,7 @@ Deno.serve(async (req) => {
       const order = await getOrder(filt, 'receipt_token,delivery_proof_url,status')
       if (!order || order.receipt_token !== token) return err('Not found', 404)
       if (!order.delivery_proof_url) return ok({ url: null })
-      const signRes = await jfetch(`${SB_URL}/storage/v1/object/sign/delivery_proofs/${encodeURIComponent(order.delivery_proof_url)}`, {
+      const signRes = await jfetch(`${SB_URL}/storage/v1/object/sign/${storagePath(order.delivery_proof_url, 'delivery_proofs')}`, {
         method: 'POST',
         headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ expiresIn: 600 }),
@@ -145,6 +164,51 @@ Deno.serve(async (req) => {
       const signData = await signRes.json()
       const signed = signData?.signedURL || ''
       return ok({ url: signed ? `${SB_URL}/storage/v1${signed}` : null, status: order.status })
+    }
+
+    // ── Receipt image: admin-only signed URL, server-side (service role) ──
+    // admin.html previously asked the visitor's own browser session to sign
+    // storage URLs directly against Supabase Storage — fragile (depends on
+    // the admin JWT's own storage permissions resolving correctly) and hard
+    // to diagnose from outside the admin panel. This does the signing here,
+    // with the service-role key, after verifying the caller is a real admin
+    // (same JWT check as every other admin action) — matching the proven
+    // get_delivery_proof_url pattern.
+    if (action === 'get_receipt_url') {
+      const filt = idFilter(body.order_id ?? '')
+      if (!filt) return err('Invalid order_id', 400)
+      const order = await getOrder(filt, 'receipt_url')
+      if (!order) return err('Not found', 404)
+      if (!order.receipt_url) return ok({ url: null })
+      const signRes = await jfetch(`${SB_URL}/storage/v1/object/sign/${storagePath(order.receipt_url, 'receipts')}`, {
+        method: 'POST',
+        headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expiresIn: 600 }),
+      })
+      if (!signRes.ok) return err('Failed to sign', 502)
+      const signData = await signRes.json()
+      const signed = signData?.signedURL || ''
+      return ok({ url: signed ? `${SB_URL}/storage/v1${signed}` : null })
+    }
+
+    // ── Delivery proof image: admin-only signed URL (mirrors get_receipt_url
+    // above) — used by the order-detail modal in admin.html, distinct from
+    // the customer-facing, token-gated get_delivery_proof_url action ──
+    if (action === 'get_admin_delivery_proof_url') {
+      const filt = idFilter(body.order_id ?? '')
+      if (!filt) return err('Invalid order_id', 400)
+      const order = await getOrder(filt, 'delivery_proof_url')
+      if (!order) return err('Not found', 404)
+      if (!order.delivery_proof_url) return ok({ url: null })
+      const signRes = await jfetch(`${SB_URL}/storage/v1/object/sign/${storagePath(order.delivery_proof_url, 'delivery_proofs')}`, {
+        method: 'POST',
+        headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expiresIn: 600 }),
+      })
+      if (!signRes.ok) return err('Failed to sign', 502)
+      const signData = await signRes.json()
+      const signed = signData?.signedURL || ''
+      return ok({ url: signed ? `${SB_URL}/storage/v1${signed}` : null })
     }
 
     // ── Telegram test ──

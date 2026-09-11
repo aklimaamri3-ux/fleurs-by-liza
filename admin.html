@@ -1850,7 +1850,8 @@ function viewOrder(id){
     var rImg=document.createElement('img');rImg.src='';rImg.style.cssText='max-width:100%;border-radius:.6rem;margin-top:.4rem;cursor:pointer;opacity:.5';
     rd.appendChild(rImg);body.appendChild(rd);
     // نجيب الـ signed URL بشكل async
-    signedUrl(o.receipt_url).then(function(su){
+    signedUrl(o.id,'get_receipt_url').then(function(su){
+      if(!su){ rImg.remove(); var errT=document.createElement('div'); errT.style.cssText='color:#e74c3c;font-size:.78rem;margin-top:.3rem'; errT.textContent='⚠️ تعذّر تحميل صورة الإيصال — أعيدي فتح الطلب'; rd.appendChild(errT); return; }
       rImg.src=su;rImg.style.opacity='1';
       rImg.addEventListener('click',function(){window.open(su,'_blank','noopener,noreferrer');});
     });
@@ -1861,7 +1862,10 @@ function viewOrder(id){
   if(o.delivery_proof_url&&_safeStorageRx.test(o.delivery_proof_url)){
     var dpImg=document.createElement('img');dpImg.style.cssText='max-width:100%;border-radius:.6rem;margin-bottom:.4rem;cursor:pointer;opacity:.5';
     dpD.appendChild(dpImg);
-    signedUrl(o.delivery_proof_url).then(function(su){dpImg.src=su;dpImg.style.opacity='1';dpImg.addEventListener('click',function(){window.open(su,'_blank','noopener,noreferrer');});});
+    signedUrl(o.id,'get_admin_delivery_proof_url').then(function(su){
+      if(!su){ dpImg.remove(); var errT2=document.createElement('div'); errT2.style.cssText='color:#e74c3c;font-size:.78rem;margin-bottom:.4rem'; errT2.textContent='⚠️ تعذّر تحميل الصورة — أعيدي فتح الطلب'; dpD.insertBefore(errT2,dpD.firstChild.nextSibling); return; }
+      dpImg.src=su;dpImg.style.opacity='1';dpImg.addEventListener('click',function(){window.open(su,'_blank','noopener,noreferrer');});
+    });
     var dpDelBtn=document.createElement('button');dpDelBtn.className='btn-d btn-sm';dpDelBtn.textContent='🗑️ حذف الصورة';dpDelBtn.dataset.id=String(o.id||'');
     dpDelBtn.addEventListener('click',function(){deleteDeliveryProof(this.dataset.id);});dpD.appendChild(dpDelBtn);
   } else {
@@ -2070,25 +2074,23 @@ function srcBadge(src){var m={whatsapp:'💬',instagram:'📸',facebook:'📘',t
 var _safeStorageRx=/^https:\/\/[a-z0-9]+\.supabase\.co\/storage\//;
 
 // ✅ Signed URL — بكت receipts خاص، session token إلزامي (10 دقائق صلاحية)
-async function signedUrl(fullUrl){
+// ✅ التوقيع يتم سيرفر-سايد عبر hyper-action (service role) بدل توقيع
+// المتصفح مباشرة ضد Supabase Storage بجلسة الأدمن — كان هذا يفشل بصمت
+// (صورة مكسورة بلا أي رسالة خطأ) كلما اختلفت صلاحيات جلسة الأدمن، والآن
+// نفس النمط المُثبَت المستعمل في get_delivery_proof_url للزبون.
+// action: 'get_receipt_url' أو 'get_admin_delivery_proof_url'
+async function signedUrl(orderId, action){
   try{
     var tok=sessionStorage.getItem(TOK);
     if(!tok)return ''; // بلا جلسة = بلا صورة
-    var path=fullUrl.replace(SB_URL+'/storage/v1/object/public/','')
-                    .replace(SB_URL+'/storage/v1/object/','');
-    var r=await fetch(SB_URL+'/storage/v1/object/sign/'+path,{
+    var r=await fetch(SB_URL+'/functions/v1/hyper-action',{
       method:'POST',
       headers:{apikey:SB_ANON,Authorization:'Bearer '+tok,'Content-Type':'application/json'},
-      body:JSON.stringify({expiresIn:600})
+      body:JSON.stringify({action:action,order_id:orderId})
     });
-    if(!r.ok)return ''; // فشل → بلا صورة (لا نكشف الـ public URL)
+    if(!r.ok)return '';
     var d=await r.json();
-    var signed=d.signedURL||d.signedUrl||'';
-    if(!signed)return '';
-    // ✅ Supabase يرجع مساراً نسبياً (/storage/v1/...) — المتصفح يحلّه على نطاق الصفحة
-    // الحالية (مثلاً localhost أو موقعك) بدل نطاق Supabase، فتفشل الصورة بصمت.
-    if(signed.indexOf('http')!==0) signed=SB_URL+signed;
-    return signed;
+    return d.url||'';
   }catch(e){return '';}
 }
 
@@ -2103,7 +2105,7 @@ async function loadReceipts(){
     var signedMap={};
     await Promise.all(rows.map(async function(o){
       if(o.receipt_url&&_safeStorageRx.test(o.receipt_url)){
-        signedMap[o.id]=await signedUrl(o.receipt_url);
+        signedMap[o.id]=await signedUrl(o.id,'get_receipt_url');
       }
     }));
     rows.forEach(function(o){
