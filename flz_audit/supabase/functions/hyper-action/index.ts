@@ -250,6 +250,33 @@ Deno.serve(async (req) => {
       return ok(await sendTG(msg))
     }
 
+    // ── Receipts expiry: pg_cron only, same CRON_SECRET pattern as
+    // cron_daily_report above. Deletes the actual uploaded receipt
+    // image from the private 'receipts' bucket 30 days after upload
+    // (receipt_at) and clears orders.receipt_url — the order row
+    // itself, and every other field on it, is untouched. ──
+    if (action === 'cron_purge_receipts') {
+      const cronSecret = Deno.env.get('CRON_SECRET')
+      const provided = req.headers.get('X-Cron-Secret') || ''
+      if (!cronSecret || provided !== cronSecret) return err('Unauthorized', 401)
+      const cutoff = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString()
+      const rows = ((await sbGet(`orders?receipt_url=not.is.null&receipt_at=lt.${cutoff}&select=id,receipt_url`)) as any[]) || []
+      if (!rows.length) return ok({ ok: true, purged: 0 })
+      const prefixes = rows.map((o) => storagePath(o.receipt_url, 'receipts')).filter(Boolean)
+      if (prefixes.length) {
+        await jfetch(`${SB_URL}/storage/v1/object/receipts`, {
+          method: 'DELETE',
+          headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefixes: prefixes.map((p) => p.replace(/^receipts\//, '')) }),
+        }).catch((e) => console.error('receipt storage delete failed:', e))
+      }
+      for (const o of rows) {
+        try { await sbPatch('orders', `id=eq.${o.id}`, { receipt_url: null }) }
+        catch (e) { console.error('failed clearing receipt_url for', o.id, e) }
+      }
+      return ok({ ok: true, purged: rows.length })
+    }
+
     // ── Telegram test ──
     if (action === 'telegram_test') {
       return ok(await sendTG('🌹 *Fleurs by Liza* — اختبار ناجح! ✅'))

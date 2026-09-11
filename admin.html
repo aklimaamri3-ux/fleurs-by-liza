@@ -2153,12 +2153,22 @@ async function loadReceipts(){
       var nm=document.createElement('div');nm.style.fontSize='.72rem';nm.textContent=o.name||'';cb.appendChild(nm);
       var pr=document.createElement('div');pr.className='pcard-a-price';pr.textContent=money(o.total)+' دج';cb.appendChild(pr);
       var acts=document.createElement('div');acts.className='pcard-a-acts';
+      // ✅ زر "عرض" مستقل — يفتح الصورة بتاب جديد، ويطلب رابطاً موقّعاً
+      // جديداً عند الضغط (لا يعتمد فقط على su المخزّن مسبقاً، الذي قد
+      // تنتهي صلاحيته بعد 10 دقائق إن بقيت القائمة مفتوحة لمدة أطول) —
+      // يبقى يعمل بعد الضغط على قبول/رفض أيضاً لأنه لا يعتمد على حالة الطلب
+      var vwBtn=document.createElement('button');vwBtn.className='btn-o btn-sm';vwBtn.textContent='👁️ عرض';vwBtn.dataset.id=oid;
+      if(!su){vwBtn.disabled=true;vwBtn.title='لا يوجد إيصال مرفوع لهذا الطلب';vwBtn.style.opacity='.4';vwBtn.style.cursor='not-allowed';}
+      else vwBtn.addEventListener('click',async function(){
+        var fresh=await signedUrl(this.dataset.id,'get_receipt_url');
+        window.open(fresh||su,'_blank','noopener,noreferrer');
+      });
       var apBtn=document.createElement('button');apBtn.className='btn-g btn-sm';apBtn.textContent='✅ قبول';apBtn.dataset.id=oid;
       // ✅ لا قبول بلا إيصال حقيقي مرفوع — يمنع الموافقة العمياء على طلب بلا دليل دفع
       if(!su){apBtn.disabled=true;apBtn.title='لا يوجد إيصال مرفوع لهذا الطلب';apBtn.style.opacity='.4';apBtn.style.cursor='not-allowed';}
       else apBtn.addEventListener('click',function(){approveRec(this.dataset.id);});
       var rjBtn=document.createElement('button');rjBtn.className='btn-d btn-sm';rjBtn.textContent='❌ رفض';rjBtn.dataset.id=oid;rjBtn.addEventListener('click',function(){rejectRec(this.dataset.id);});
-      acts.appendChild(apBtn);acts.appendChild(rjBtn);cb.appendChild(acts);card.appendChild(cb);g.appendChild(card);
+      acts.appendChild(vwBtn);acts.appendChild(apBtn);acts.appendChild(rjBtn);cb.appendChild(acts);card.appendChild(cb);g.appendChild(card);
     });
   }catch(e){var er=document.createElement('div');er.style.cssText='color:#e74c3c;padding:1rem';er.textContent='⚠️ '+e.message;g.appendChild(er);}
 }
