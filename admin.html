@@ -1456,6 +1456,14 @@ async function loadDash(silent){
       return s+(p&&p.cost_price?Number(p.cost_price)*(Number(o.qty)||1):0);
     },0);
     var profit=rev-cost;
+    // ✅ طلبات اليوم + إجمالي الإيرادات (كل الطلبات غير الملغاة) + الربح
+    // من حبة ورد واحدة = إجمالي الإيرادات ÷ عدد الوحدات المباعة
+    var todayStr=new Date().toISOString().slice(0,10);
+    var todayCount=allOrders.filter(function(o){return (o.created_at||'').slice(0,10)===todayStr;}).length;
+    var nonCancelled=allOrders.filter(function(o){return o.status!=='cancelled';});
+    var totalRevenue=nonCancelled.reduce(function(s,o){return s+(Number(o.total)||0);},0);
+    var unitsSold=nonCancelled.reduce(function(s,o){return s+(Number(o.qty)||1);},0);
+    var revenuePerUnit=unitsSold>0?totalRevenue/unitsSold:0;
     // تحديث badge
     var badge=document.getElementById('newOrdBadge');
     if(badge){badge.textContent=newO>0?newO:'';badge.style.display=newO>0?'inline-block':'none';}
@@ -1465,10 +1473,13 @@ async function loadDash(silent){
     var sg=document.getElementById('dashStats');sg.innerHTML='';
     [
       {ic:'📦',val:total,lbl:'إجمالي الطلبات'},
+      {ic:'📅',val:todayCount,lbl:'طلبات اليوم'},
       {ic:'🆕',val:newO,lbl:'جديدة'},
       {ic:'✅',val:delivered.length,lbl:'ناجحة'},
       {ic:'❌',val:cancelled,lbl:'ملغاة'},
       {ic:'💰',val:money(rev)+' دج',lbl:'إيرادات (مكتملة)'},
+      {ic:'🏦',val:money(totalRevenue)+' دج',lbl:'إجمالي الإيرادات'},
+      {ic:'🌹',val:unitsSold>0?money(Math.round(revenuePerUnit))+' دج':'—',lbl:'الربح من حبة ورد واحدة'},
       {ic:'📈',val:cost>0?money(profit)+' دج':'—',lbl:'أرباح تقريبية'},
       {ic:'🧾',val:pending,lbl:'تنتظر مراجعة'},
     ].forEach(function(s){
