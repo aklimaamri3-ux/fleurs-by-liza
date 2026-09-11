@@ -340,10 +340,11 @@ async function findOrder(){
         t.textContent=fr2?'Paiement confirmé ✅':'تم تأكيد الدفع ✅';
         s.textContent=fr2?'Votre commande est confirmée et en préparation 🌹':'تم تأكيد طلبك وجاري تحضيره 🌹';
       }
-      // ✅ رقم التتبع — تلقائي من Yalidine أو مُدخل يدوياً من الأدمن، نفس الحقل
+      // ✅ رقم التتبع = مرجع الطلب الأصلي (FBL-XXXX) — لا نعتمد على Yalidine
       var trBox=document.getElementById('trackingBox');
-      if(trBox&&order.yalidine_tracking&&featureFlags.tracking!==false){
-        trBox.textContent=(fr2?'📦 Numéro de suivi: ':'📦 رقم التتبع: ')+order.yalidine_tracking;
+      var refNum=order.ref||order.id||'';
+      if(trBox&&refNum&&featureFlags.tracking!==false){
+        trBox.textContent=(fr2?'📦 Numéro de suivi: ':'📦 رقم التتبع: ')+refNum;
         trBox.classList.remove('h');
       }
       loadDeliveryProof();
