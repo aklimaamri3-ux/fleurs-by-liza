@@ -2978,7 +2978,10 @@ async function sendDailyReport(){
     var topW=Object.entries(wc).sort(function(a,b){return b[1]-a[1];})[0];
     var pc={};rows.forEach(function(o){var p=o.product_name||o.product||'?';pc[p]=(pc[p]||0)+1;});
     var topP=Object.entries(pc).sort(function(a,b){return b[1]-a[1];})[0];
-    var msg='📊 *تقرير '+from+'*\n\n📦 الطلبات: '+rows.length+'\n✅ الناجحة: '+done.length+'\n💰 الإيرادات: '+money(rev)+' دج\n'+(topW?'🗺️ أكثر ولاية: '+topW[0]+' ('+topW[1]+')\n':'')+(topP?'🌹 أكثر منتج: '+topP[0]+' ('+topP[1]+')\n':'')+'\n— Fleurs by Liza 🌹';
+    // ✅ طلبات بانتظار المراجعة منذ أكثر من 24 ساعة — تحتاج متابعة عاجلة
+    var dayAgo=new Date(Date.now()-24*3600*1000).toISOString();
+    var stale=await sbGet('orders','?payment_status=eq.waiting_review&created_at=lt.'+encodeURIComponent(dayAgo)+'&select=id,name,created_at');
+    var msg='📊 *تقرير '+from+'*\n\n📦 الطلبات: '+rows.length+'\n✅ الناجحة: '+done.length+'\n💰 الإيرادات: '+money(rev)+' دج\n'+(topW?'🗺️ أكثر ولاية: '+topW[0]+' ('+topW[1]+')\n':'')+(topP?'🌹 أكثر منتج: '+topP[0]+' ('+topP[1]+')\n':'')+((stale&&stale.length)?'\n⚠️ *طلبات تحتاج متابعة (بانتظار المراجعة +24 ساعة):* '+stale.length+'\n':'')+'\n— Fleurs by Liza 🌹';
     await fetch(SB_URL+'/functions/v1/hyper-action',{
       method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},
       body:JSON.stringify({action:'telegram_report',message:msg})});

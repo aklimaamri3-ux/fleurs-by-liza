@@ -211,6 +211,38 @@ Deno.serve(async (req) => {
       return ok({ url: signed ? `${SB_URL}/storage/v1${signed}` : null })
     }
 
+    // ── Daily report: pg_cron only, not an admin action ──
+    // triggered by a scheduled Postgres job (pg_cron + pg_net), never by a
+    // browser — authenticated with a dedicated CRON_SECRET (not the admin
+    // JWT flow, not the service-role key) so a leak of this one value can
+    // only ever trigger a report send, nothing else.
+    if (action === 'cron_daily_report') {
+      const cronSecret = Deno.env.get('CRON_SECRET')
+      const provided = req.headers.get('X-Cron-Secret') || ''
+      if (!cronSecret || provided !== cronSecret) return err('Unauthorized', 401)
+      const from = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+      const rows = await sbGet(`orders?created_at=gte.${from}&select=status,total,wilaya,product_name`)
+      const list = (rows as any[]) || []
+      if (!list.length) return ok({ ok: true, skipped: 'no orders' })
+      const done = list.filter((o) => o.status !== 'cancelled')
+      const rev = done.reduce((s, o) => s + (Number(o.total) || 0), 0)
+      const wc: Record<string, number> = {}
+      list.forEach((o) => { if (o.wilaya) wc[o.wilaya] = (wc[o.wilaya] || 0) + 1 })
+      const topW = Object.entries(wc).sort((a, b) => b[1] - a[1])[0]
+      const pc: Record<string, number> = {}
+      list.forEach((o) => { const p = o.product_name || '?'; pc[p] = (pc[p] || 0) + 1 })
+      const topP = Object.entries(pc).sort((a, b) => b[1] - a[1])[0]
+      const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+      const stale = ((await sbGet(`orders?payment_status=eq.waiting_review&created_at=lt.${dayAgo}&select=id`)) as any[]) || []
+      const dateStr = new Date().toISOString().slice(0, 10)
+      let msg = `📊 *تقرير ${dateStr}*\n\n📦 الطلبات: ${list.length}\n✅ الناجحة: ${done.length}\n💰 الإيرادات: ${rev.toLocaleString('fr-DZ')} دج\n`
+      if (topW) msg += `🗺️ أكثر ولاية: ${topW[0]} (${topW[1]})\n`
+      if (topP) msg += `🌹 أكثر منتج: ${topP[0]} (${topP[1]})\n`
+      if (stale.length) msg += `\n⚠️ *طلبات تحتاج متابعة (بانتظار المراجعة +24 ساعة):* ${stale.length}\n`
+      msg += '\n— Fleurs by Liza 🌹'
+      return ok(await sendTG(msg))
+    }
+
     // ── Telegram test ──
     if (action === 'telegram_test') {
       return ok(await sendTG('🌹 *Fleurs by Liza* — اختبار ناجح! ✅'))
