@@ -43,10 +43,21 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 /* ── HEADER ── */
 header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
-.logo{font-family:var(--font-serif);font-size:1.5rem;letter-spacing:.08em;font-weight:600;}
+.logo{font-family:var(--font-serif);font-size:1.5rem;letter-spacing:.08em;font-weight:600;white-space:nowrap;}
 .logo em{color:var(--pk);font-style:italic;}
-.logo small{display:block;font-family:var(--font-en);font-size:.5rem;letter-spacing:.35em;color:var(--mt);font-weight:400;margin-top:-.1rem;}
+.logo small{display:block;font-family:var(--font-en);font-size:.5rem;letter-spacing:.35em;color:var(--mt);font-weight:400;margin-top:-.1rem;white-space:nowrap;}
 .header-right{display:flex;align-items:center;gap:.8rem;}
+/* ✅ تحت ~400px الشعار كان ينكسر لسطرين فيكبر الهيدر اللاصق ويغطي
+   عنوان القسم اللي تحته عند القفز لرابط داخلي — نصغّر بدل ما نخليه ينكسر */
+@media(max-width:400px){
+  header{padding:.7rem .8rem;gap:.5rem;}
+  .logo{font-size:1.05rem;letter-spacing:.02em;}
+  .logo small{font-size:.42rem;letter-spacing:.22em;}
+  .header-right{gap:.4rem;}
+  .lang-btn{padding:.28rem .55rem;font-size:.68rem;}
+  .track-btn{padding:.36rem .7rem;font-size:.68rem;}
+}
+
 .lang-btn{padding:.3rem .7rem;border:1px solid var(--bd);border-radius:2rem;font-size:.72rem;font-weight:600;background:none;color:var(--mt);}
 .lang-btn:hover{border-color:var(--pk);color:var(--pk);}
 .track-btn{padding:.4rem 1rem;background:var(--pk);color:var(--wh);border-radius:2rem;font-size:.76rem;font-weight:600;}
@@ -77,6 +88,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.95);backdr
 
 /* ── SECTION ── */
 .sec{padding:4rem 1.5rem;}
+#products,#track{scroll-margin-top:5.5rem;}
 .sec-eyebrow{text-align:center;font-family:var(--font-en);font-size:.68rem;letter-spacing:.3em;color:var(--pk);margin-bottom:.6rem;}
 .sec-title{text-align:center;font-family:var(--font-serif);font-size:clamp(1.6rem,4vw,2.4rem);font-weight:400;margin-bottom:.4rem;}
 .sec-sub{text-align:center;color:var(--mt);font-size:.85rem;margin-bottom:2.5rem;max-width:480px;margin-left:auto;margin-right:auto;}
