@@ -64,7 +64,10 @@ header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.94);backdr
 .hero h1{font-family:var(--font-serif);font-size:clamp(2rem,8vw,2.6rem);line-height:1.15;font-weight:600;margin-bottom:.7rem;text-wrap:balance;}
 .hero h1 em{color:#f2b8d4;font-style:italic;}
 .hero p{font-size:.92rem;color:#f0e6ea;max-width:34ch;margin-bottom:1.3rem;line-height:1.6;}
-.hero-cta{display:inline-flex;align-items:center;gap:.5rem;background:var(--pk2);color:#fff;padding:1rem 1.8rem;border-radius:3rem;font-weight:800;font-size:.98rem;box-shadow:0 10px 30px -8px rgba(233,30,140,.6);}
+.hero-cta{display:inline-flex;align-items:center;gap:.5rem;background:var(--pk2);color:#fff;padding:1rem 1.8rem;border-radius:3rem;font-weight:800;font-size:.98rem;box-shadow:0 10px 30px -8px rgba(233,30,140,.6);transition:transform .15s ease;}
+.hero-cta:active{transform:scale(.96);}
+.hero-badge{display:inline-flex;align-items:center;gap:.3rem;background:rgba(255,255,255,.16);backdrop-filter:blur(4px);color:#fff;padding:.35rem .8rem;border-radius:2rem;font-size:.7rem;font-weight:700;margin-bottom:.8rem;}
+#heroPrice del{color:#f2b8d4;font-weight:500;font-size:.9rem;margin-inline-start:.5rem;}
 
 /* trust strip */
 .trust{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;padding:1.3rem .6rem;background:var(--gy);text-align:center;}
@@ -127,10 +130,12 @@ footer{padding:1.6rem 0;text-align:center;font-size:.7rem;color:var(--mt);}
 <section class="hero">
   <img id="heroImg" src="" alt="" style="display:none">
   <div class="hero-in">
-    <div class="hero-eyebrow">FRAÎCHEUR · ÉLÉGANCE · LIVRAISON RAPIDE</div>
-    <h1>باقات ورد <em>فاخرة</em><br>توصَل لبابك في الجزائر</h1>
-    <p>ورود طازجة مستوردة ومحلية، تغليف أنيق يليق بالمناسبة، وتوصيل سريع بدون الحاجة لإنشاء أي حساب.</p>
-    <a href="index.html#products" class="hero-cta">🌹 اطلبي الآن</a>
+    <div class="hero-badge" id="heroBadge" style="display:none">✨ منتج مميز</div>
+    <div class="hero-eyebrow" id="heroEyebrow">FRAÎCHEUR · ÉLÉGANCE · LIVRAISON RAPIDE</div>
+    <h1 id="heroTitle">باقات ورد <em>فاخرة</em><br>توصَل لبابك في الجزائر</h1>
+    <p id="heroDesc">ورود طازجة مستوردة ومحلية، تغليف أنيق يليق بالمناسبة، وتوصيل سريع بدون الحاجة لإنشاء أي حساب.</p>
+    <div id="heroPrice" style="display:none;font-family:var(--font-en);font-weight:800;font-size:1.3rem;margin-bottom:1rem"></div>
+    <a href="index.html#products" id="heroCta" class="hero-cta">🌹 اطلبي الآن</a>
   </div>
 </section>
 
@@ -203,6 +208,51 @@ var _safeStorageRx = /^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/(
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 
+function firstImg(p){
+  if (p.media_items && p.media_items.length) {
+    for (var j=0;j<p.media_items.length;j++){
+      if (p.media_items[j] && p.media_items[j].type==='image') return p.media_items[j].src;
+    }
+  }
+  return '';
+}
+
+// ✅ المنتج المميز — يختاره الأدمن من صفحة الإعدادات، يظهر كبير في الـ hero
+// ويتحدث تلقائياً عند تغيير الاختيار. إذا ما فيه اختيار، الـ hero يبقى
+// بالنص الافتراضي بدون منتج محدد (بلا بيانات وهمية).
+var _heroImgSet = false;
+async function loadFeaturedProduct(){
+  try{
+    var cfg = await getSetting('landing_featured_product');
+    var pid = cfg && cfg.product_id;
+    if(!pid) return;
+    var rows = await sbGet('products', '?id=eq.'+encodeURIComponent(pid)+'&active=eq.true&limit=1');
+    var p = rows && rows[0];
+    if(!p) return;
+    var name = p.name_ar || p.name || '';
+    var price = Number(p.price)||0, old = Number(p.old_price)||0;
+    var imgSrc = firstImg(p);
+    if(imgSrc && _safeStorageRx.test(imgSrc)){
+      var heroImg = document.getElementById('heroImg');
+      heroImg.src = imgSrc; heroImg.alt = name; heroImg.style.display='block';
+      _heroImgSet = true;
+    }
+    document.getElementById('heroBadge').style.display='inline-flex';
+    if(name){
+      document.getElementById('heroTitle').textContent = name;
+      document.getElementById('heroDesc').textContent = p.description_ar || p.description || 'باقة مختارة بعناية من مجموعتنا — تغليف أنيق وتوصيل سريع لكل الجزائر.';
+    }
+    if(price){
+      var priceBox = document.getElementById('heroPrice');
+      priceBox.innerHTML = money(price)+' دج' + (old>price?'<del>'+money(old)+' دج</del>':'');
+      priceBox.style.display='block';
+    }
+    var cta = document.getElementById('heroCta');
+    cta.href = 'product.html?id='+encodeURIComponent(p.id);
+    cta.textContent = '🌹 اطلبي هذه الباقة الآن';
+  }catch(e){ console.warn('featuredProduct', e.message); }
+}
+
 // ✅ المنتجات الأكثر طلباً — نعطي الأولوية لمنتجات is_promo، ثم أي منتج
 // مفعّل عنده صورة، بلا أي بيانات وهمية
 async function loadBestProds(){
@@ -211,20 +261,14 @@ async function loadBestProds(){
     var g = document.getElementById('prodGrid');
     g.innerHTML = '';
     if(!rows || !rows.length) return;
-    var heroImgSet = false;
     rows.forEach(function(p){
       var name = p.name_ar || p.name || '';
       var price = Number(p.price)||0, old = Number(p.old_price)||0;
-      var imgSrc = '';
-      if (p.media_items && p.media_items.length) {
-        for (var j=0;j<p.media_items.length;j++){
-          if (p.media_items[j] && p.media_items[j].type==='image') { imgSrc = p.media_items[j].src; break; }
-        }
-      }
-      if(!heroImgSet && imgSrc && _safeStorageRx.test(imgSrc)){
+      var imgSrc = firstImg(p);
+      if(!_heroImgSet && imgSrc && _safeStorageRx.test(imgSrc)){
         var heroImg = document.getElementById('heroImg');
         heroImg.src = imgSrc; heroImg.style.display='block';
-        heroImgSet = true;
+        _heroImgSet = true;
       }
       var card = document.createElement('a');
       card.href = 'product.html?id=' + encodeURIComponent(p.id);
@@ -313,7 +357,7 @@ async function loadContact(){
   }catch(e){}
 }
 
-loadBestProds();
+loadFeaturedProduct().then(loadBestProds);
 loadStats();
 loadReviews();
 loadPayMethods();

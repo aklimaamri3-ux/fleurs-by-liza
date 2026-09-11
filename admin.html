@@ -783,6 +783,14 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
           <button class="btn btn-p" onclick="saveSettings()">💾 حفظ</button>
         </div>
         <div class="card">
+          <div class="ct" style="margin-bottom:.8rem">🚀 صفحة الهبوط (Landing Page)</div>
+          <div class="fg"><label class="fl">المنتج المميز في صفحة الهبوط</label>
+            <select class="fi" id="setLandingProd"><option value="">— اختاري منتج —</option></select>
+            <div style="font-size:.68rem;color:var(--mt);margin-top:.3rem">يظهر كبير في أعلى landing.html ويتحدث تلقائياً عند تغيير الاختيار</div>
+          </div>
+          <button class="btn btn-p" onclick="saveLandingFeatured()">💾 حفظ</button>
+        </div>
+        <div class="card">
           <div class="ct" style="margin-bottom:.8rem">🔔 Push Notifications</div>
           <div style="font-size:.78rem;color:var(--mt);margin-bottom:.6rem">إشعار فوري على هاتفك عند كل طلب جديد — بلا ما تفتحي تيليغرام</div>
           <button class="btn btn-p" onclick="initPushNotifications()">🔔 تفعيل الإشعارات</button>
@@ -3095,6 +3103,21 @@ async function loadSettingsPage(){
     }
   }catch(e){}
   loadFeatureFlags();
+  loadLandingFeatured();
+}
+async function loadLandingFeatured(){
+  var sel=document.getElementById('setLandingProd');if(!sel)return;
+  try{
+    if(!allProds||!allProds.length){allProds=await sbGet('products','?deleted_at=is.null&order=sort_order.asc,created_at.desc')||[];}
+    sel.innerHTML='<option value="">— اختاري منتج —</option>';
+    allProds.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name_ar||p.name||p.id;sel.appendChild(o);});
+    var cur=await getSetting('landing_featured_product');
+    if(cur&&cur.product_id)sel.value=cur.product_id;
+  }catch(e){}
+}
+async function saveLandingFeatured(){
+  var id=gv('setLandingProd');
+  try{await setSetting('landing_featured_product',{product_id:id||null});toast('✅ تم الحفظ');}catch(e){toast('❌ '+e.message);}
 }
 var FEATURE_LABELS={cart:'🛒 السلة',wishlist:'🤍 المفضلة',promotions:'🎁 البروموسيون',ads:'📣 الإعلانات',reviews:'⭐ التقييمات',occasions:'🎉 المناسبات',telegram_notifications:'📱 إشعارات تيليغرام',email_notifications:'📧 إشعارات الإيميل',whatsapp_actions:'💬 واتساب',yalidine:'🚚 Yalidine',delivery_proof:'📸 إثبات التوصيل',tracking:'🔍 تتبع الطلب',invoice:'🧾 الفاتورة',search:'🔎 البحث'};
 async function loadFeatureFlags(){
