@@ -210,6 +210,7 @@ footer p{font-size:.78rem;line-height:1.7;}
 <header>
   <a href="index.html" class="logo">Fleurs<em>❀</em>by liza<small>FLOWER SHOP — ALGÉRIE</small></a>
   <div class="header-right">
+    <a href="landing.html" class="lang-btn" id="navLanding" title="Landing page" style="text-decoration:none">🚀</a>
     <button class="lang-btn" onclick="setLang(LANG==='ar'?'fr':'ar')">FR / AR</button>
     <button class="lang-btn" id="wishToggleBtn" onclick="toggleWishlistView()" style="position:relative">
       🤍
@@ -241,8 +242,8 @@ footer p{font-size:.78rem;line-height:1.7;}
   <h1 class="hero-title" id="heroTitle">باقات الورد <em>الفاخرة</em><br>لكل مناسبة</h1>
   <p class="hero-sub" id="heroSub">ورود طازجة مستوردة، تغليف أنيق، وتوصيل سريع لكل ولايات الجزائر</p>
   <div class="hero-ctas">
-    <a href="#products" class="btn-primary" id="heroCta1" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'});return false;">🌹 اكتشفي الباقات</a>
-    <a href="#track" class="btn-ghost" id="heroCta2" onclick="document.getElementById('track').scrollIntoView({behavior:'smooth'});return false;">تتبع طلبك</a>
+    <a href="#products" class="btn-primary" id="heroCta1">🌹 اكتشفي الباقات</a>
+    <a href="#track" class="btn-ghost" id="heroCta2">تتبع طلبك</a>
   </div>
   <div class="hero-stats">
     <div class="hst"><b id="stO">5K+</b><span id="stOl">طلب</span></div>
@@ -1102,6 +1103,13 @@ async function loadBizHours(){
     document.body.appendChild(badge);
   }catch(e){console.warn('business hours',e.message);}
 }
+// ✅ addEventListener بدل onclick مباشر على وسم <a> — يتجنب أي تعارض
+// محتمل بين قفزة الرابط الأصلية (#products/#track) وسكرول smooth الـ JS
+(function(){
+  var c1=document.getElementById('heroCta1'), c2=document.getElementById('heroCta2');
+  if(c1)c1.addEventListener('click',function(e){e.preventDefault();var t=document.getElementById('products');if(t)t.scrollIntoView({behavior:'smooth'});});
+  if(c2)c2.addEventListener('click',function(e){e.preventDefault();var t=document.getElementById('track');if(t)t.scrollIntoView({behavior:'smooth'});});
+})();
 init();
 </script>
 </body>
