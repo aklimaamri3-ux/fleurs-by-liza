@@ -418,6 +418,13 @@ async function loadProd(){
     document.getElementById('pName').textContent=name;
     document.getElementById('pDesc').textContent=desc;
     document.title=name+' — Fleurs by Liza';
+    // ✅ منتج غير مفعّل — يبقى ظاهراً بكل تفاصيله، فقط أزرار الطلب تتعطّل
+    if(prod.active===false){
+      var ob=document.getElementById('orderBtn'), acb=document.getElementById('addCartBtn');
+      var unavail=LANG==='fr'?'😔 Indisponible actuellement':'😔 غير متوفر حالياً';
+      if(ob){ob.textContent=unavail;ob.disabled=true;ob.style.cssText+='opacity:.5;cursor:not-allowed';}
+      if(acb){acb.style.display='none';}
+    }
     // ✅ SEO dinamique من الأدمن
     try{
       var seo=await getSetting('seo');
