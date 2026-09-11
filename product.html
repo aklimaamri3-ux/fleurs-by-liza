@@ -73,6 +73,10 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
 .skel-img{width:100%;aspect-ratio:1;border-radius:.5rem;}
 .skel-line{height:1rem;border-radius:.4rem;margin-bottom:.4rem;}
 .skel-line.w80{width:80%}.skel-line.w60{width:60%}.skel-line.w40{width:40%}
+.ad-banner{display:block;border-radius:.7rem;overflow:hidden;max-width:900px;margin:.6rem auto;box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.ad-banner img{width:100%;display:block;max-height:110px;object-fit:cover;}
+@media(min-width:768px){.ad-banner img{max-height:160px;}}
+.ad-banner.no-link{cursor:default;}
 </style>
 </head>
 <body>
@@ -89,7 +93,8 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
   <span id="breadSep" style="display:none">›</span>
   <span id="breadName" style="color:var(--pk2);font-weight:600;display:none"></span>
 </div>
-<div class="gal" id="gal">
+<div id="adsTop" style="display:none"></div>
+<div class="gal" id="gal"
   <div class="gal-main" id="galMain" onclick="openZoom()"><div class="emo">🌹</div></div>
   <div class="gal-thumbs" id="galThumbs"></div>
 </div>
@@ -355,6 +360,34 @@ function shareWA(){var name=prod?(prod.name_ar||prod.name||''):'';window.open('h
 var featureFlags={};
 async function loadFeatureFlags(){try{featureFlags=await getSetting('feature_flags')||{};}catch(e){featureFlags={};}}
 function featOn(key){return featureFlags[key]!==false;}
+
+// ✅ إعلانات أعلى صفحة المنتج — placement='product_page' (نفس القيمة
+// الموجودة أصلاً في قائمة الأدمن، لم تكن مربوطة بأي كود من قبل)، مع دعم ربط
+// اختياري بمنتج معيّن (تظهر فقط في صفحته) أو بلا ربط (تظهر بكل الصفحات)
+async function loadAds(){
+  if(!featOn('ads'))return;
+  try{
+    var pid=new URLSearchParams(location.search).get('id')||'';
+    var rows=await sbGet('ads','?placement=eq.product_page&order=sort_order.asc');
+    var box=document.getElementById('adsTop');
+    if(!box)return;
+    box.innerHTML='';
+    (rows||[]).filter(function(a){ return !a.product_id || a.product_id===pid; }).forEach(function(a){
+      var safeLink=a.link_url&&/^https?:\/\//i.test(a.link_url.trim())?a.link_url.trim():'';
+      var el=safeLink?document.createElement('a'):document.createElement('div');
+      el.className='ad-banner'+(safeLink?'':' no-link');
+      if(safeLink){el.href=safeLink;el.target='_blank';el.rel='noopener noreferrer';}
+      if(a.image_url&&_safeStorageRx.test(a.image_url)){
+        var img=document.createElement('img');
+        img.src=a.image_url;img.loading='lazy';img.decoding='async';img.alt=a.title||'';
+        img.onerror=function(){el.style.display='none';};
+        el.appendChild(img);
+      } else { return; }
+      box.appendChild(el);
+    });
+    box.style.display=box.children.length?'block':'none';
+  }catch(e){}
+}
 function shareFB(){window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href));}
 
 function saveRecent(p){
@@ -482,7 +515,7 @@ async function loadProd(){
     document.getElementById('ld').classList.add('h');
   }
 }
-(async function(){await loadFeatureFlags();if(!featOn('whatsapp_actions')){var wb=document.querySelector('.share-wa');if(wb)wb.style.display='none';}})();
+(async function(){await loadFeatureFlags();if(!featOn('whatsapp_actions')){var wb=document.querySelector('.share-wa');if(wb)wb.style.display='none';}loadAds();})();
 loadProd();
 </script>
 </body></html>

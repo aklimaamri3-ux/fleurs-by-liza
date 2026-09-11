@@ -464,6 +464,9 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
             </div>
             <div class="fg"><label class="fl">الترتيب</label><input class="fi" id="adSort" type="number" value="0"></div>
           </div>
+          <div class="fg"><label class="fl">🔗 ربط بمنتج معيّن (اختياري — إذا فارغ يظهر بكل صفحات المنتجات)</label>
+            <select class="fi" id="adProduct"><option value="">— كل المنتجات —</option></select>
+          </div>
           <div class="frow">
             <div class="fg"><label class="fl">يبدأ في (اختياري)</label><input class="fi" id="adStart" type="date"></div>
             <div class="fg"><label class="fl">ينتهي في (اختياري)</label><input class="fi" id="adEnd" type="date"></div>
@@ -2661,6 +2664,13 @@ async function loadAds(){
     var rows=await sbGet('ads','?deleted_at=is.null&order=sort_order.asc,created_at.desc');
     allAds=rows||[];
     renderAdsGrid();
+    var sel=document.getElementById('adProduct');
+    if(sel){
+      var prods=allProds.length?allProds:await sbGet('products','?select=id,name_ar&order=name_ar.asc').catch(function(){return [];});
+      var curVal=sel.value;
+      sel.innerHTML='<option value="">— كل المنتجات —</option>'+prods.map(function(p){return '<option value="'+p.id+'">'+esc(p.name_ar||p.name||p.id)+'</option>';}).join('');
+      sel.value=curVal;
+    }
   }catch(e){toast('❌ '+e.message);}
 }
 function renderAdsGrid(){
@@ -2696,6 +2706,7 @@ function onAdImg(file){
 function resetAdForm(){
   sv('adId','');sv('adTitle','');sv('adLink','');sv('adImageUrl','');sv('adSort','0');sv('adStart','');sv('adEnd','');
   document.getElementById('adPlacement').value='home_top';
+  sv('adProduct','');
   document.getElementById('adActive').classList.add('on');
   document.getElementById('adImgPrev').innerHTML='';
   document.getElementById('adFormTitle').textContent='➕ إضافة إعلان';
@@ -2707,6 +2718,7 @@ function editAd(id){
   sv('adId',a.id);sv('adTitle',a.title||'');sv('adLink',a.link_url||'');sv('adImageUrl',a.image_url||'');sv('adSort',a.sort_order||0);
   sv('adStart',a.starts_at?a.starts_at.slice(0,10):'');sv('adEnd',a.ends_at?a.ends_at.slice(0,10):'');
   document.getElementById('adPlacement').value=a.placement||'home_top';
+  sv('adProduct',a.product_id||'');
   a.active!==false?document.getElementById('adActive').classList.add('on'):document.getElementById('adActive').classList.remove('on');
   var prev=document.getElementById('adImgPrev');prev.innerHTML='';
   if(a.image_url){var img=document.createElement('img');img.src=a.image_url;prev.appendChild(img);}
@@ -2730,6 +2742,7 @@ async function saveAd(){
       active:document.getElementById('adActive').classList.contains('on'),
       starts_at:gv('adStart')?gv('adStart')+'T00:00:00Z':null,
       ends_at:gv('adEnd')?gv('adEnd')+'T23:59:59Z':null,
+      product_id:gv('adProduct')||null,
     };
     var id=gv('adId');
     if(id){await sbPatch('ads','id=eq.'+encodeURIComponent(id),data);}
