@@ -1337,11 +1337,25 @@ function exportCSV(){
 
 // ✅ فاتورة احترافية — logo + صورة المنتج + توقيع
 function closePrintOv(){document.getElementById('printOv').classList.remove('sh');}
-function printInvoice(o){
+async function printInvoice(o){
   var pr=Number(o.product_price||o.price||0),dc=Number(o.delivery_cost||0),tot=Number(o.total||0);
   var d=new Date(o.created_at||Date.now());
   var ref=o.ref||o.id||'';
   var logoSrc=safeLogo();
+  // ✅ صورة المنتج — الطلب نفسه لا يخزّن صورة (فقط الاسم/السعر/الإيموجي
+  // كـ snapshot). نجربها أولاً من allProds المحمّلة، وإلا نجيبها مباشرة —
+  // allProds تبقى فارغة إذا الأدمن ما زارتش صفحة المنتجات قبل الطباعة
+  var prodImg='';
+  if(o.product_id){
+    var _p=allProds.find(function(x){return x.id===o.product_id;});
+    if(!_p){
+      try{ var _rows=await sbGet('products','?id=eq.'+encodeURIComponent(o.product_id)+'&select=media_items&limit=1'); _p=_rows&&_rows[0]; }catch(e){}
+    }
+    if(_p&&_p.media_items&&_p.media_items.length){
+      var _img=_p.media_items.find(function(m){return m&&m.type==='image'&&m.src;});
+      if(_img&&_safeStorageRx.test(_img.src))prodImg=_img.src;
+    }
+  }
   var html=''+
   '<div style="font-family:Tajawal,Arial,sans-serif;color:#1a1a1a;padding:2rem;max-width:640px;margin:auto">'+
     // ✅ Logo كبير في الأعلى
@@ -1381,7 +1395,10 @@ function printInvoice(o){
         '<th style="padding:.6rem;text-align:left;font-size:.72rem">السعر</th>'+
       '</tr></thead>'+
       '<tbody><tr style="background:#fdf0f6">'+
-        '<td style="padding:.6rem">'+(o.product_emoji||'🌹')+' '+ef(o.product_name||o.product||'')+(o.color?' ('+ef(o.color)+')':'')+'</td>'+
+        '<td style="padding:.6rem"><div style="display:flex;align-items:center;gap:.6rem">'+
+          (prodImg?'<img src="'+ef(prodImg)+'" style="width:44px;height:44px;object-fit:cover;border-radius:.4rem;flex:none" onerror="this.style.display=\'none\'">':'')+
+          '<span>'+(o.product_emoji||'🌹')+' '+ef(o.product_name||o.product||'')+(o.color?' ('+ef(o.color)+')':'')+'</span>'+
+        '</div></td>'+
         '<td style="padding:.6rem;text-align:center;font-family:monospace">×'+(o.qty||1)+'</td>'+
         '<td style="padding:.6rem;text-align:left;font-family:monospace">'+money(pr)+' دج</td>'+
       '</tr></tbody>'+
