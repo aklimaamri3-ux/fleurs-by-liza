@@ -92,6 +92,25 @@ function storagePath(urlOrName: string, bucket: string): string {
   return `${bucket}/${s.replace(/^\/+/, '')}`
 }
 
+// ✅ يجيب الصورة مباشرة بـ service role ويرجعها كـ data URI — بدل توليد
+// signed URL مؤقت (10 دقائق) عبر endpoint إضافي منفصل. أبسط وأقل عرضة
+// للأعطال (لا رابط ينتهي صلاحيته، لا رحلة شبكة إضافية بين التوقيع
+// والعرض)، ومضمون يتجاوز RLS لأنه service role حقيقي من طرف السيرفر.
+async function fetchStorageAsDataUri(path: string): Promise<string | null> {
+  try {
+    const res = await jfetch(`${SB_URL}/storage/v1/object/${path}`, {
+      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` },
+    }, 15_000)
+    if (!res.ok) return null
+    const ct = res.headers.get('content-type') || 'image/jpeg'
+    const buf = new Uint8Array(await res.arrayBuffer())
+    if (buf.byteLength === 0 || buf.byteLength > 8 * 1024 * 1024) return null
+    let bin = ''
+    for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i])
+    return `data:${ct};base64,${btoa(bin)}`
+  } catch (e) { console.error('fetchStorageAsDataUri failed:', e); return null }
+}
+
 Deno.serve(async (req) => {
   const h   = corsHeaders(req)
   const ok  = (data: any, status = 200) => new Response(JSON.stringify(data), { status, headers: { ...h, 'Content-Type': 'application/json' } })
@@ -173,29 +192,25 @@ Deno.serve(async (req) => {
       return ok({ url: signed ? `${SB_URL}/storage/v1${signed}` : null, status: order.status })
     }
 
-    // ── Receipt image: admin-only signed URL, server-side (service role) ──
-    // admin.html previously asked the visitor's own browser session to sign
-    // storage URLs directly against Supabase Storage — fragile (depends on
-    // the admin JWT's own storage permissions resolving correctly) and hard
-    // to diagnose from outside the admin panel. This does the signing here,
-    // with the service-role key, after verifying the caller is a real admin
-    // (same JWT check as every other admin action) — matching the proven
-    // get_delivery_proof_url pattern.
+    // ── Receipt image: admin-only, fetched server-side with service role
+    // and returned inline as a data URI — no signed URL, no separate
+    // Storage sign round-trip, no 10-minute expiry to race against.
+    // admin.html previously asked the visitor's own browser session to
+    // sign storage URLs directly against Supabase Storage — fragile
+    // (depended on the admin JWT's own storage permissions resolving
+    // correctly) and hard to diagnose from outside the admin panel.
+    // This fetches the bytes here with the service role (which always
+    // bypasses RLS, storage RLS included) after verifying the caller is
+    // a real admin — same JWT check as every other admin action.
     if (action === 'get_receipt_url') {
       const filt = idFilter(body.order_id ?? '')
       if (!filt) return err('Invalid order_id', 400)
       const order = await getOrder(filt, 'receipt_url')
       if (!order) return err('Not found', 404)
       if (!order.receipt_url) return ok({ url: null })
-      const signRes = await jfetch(`${SB_URL}/storage/v1/object/sign/${storagePath(order.receipt_url, 'receipts')}`, {
-        method: 'POST',
-        headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ expiresIn: 600 }),
-      })
-      if (!signRes.ok) return err('Failed to sign', 502)
-      const signData = await signRes.json()
-      const signed = signData?.signedURL || ''
-      return ok({ url: signed ? `${SB_URL}/storage/v1${signed}` : null })
+      const dataUri = await fetchStorageAsDataUri(storagePath(order.receipt_url, 'receipts'))
+      if (!dataUri) return err('Failed to load receipt image', 502)
+      return ok({ url: dataUri })
     }
 
     // ── Delivery proof image: admin-only signed URL (mirrors get_receipt_url
@@ -207,15 +222,9 @@ Deno.serve(async (req) => {
       const order = await getOrder(filt, 'delivery_proof_url')
       if (!order) return err('Not found', 404)
       if (!order.delivery_proof_url) return ok({ url: null })
-      const signRes = await jfetch(`${SB_URL}/storage/v1/object/sign/${storagePath(order.delivery_proof_url, 'delivery_proofs')}`, {
-        method: 'POST',
-        headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ expiresIn: 600 }),
-      })
-      if (!signRes.ok) return err('Failed to sign', 502)
-      const signData = await signRes.json()
-      const signed = signData?.signedURL || ''
-      return ok({ url: signed ? `${SB_URL}/storage/v1${signed}` : null })
+      const dataUri = await fetchStorageAsDataUri(storagePath(order.delivery_proof_url, 'delivery_proofs'))
+      if (!dataUri) return err('Failed to load delivery proof image', 502)
+      return ok({ url: dataUri })
     }
 
     // ── Daily report: pg_cron only, not an admin action ──
