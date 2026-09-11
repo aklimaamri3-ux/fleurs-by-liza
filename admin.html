@@ -351,7 +351,7 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
           <div class="frow"><div class="fg"><label class="fl">Baridimob (RIP 20)</label><input class="fi" id="piBaridi"></div><div class="fg"></div></div>
           <div class="frow"><div class="fg"><label class="fl">IBAN</label><input class="fi" id="piIBAN"></div><div class="fg"><label class="fl">SWIFT/BIC</label><input class="fi" id="piSWIFT"></div></div>
           <div class="frow"><div class="fg"><label class="fl">IBAN Titulaire</label><input class="fi" id="piIBANH"></div><div class="fg"><label class="fl">Binance ID</label><input class="fi" id="piBinID"></div></div>
-          <div class="frow"><div class="fg"><label class="fl">Binance Adresse USDT</label><input class="fi" id="piBinAddr"></div><div class="fg"><label class="fl">RedotPay ID</label><input class="fi" id="piRedotID" placeholder="RDP..."></div></div>
+          <div class="frow"><div class="fg"><label class="fl">Binance Adresse USD</label><input class="fi" id="piBinAddr"></div><div class="fg"><label class="fl">RedotPay ID</label><input class="fi" id="piRedotID" placeholder="RDP..."></div></div>
           <div class="frow">
             <div class="fg"><label class="fl">📱 واتساب (زر التواصل الظاهر في الموقع)</label><input class="fi" id="piWA" placeholder="213555..." type="tel"></div>
             <div class="fg"><label class="fl">Instagram</label><input class="fi" id="piIG" placeholder="fleurs_byliza"></div>
@@ -1446,8 +1446,8 @@ var pendingImgs=[],existingImgUrls=[];
 var PAY_LIST=[
   {k:'ccp',n:'CCP / Baridimob',ic:'🏦'},
   {k:'iban',n:'IBAN EUR',ic:'🌍'},
-  {k:'binance',n:'Binance USDT',ic:'🟡'},
-  {k:'redotpay',n:'RedotPay USDT',ic:'🔴'},
+  {k:'binance',n:'Binance USD',ic:'🟡'},
+  {k:'redotpay',n:'RedotPay USD',ic:'🔴'},
   {k:'pickup',n:'استلام + 50% مسبق',ic:'🏪'},
 ];
 
@@ -2531,7 +2531,7 @@ function renderPayToggles(){
     tgl.addEventListener('click',function(){togglePay(this.dataset.key,this);});
     row.appendChild(lbl);row.appendChild(tgl);card.appendChild(row);
     // ✅ عرض العملة
-    var currency = {iban:'EUR 🇪🇺',binance:'USDT 💰',redotpay:'USDT 💰',ccp:'DZD 🇩🇿',pickup:'DZD 50% 🏪'}[m.k];
+    var currency = {iban:'EUR 🇪🇺',binance:'USD 💰',redotpay:'USD 💰',ccp:'DZD 🇩🇿',pickup:'DZD 50% 🏪'}[m.k];
     if(currency){var cur=document.createElement('div');cur.style.cssText='font-size:.65rem;color:var(--mt);margin-top:.3rem';cur.textContent=currency;card.appendChild(cur);}
     box.appendChild(card);
   });

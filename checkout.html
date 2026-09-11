@@ -269,8 +269,8 @@ var L={
 var PAY=[
   {k:'ccp',   ar:'CCP / Baridimob',       fr:'CCP / Baridimob',           ic:'🏦'},
   {k:'iban',  ar:'IBAN دولي EUR',         fr:'Virement IBAN EUR',         ic:'🌍'},
-  {k:'binance',ar:'Binance USD / USDT',   fr:'Binance USD / USDT',        ic:'🟡'},
-  {k:'redotpay',ar:'RedotPay USDT',       fr:'RedotPay USDT',             ic:'🔴'},
+  {k:'binance',ar:'Binance USD',   fr:'Binance USD',        ic:'🟡'},
+  {k:'redotpay',ar:'RedotPay USD',       fr:'RedotPay USD',             ic:'🔴'},
   {k:'pickup', ar:'استلام (50% مسبق)',    fr:'Retrait (50% avance)',      ic:'🏪'},
 ];
 var prod=null,qty=1,color='',selW=null,wilayas=[],payInfo={},curInfo={},enabled=['ccp','iban','binance','redotpay'],selPay='ccp';
@@ -509,8 +509,8 @@ function renderBank(){
   } else if(selPay==='redotpay') {
     b.innerHTML='<div class="bank-box">' +
       '<div class="brow"><span>RedotPay ID</span><b>'+esc(payInfo.redotpay_id||'')+'</b></div>' +
-      '<div class="brow"><span>Network</span><b>TRC20 USDT</b></div>' +
-      '<div style="font-size:.73rem;color:#888;margin-top:.5rem">'+(fr?"Envoyez USDT puis uploadez le reçu":"أرسلي USDT ثم ارفعي الإيصال")+'</div></div>';
+      '<div class="brow"><span>Network</span><b>TRC20 USD</b></div>' +
+      '<div style="font-size:.73rem;color:#888;margin-top:.5rem">'+(fr?"Envoyez USD puis uploadez le reçu":"أرسلي USD ثم ارفعي الإيصال")+'</div></div>';
   } else if(selPay==='pickup') {
     var total50=prod?Math.ceil((Number(prod.price)||0)*qty*0.5):0;
     b.innerHTML='<div class="bank-box">' +

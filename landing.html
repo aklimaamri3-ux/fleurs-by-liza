@@ -275,7 +275,7 @@ async function loadReviews(){
 async function loadPayMethods(){
   try{
     var enabled = await getSetting('pay_methods') || [];
-    var LABELS = {ccp:{n:'CCP / Baridimob',ic:'🏦'},iban:{n:'IBAN EUR',ic:'🌍'},binance:{n:'Binance USDT',ic:'🟡'},redotpay:{n:'RedotPay USDT',ic:'🔴'},pickup:{n:'استلام من المحل',ic:'🏪'}};
+    var LABELS = {ccp:{n:'CCP / Baridimob',ic:'🏦'},iban:{n:'IBAN EUR',ic:'🌍'},binance:{n:'Binance USD',ic:'🟡'},redotpay:{n:'RedotPay USD',ic:'🔴'},pickup:{n:'استلام من المحل',ic:'🏪'}};
     var row = document.getElementById('payRow');
     row.innerHTML = '';
     enabled.forEach(function(k){
