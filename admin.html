@@ -872,7 +872,7 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
     </div>
     <div class="frow" id="manWilayaRow">
       <div class="fg"><label class="fl">الولاية *</label><select class="fi" id="manWilaya" onchange="onManWilaya()"><option value="">— اختاري —</option></select></div>
-      <div class="fg"><label class="fl">البلدية</label><select class="fi" id="manCommune"><option value="">— اختاري —</option></select></div>
+      <div class="fg"><label class="fl">البلدية</label><select class="fi" id="manCommune" onchange="onManCommune()"><option value="">— اختاري —</option></select></div>
     </div>
     <div class="fg" id="manAddrRow"><label class="fl">العنوان التفصيلي</label><input class="fi" id="manAddress" placeholder="الحي، الشارع..."></div>
     <hr style="margin:.5rem 0;border-color:var(--bd)">
@@ -1990,10 +1990,24 @@ function onManWilaya(){
   var cs=document.getElementById('manCommune');cs.innerHTML='<option value="">— اختاري —</option>';
   var w=allWilayas.find(function(x){return x.wilaya_id===wid;});
   if(w&&w.communes&&w.communes.length){
-    normCommunes(w).filter(function(c){return c.active!==false;}).forEach(function(c){var o=document.createElement('option');o.value=c.name;o.dataset.home=c.home_price||0;o.textContent=c.name;cs.appendChild(o);});
+    normCommunes(w).filter(function(c){return c.active!==false;}).forEach(function(c){var o=document.createElement('option');o.value=c.name;o.dataset.home=(c.home_price===null||c.home_price===undefined||c.home_price==='')?'':String(c.home_price);o.textContent=c.name+((o.dataset.home!=='')?(' — '+money(c.home_price)+' دج'):'');cs.appendChild(o);});
   }
-  // سعر التوصيل تلقائي
+  // سعر التوصيل تلقائي — سعر الولاية الافتراضي (تُستبدل بسعر البلدية إذا اختيرت)
   if(w){sv('manDelivery',w.home_price||0);calcManTotal();}
+}
+
+function onManCommune(){
+  var cs=document.getElementById('manCommune');
+  var sel=cs.selectedOptions[0];
+  var ws=document.getElementById('manWilaya');
+  var w=allWilayas.find(function(x){return x.wilaya_id===(parseInt(ws.selectedOptions[0]&&ws.selectedOptions[0].dataset.id)||0);});
+  if(sel&&sel.value&&sel.dataset.home!==''){
+    // ✅ سعر البلدية المخصص إن وُجد — نفس منطق resolve_delivery في السيرفر
+    sv('manDelivery',parseInt(sel.dataset.home)||0);
+  } else if(w){
+    sv('manDelivery',w.home_price||0); // رجوع لسعر الولاية الافتراضي
+  }
+  calcManTotal();
 }
 
 function onManProd(){

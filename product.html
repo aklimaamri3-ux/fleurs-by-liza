@@ -265,6 +265,7 @@ function setMainImg(src){
   if(src && _safeStorageRx.test(src)){
     var img=document.createElement('img');
     img.src=src;
+    img.decoding='async';
     img.style.cssText='width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s ease';
     img.onerror=function(){
       m.innerHTML='';
@@ -301,7 +302,8 @@ function buildGallery(imgList){
     (function(idx){
       var div=document.createElement('div');
       div.className='gth'+(idx===0?' active':'');
-      var im=document.createElement('img');im.src=imgs[idx];im.loading='lazy';
+      var im=document.createElement('img');im.src=imgs[idx];im.loading='lazy';im.decoding='async';
+      im.onerror=function(){ this.style.opacity='.25'; };
       div.appendChild(im);
       div.addEventListener('click',function(){switchImg(idx);});
       thumbs.appendChild(div);
