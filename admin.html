@@ -923,6 +923,8 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
         <option value="paid">✅ تم التحقق من الدفع</option>
       </select>
     </div>
+    <!-- ✅ المبلغ المُرسَل فعلياً من الزبون — لكل طرق الدفع، ليس فقط pickup -->
+    <div class="fg"><label class="fl">💵 المبلغ المُرسَل (دج) — اختياري، للمطابقة</label><input class="fi" id="manAmountReceived" type="number" placeholder="شحال أرسلت الزبونة فعلياً"></div>
     <!-- الدفع -->
     <div class="frow">
       <div class="fg"><label class="fl">طريقة الدفع</label>
@@ -1894,7 +1896,8 @@ function viewOrder(id){
   var hr=document.createElement('hr');hr.style.cssText='margin:.8rem 0;border-color:var(--bd)';body.appendChild(hr);
   // ملاحظة داخلية
   var ntD=document.createElement('div');ntD.className='fg';var ntL=document.createElement('label');ntL.className='fl';ntL.textContent='📝 ملاحظة داخلية (لا يراها الزبون)';var ntA=document.createElement('textarea');ntA.className='fi';ntA.id='ordNote';ntA.rows=2;ntA.placeholder='...';ntA.value=o.internal_note||'';ntD.appendChild(ntL);ntD.appendChild(ntA);body.appendChild(ntD);
-  // ✅ رقم التتبع — يُدخل يدوياً إذا ما اشتغلش Yalidine تلقائياً، يظهر للزبون في receipt.html
+  // ✅ المبلغ المُرسَل فعلياً — قابل للتعديل مباشرة من تفاصيل الطلب
+  var arD=document.createElement('div');arD.className='fg';var arL=document.createElement('label');arL.className='fl';arL.textContent='💵 المبلغ المُرسَل (دج)';var arI=document.createElement('input');arI.className='fi';arI.id='ordAmountReceived';arI.type='number';arI.placeholder='شحال أرسلت الزبونة فعلياً';arI.value=(o.amount_received!=null?o.amount_received:'');arD.appendChild(arL);arD.appendChild(arI);body.appendChild(arD);
   // ✅ رقم التتبع = مرجع الطلب (Réf) — يُنشأ تلقائياً عند إنشاء الطلب،
   // لا حاجة لإدخاله يدوياً، وهو نفسه الرقم الذي تراه الزبونة في receipt.html
   var trD=document.createElement('div');trD.className='fg';var trL=document.createElement('label');trL.className='fl';trL.textContent='🔍 رقم التتبع (Réf)';var trV=document.createElement('div');trV.style.cssText='font-family:var(--font-en);font-weight:700;color:var(--pk2)';trV.textContent=o.ref||o.id||'—';trD.appendChild(trL);trD.appendChild(trV);body.appendChild(trD);
@@ -1958,7 +1961,7 @@ async function openManualOrder(){
   renderManProdOptions(prods);
   // صفّر الحقول
   ['manName','manPhone','manAddress','manColor','manNote','manProdSearch'].forEach(function(id){sv(id,'');});
-  sv('manQty','1');sv('manDelivery','0');sv('manPay','ccp');sv('manPayStatus','pending');sv('manDepositStatus','pending');
+  sv('manQty','1');sv('manDelivery','0');sv('manPay','ccp');sv('manPayStatus','pending');sv('manDepositStatus','pending');sv('manAmountReceived','');
   document.getElementById('manCommune').innerHTML='<option value="">— اختاري —</option>';
   document.getElementById('manSummary').style.display='none';
   document.getElementById('manProdRef').textContent='';
@@ -2091,6 +2094,7 @@ async function saveManualOrder(){
     status:'confirmed', // طلب يدوي = مؤكد مباشرة
     source:_manSource, // whatsapp / instagram / facebook...
     internal_note:gv('manNote')||'',
+    amount_received:gv('manAmountReceived')?parseInt(gv('manAmountReceived')):null,
     is_manual:true,
     created_at:new Date().toISOString()
   };
@@ -2985,10 +2989,13 @@ function waStatusMsg(o,newStatus){
 }
 async function updateOrdStatus(id){
   var s=gv('ordSS'),note=document.getElementById('ordNote')?document.getElementById('ordNote').value:'';
+  var arEl=document.getElementById('ordAmountReceived');
+  var ar=arEl&&arEl.value!==''?parseInt(arEl.value):null;
   var upd={status:s};if(note.trim())upd.internal_note=note.trim();
+  if(arEl)upd.amount_received=ar;
   try{
     await sbPatch('orders','id=eq.'+encodeURIComponent(id),upd);
-    var o=allOrders.find(function(x){return x.id===id;});if(o){o.status=s;if(note.trim())o.internal_note=note.trim();}
+    var o=allOrders.find(function(x){return x.id===id;});if(o){o.status=s;if(note.trim())o.internal_note=note.trim();if(arEl)o.amount_received=ar;}
     toast('✅ تم التحديث');
     if(o&&o.phone&&['confirmed','shipping','delivered','cancelled'].indexOf(s)!==-1){
       var msg=waStatusMsg(o,s);
