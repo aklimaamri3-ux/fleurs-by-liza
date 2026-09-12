@@ -822,6 +822,9 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
             <div class="tgl on" id="setLandingShowPricing" onclick="this.classList.toggle('on')"></div>
             <span style="font-size:.82rem">إظهار قسم طرق الدفع في صفحة الهبوط</span>
           </div>
+          <div class="fg"><label class="fl">المنتجات التي تظهر في قسم "الأكثر طلباً" (اختاري أي عدد — إذا لم تختاري شيء تُعرض المنتجات المروّجة تلقائياً)</label>
+            <div id="setLandingProdsList" style="max-height:260px;overflow-y:auto;border:1px solid var(--bd);border-radius:.6rem;padding:.5rem"></div>
+          </div>
           <button class="btn btn-p" onclick="saveLandingFeatured()">💾 حفظ</button>
         </div>
         <div class="card">
@@ -1525,12 +1528,13 @@ async function loadDash(silent){
     var rev=delivered.reduce(function(s,o){return s+(Number(o.total)||0);},0);
     // تكلفة الشراء من المنتجات
     var prods=allProds.length?allProds:await sbGet('products','?select=id,price,cost_price,name_ar').catch(function(){return [];});
-    // أرباح تقريبية = إيرادات - تكلفة (حسب cost_price لكل طلب)
+    // أرباح تقريبية = إجمالي (السعر - تكلفة التوصيل - تكلفة الشراء×الكمية) لكل طلب مكتمل
     var cost=delivered.reduce(function(s,o){
       var p=prods.find(function(x){return x.id===o.product_id;});
       return s+(p&&p.cost_price?Number(p.cost_price)*(Number(o.qty)||1):0);
     },0);
-    var profit=rev-cost;
+    var deliveryCosts=delivered.reduce(function(s,o){return s+(Number(o.delivery_cost)||0);},0);
+    var profit=rev-cost-deliveryCosts;
     // ✅ طلبات اليوم + إجمالي الإيرادات (كل الطلبات غير الملغاة) + الربح
     // من حبة ورد واحدة = إجمالي الإيرادات ÷ عدد الوحدات المباعة
     var todayStr=new Date().toISOString().slice(0,10);
@@ -1916,6 +1920,7 @@ function viewOrder(id){
   if(o.is_manual){var manTag=document.createElement('div');manTag.style.cssText='font-size:.72rem;color:var(--or);font-weight:700;padding:.1rem 0';manTag.textContent='✏️ طلب يدوي';body.appendChild(manTag);}
   addRow('الاسم',o.name||'');
   addRow('الهاتف',o.phone||'','font-family:var(--font-en)');
+  if(o.phone2)addRow('هاتف احتياطي',o.phone2,'font-family:var(--font-en)');
   addRow('الولاية',(o.wilaya||'')+(o.commune?' — '+o.commune:''));
   if(o.address)addRow('العنوان',o.address);
   addRow('المنتج',(o.product_emoji||'🌹')+' '+(o.product_name||o.product||'')+' ×'+(o.qty||1)+(o.color?' ('+o.color+')':''));
@@ -3105,16 +3110,20 @@ async function sendProfitReport(){
     if(!orders||!orders.length){toast('لا توجد طلبات بعد');return;}
     var prods=allProds.length?allProds:await sbGet('products','?select=id,cost_price').catch(function(){return [];});
     var revenue=orders.reduce(function(s,o){return s+(Number(o.total)||0);},0);
-    var cost=orders.reduce(function(s,o){
+    var productCost=orders.reduce(function(s,o){
       var p=prods.find(function(x){return x.id===o.product_id;});
       return s+(p&&p.cost_price?Number(p.cost_price)*(Number(o.qty)||1):0);
     },0);
-    var profit=revenue-cost;
+    var deliveryCosts=orders.reduce(function(s,o){return s+(Number(o.delivery_cost)||0);},0);
+    var totalCost=productCost+deliveryCosts;
+    var profit=revenue-totalCost;
     var hasCost=orders.some(function(o){var p=prods.find(function(x){return x.id===o.product_id;});return p&&p.cost_price;});
     var msg='💹 *تقرير الأرباح*\n\n📦 عدد الطلبات: '+orders.length+
       '\n💰 إجمالي الإيرادات: '+money(revenue)+' دج'+
-      '\n🛒 إجمالي المشتريات من الجملة: '+(hasCost?money(cost)+' دج':'— (سعر التكلفة غير مُدخل لبعض المنتجات)')+
-      '\n📈 الأرباح: '+(hasCost?money(profit)+' دج':'—')+
+      '\n🛒 تكلفة الشراء: '+(hasCost?money(productCost)+' دج':'— (سعر التكلفة غير مُدخل لبعض المنتجات)')+
+      '\n🚚 تكلفة التوصيل: '+money(deliveryCosts)+' دج'+
+      '\n📉 إجمالي التكاليف: '+(hasCost?money(totalCost)+' دج':'—')+
+      '\n📈 صافي الربح: '+(hasCost?money(profit)+' دج':'—')+
       '\n\n— Fleurs by Liza 🌹';
     var r=await fetch(SB_URL+'/functions/v1/hyper-action',{
       method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},
@@ -3176,15 +3185,28 @@ async function loadLandingFeatured(){
     sv('setLandingSubtitle',cur&&cur.subtitle||'');
     var showPricing=!cur||cur.show_pricing!==false;
     document.getElementById('setLandingShowPricing').classList.toggle('on',showPricing);
+    var selectedIds=(cur&&Array.isArray(cur.featured_products))?cur.featured_products:[];
+    var list=document.getElementById('setLandingProdsList');
+    if(list){
+      list.innerHTML='';
+      allProds.forEach(function(p){
+        var row=document.createElement('label');row.style.cssText='display:flex;align-items:center;gap:.5rem;padding:.3rem 0;font-size:.8rem;cursor:pointer';
+        var cb=document.createElement('input');cb.type='checkbox';cb.value=p.id;cb.checked=selectedIds.indexOf(p.id)!==-1;cb.className='setLandingProdChk';
+        row.appendChild(cb);row.appendChild(document.createTextNode(p.name_ar||p.name||p.id));
+        list.appendChild(row);
+      });
+    }
   }catch(e){}
 }
 async function saveLandingFeatured(){
   var id=gv('setLandingProd');
+  var featuredProducts=Array.from(document.querySelectorAll('.setLandingProdChk:checked')).map(function(c){return c.value;});
   var data={
     product_id:id||null,
     title:gv('setLandingTitle')||null,
     subtitle:gv('setLandingSubtitle')||null,
     show_pricing:document.getElementById('setLandingShowPricing').classList.contains('on'),
+    featured_products:featuredProducts,
   };
   try{await setSetting('landing_featured_product',data);toast('✅ تم الحفظ');}catch(e){toast('❌ '+e.message);}
 }

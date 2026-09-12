@@ -71,6 +71,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
     <div class="card-title" id="delivTitle">📦 معلومات التوصيل</div>
     <div class="fg"><label class="fl" id="nameLabel">الاسم الكامل *</label><input class="fi" id="iName" placeholder="سارة بن علي"></div>
     <div class="fg"><label class="fl" id="phoneLabel">رقم الهاتف *</label><input class="fi" id="iPhone" type="tel" placeholder="0555 123 456"></div>
+    <div class="fg"><label class="fl" id="phone2Label">رقم هاتف احتياطي (اختياري)</label><input class="fi" id="iPhone2" type="tel" placeholder="0555 123 456"></div>
     <div class="frow">
       <div class="fg"><label class="fl" id="wilayaLabel">الولاية *</label><select class="fi" id="iWilaya" onchange="onWilaya()"><option value="">...</option></select></div>
       <div class="fg"><label class="fl" id="communeLabel">البلدية</label><select class="fi" id="iCommune" onchange="updateSum()"><option value="">—</option></select></div>
@@ -263,8 +264,8 @@ function toast(msg, dur) {
 
 
 var L={
-  ar:{sumTitle:'🌹 ملخص الطلب',delivTitle:'📦 معلومات التوصيل',payTitle:'💳 طريقة الدفع',nameLabel:'الاسم الكامل *',phoneLabel:'رقم الهاتف *',wilayaLabel:'الولاية *',communeLabel:'البلدية',addrLabel:'العنوان',noteLabel:'ملاحظة / رسالة الهدية',sumQtyLabel:'الكمية',sumDelLabel:'التوصيل',sumTotLabel:'المجموع',subBtn:'✅ تأكيد الطلب',cpTitle:'هذه الطريقة غير متاحة',cpSub:'تواصلي معنا لإتمام طلبك',cpClose:'إغلاق',nameErr:'⚠️ أدخلي الاسم',phoneErr:'⚠️ رقم الهاتف غير صحيح',wilayaErr:'⚠️ اختاري الولاية',sending:'⏳ جاري الإرسال...',giftLabel:'🎁 هذا الطلب هدية',giftPhoneLabel:'📞 رقم هاتف المرسل *',giftPhoneErr:'⚠️ أدخلي رقم هاتف المرسل'},
-  fr:{sumTitle:'🌹 Résumé commande',delivTitle:'📦 Informations livraison',payTitle:'💳 Moyen de paiement',nameLabel:'Nom complet *',phoneLabel:'Téléphone *',wilayaLabel:'Wilaya *',communeLabel:'Commune',addrLabel:'Adresse',noteLabel:'Note / Message cadeau',sumQtyLabel:'Quantité',sumDelLabel:'Livraison',sumTotLabel:'Total',subBtn:'✅ Confirmer la commande',cpTitle:'Ce moyen n\'est pas disponible',cpSub:'Contactez-nous pour finaliser',cpClose:'Fermer',nameErr:'⚠️ Entrez votre nom',phoneErr:'⚠️ Numéro incorrect',wilayaErr:'⚠️ Choisissez une wilaya',sending:'⏳ Envoi en cours...',giftLabel:'🎁 Cette commande est un cadeau',giftPhoneLabel:'📞 Téléphone de l\'expéditeur *',giftPhoneErr:'⚠️ Entrez le téléphone de l\'expéditeur'}
+  ar:{sumTitle:'🌹 ملخص الطلب',delivTitle:'📦 معلومات التوصيل',payTitle:'💳 طريقة الدفع',nameLabel:'الاسم الكامل *',phoneLabel:'رقم الهاتف *',phone2Label:'رقم هاتف احتياطي (اختياري)',wilayaLabel:'الولاية *',communeLabel:'البلدية',addrLabel:'العنوان',noteLabel:'ملاحظة / رسالة الهدية',sumQtyLabel:'الكمية',sumDelLabel:'التوصيل',sumTotLabel:'المجموع',subBtn:'✅ تأكيد الطلب',cpTitle:'هذه الطريقة غير متاحة',cpSub:'تواصلي معنا لإتمام طلبك',cpClose:'إغلاق',nameErr:'⚠️ أدخلي الاسم',phoneErr:'⚠️ رقم الهاتف غير صحيح',wilayaErr:'⚠️ اختاري الولاية',sending:'⏳ جاري الإرسال...',giftLabel:'🎁 هذا الطلب هدية',giftPhoneLabel:'📞 رقم هاتف المرسل *',giftPhoneErr:'⚠️ أدخلي رقم هاتف المرسل'},
+  fr:{sumTitle:'🌹 Résumé commande',delivTitle:'📦 Informations livraison',payTitle:'💳 Moyen de paiement',nameLabel:'Nom complet *',phoneLabel:'Téléphone *',phone2Label:'Téléphone de secours (optionnel)',wilayaLabel:'Wilaya *',communeLabel:'Commune',addrLabel:'Adresse',noteLabel:'Note / Message cadeau',sumQtyLabel:'Quantité',sumDelLabel:'Livraison',sumTotLabel:'Total',subBtn:'✅ Confirmer la commande',cpTitle:'Ce moyen n\'est pas disponible',cpSub:'Contactez-nous pour finaliser',cpClose:'Fermer',nameErr:'⚠️ Entrez votre nom',phoneErr:'⚠️ Numéro incorrect',wilayaErr:'⚠️ Choisissez une wilaya',sending:'⏳ Envoi en cours...',giftLabel:'🎁 Cette commande est un cadeau',giftPhoneLabel:'📞 Téléphone de l\'expéditeur *',giftPhoneErr:'⚠️ Entrez le téléphone de l\'expéditeur'}
 };
 var PAY=[
   {k:'ccp',   ar:'CCP / Baridimob',       fr:'CCP / Baridimob',           ic:'🏦'},
@@ -594,6 +595,10 @@ async function submitOrder(){
   var name=document.getElementById('iName').value.trim();
   var rawPhone=document.getElementById('iPhone').value.trim();
   var phone=rawPhone.replace(/[\s\-\.]/g,''); // ✅ تنظيف الهاتف
+  var phone2Raw=document.getElementById('iPhone2')?document.getElementById('iPhone2').value.trim():'';
+  var phone2=phone2Raw.replace(/[\s\-\.]/g,'');
+  var schedDate=document.getElementById('iDate')?document.getElementById('iDate').value:'';
+  var schedTime=document.getElementById('iTime')?document.getElementById('iTime').value:'';
   var wSel=document.getElementById('iWilaya');
   var wid=(!isPickup&&wSel.value)?parseInt(wSel.value):null;
   var commune=document.getElementById('iCommune').value;
@@ -605,6 +610,7 @@ async function submitOrder(){
   var giftPhone=giftPhoneRaw.replace(/[\s\-\.]/g,'');
   if(!name){ toast(l.nameErr); return; }
   if(!phone||!validatePhone(rawPhone)){ toast(l.phoneErr+' — مثال: 0555 123 456'); return; }
+  if(phone2Raw&&!validatePhone(phone2Raw)){ toast(l.phoneErr+' (الرقم الاحتياطي) — مثال: 0555 123 456'); return; }
   if(!isPickup&&(!selW||!wid)){ toast(l.wilayaErr); return; }
   if(isGift&&(!giftPhone||!validatePhone(giftPhoneRaw))){ toast(l.giftPhoneErr+' — مثال: 0555 123 456'); return; }
   if(isCartMode){ if(!cartItems.length){ toast('⚠️'); return; } }
@@ -637,7 +643,8 @@ async function submitOrder(){
         p_payment_method:selPay, p_fulfillment_type:isPickup?'pickup':'delivery',
         p_note:noteToSend, p_lang:LANG, p_email:email||null,
         p_coupon_code:appliedCoupon||null, p_client_ref:CLIENT_REF,
-        p_is_gift:isGift, p_gift_sender_phone:isGift?giftPhone:null, p_gift_message:giftMsg
+        p_is_gift:isGift, p_gift_sender_phone:isGift?giftPhone:null, p_gift_message:giftMsg,
+        p_scheduled_date:schedDate||null, p_scheduled_time:schedTime||null, p_phone2:phone2||null
       };
       saved=await sbRpcWithRetry('create_cart_order',cartParams);
       try{localStorage.setItem('fl_cart','[]');}catch(e){}
@@ -650,7 +657,8 @@ async function submitOrder(){
         p_email:email||null, // ✅ البريد في الطلب
         p_coupon_code:appliedCoupon||null, // ✅ السيرفر يعيد التحقق والتطبيق — لا يُوثق الخصم المعروض هنا
         p_client_ref:CLIENT_REF, // ✅ يمنع الطلبات المكررة عند النقر المتعدد
-        p_is_gift:isGift, p_gift_sender_phone:isGift?giftPhone:null, p_gift_message:giftMsg
+        p_is_gift:isGift, p_gift_sender_phone:isGift?giftPhone:null, p_gift_message:giftMsg,
+        p_scheduled_date:schedDate||null, p_scheduled_time:schedTime||null, p_phone2:phone2||null
       };
       // ✅ نحفظ الطلب عبر RPC آمن — السيرفر (trigger) يعيد حساب السعر/التوصيل/الدفعة المقدمة/الحالة من مصدر موثوق
       saved=await sbRpcWithRetry('create_order',orderParams);

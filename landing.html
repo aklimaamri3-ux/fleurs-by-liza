@@ -223,6 +223,7 @@ function firstImg(p){
 // بالنص الافتراضي بدون منتج محدد (بلا بيانات وهمية).
 var _heroImgSet = false;
 async function loadFeaturedProduct(){
+  var featuredIds=[];
   try{
     var cfg = await getSetting('landing_featured_product');
     // ✅ العنوان/subtitle المخصّصان من الأدمن يُطبَّقان دائماً إذا كانا
@@ -233,11 +234,12 @@ async function loadFeaturedProduct(){
       var payEl=document.getElementById('payMethods');
       if(payEl)payEl.classList.add('h');
     }
+    if(cfg&&Array.isArray(cfg.featured_products))featuredIds=cfg.featured_products;
     var pid = cfg && cfg.product_id;
-    if(!pid) return;
+    if(!pid) return featuredIds;
     var rows = await sbGet('products', '?id=eq.'+encodeURIComponent(pid)+'&active=eq.true&limit=1');
     var p = rows && rows[0];
-    if(!p) return;
+    if(!p) return featuredIds;
     var name = p.name_ar || p.name || '';
     var price = Number(p.price)||0, old = Number(p.old_price)||0;
     var imgSrc = firstImg(p);
@@ -260,13 +262,23 @@ async function loadFeaturedProduct(){
     cta.href = 'product.html?id='+encodeURIComponent(p.id);
     cta.textContent = '🌹 اطلبي هذه الباقة الآن';
   }catch(e){ console.warn('featuredProduct', e.message); }
+  return featuredIds;
 }
 
-// ✅ المنتجات الأكثر طلباً — نعطي الأولوية لمنتجات is_promo، ثم أي منتج
-// مفعّل عنده صورة، بلا أي بيانات وهمية
-async function loadBestProds(){
+// ✅ المنتجات الأكثر طلباً — إذا الأدمن اختارت منتجات محددة لصفحة الهبوط
+// (featured_products) نعرض بالضبط هذه القائمة بالترتيب المختار، وإلا
+// نرجع للسلوك الافتراضي: أولوية لمنتجات is_promo، ثم أي منتج مفعّل عنده
+// صورة، بلا أي بيانات وهمية
+async function loadBestProds(featuredIds){
   try{
-    var rows = await sbGet('products', '?active=eq.true&order=is_promo.desc,sort_order.asc&limit=4');
+    var rows;
+    if(featuredIds&&featuredIds.length){
+      rows = await sbGet('products', '?id=in.('+featuredIds.map(encodeURIComponent).join(',')+')&active=eq.true');
+      var order={}; featuredIds.forEach(function(id,i){order[id]=i;});
+      rows.sort(function(a,b){return (order[a.id]||0)-(order[b.id]||0);});
+    } else {
+      rows = await sbGet('products', '?active=eq.true&order=is_promo.desc,sort_order.asc&limit=4');
+    }
     var g = document.getElementById('prodGrid');
     g.innerHTML = '';
     if(!rows || !rows.length) return;

@@ -525,6 +525,15 @@ async function doUpload(){
     document.getElementById('p2').classList.add('h');
     document.getElementById('p3').classList.remove('h');
     setStep(3);
+    // ✅ تعرض رقم الطلب فوراً في شاشة "تم استلام الإيصال" باش الزبونة تقدر
+    // تتتبع طلبها — بلا ما تحتاج تعاود تبحث عليه
+    var fr3=LANG==='fr';
+    var refNum=(order&&(order.ref||order.id))||'';
+    var trBox=document.getElementById('trackingBox');
+    if(trBox&&refNum){
+      trBox.textContent=(fr3?'📦 Numéro de commande: ':'📦 رقم الطلب: ')+refNum;
+      trBox.classList.remove('h');
+    }
   }catch(e){
     toast('❌ فشل الرفع');
     btn.disabled=false; btn.querySelector('span').textContent=(L[LANG]||L.ar).upBtnTxt;

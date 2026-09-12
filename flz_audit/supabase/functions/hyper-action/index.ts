@@ -237,7 +237,7 @@ Deno.serve(async (req) => {
       const provided = req.headers.get('X-Cron-Secret') || ''
       if (!cronSecret || provided !== cronSecret) return err('Unauthorized', 401)
       const from = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-      const rows = await sbGet(`orders?created_at=gte.${from}&select=status,total,wilaya,product_name`)
+      const rows = await sbGet(`orders?created_at=gte.${from}&select=status,total,wilaya,product_name,product_id,qty,delivery_cost`)
       const list = (rows as any[]) || []
       if (!list.length) return ok({ ok: true, skipped: 'no orders' })
       const done = list.filter((o) => o.status !== 'cancelled')
@@ -250,10 +250,28 @@ Deno.serve(async (req) => {
       const topP = Object.entries(pc).sort((a, b) => b[1] - a[1])[0]
       const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
       const stale = ((await sbGet(`orders?payment_status=eq.waiting_review&created_at=lt.${dayAgo}&select=id`)) as any[]) || []
+      // ✅ التكاليف/صافي الربح — نفس صيغة زر "تقرير الأرباح" اليدوي في
+      // admin.html: تكلفة الشراء (cost_price×qty) + تكلفة التوصيل، لكن
+      // فقط للطلبات المكتملة (done)، وليس كل طلبات آخر 24 ساعة
+      const prodIds = [...new Set(done.map((o) => o.product_id).filter(Boolean))]
+      let productCost = 0, hasCost = false
+      if (prodIds.length) {
+        const prodRows = ((await sbGet(`products?id=in.(${prodIds.join(',')})&select=id,cost_price`)) as any[]) || []
+        const costById: Record<string, number> = {}
+        prodRows.forEach((p) => { costById[p.id] = Number(p.cost_price) || 0 })
+        hasCost = prodRows.some((p) => p.cost_price)
+        productCost = done.reduce((s, o) => s + (costById[o.product_id] || 0) * (Number(o.qty) || 1), 0)
+      }
+      const deliveryCosts = done.reduce((s, o) => s + (Number(o.delivery_cost) || 0), 0)
+      const totalCost = productCost + deliveryCosts
+      const profit = rev - totalCost
       const dateStr = new Date().toISOString().slice(0, 10)
       let msg = `📊 *تقرير ${dateStr}*\n\n📦 الطلبات: ${list.length}\n✅ الناجحة: ${done.length}\n💰 الإيرادات: ${rev.toLocaleString('fr-DZ')} دج\n`
       if (topW) msg += `🗺️ أكثر ولاية: ${topW[0]} (${topW[1]})\n`
       if (topP) msg += `🌹 أكثر منتج: ${topP[0]} (${topP[1]})\n`
+      msg += hasCost
+        ? `📉 إجمالي التكاليف: ${totalCost.toLocaleString('fr-DZ')} دج\n📈 صافي الربح: ${profit.toLocaleString('fr-DZ')} دج\n`
+        : `📉 إجمالي التكاليف: — (سعر التكلفة غير مُدخل لبعض المنتجات)\n`
       if (stale.length) msg += `\n⚠️ *طلبات تحتاج متابعة (بانتظار المراجعة +24 ساعة):* ${stale.length}\n`
       msg += '\n— Fleurs by Liza 🌹'
       return ok(await sendTG(msg))
