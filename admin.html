@@ -87,6 +87,19 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
 .pcard-a-price{color:var(--pk2);font-weight:700;font-size:.78rem;font-family:var(--font-en);margin-top:.12rem;}
 .pcard-a-acts{display:flex;gap:.25rem;margin-top:.4rem;}
 .pcard-a-acts button{flex:1;padding:.27rem;border-radius:.4rem;font-size:.67rem;}
+.rcpt-tabs{display:flex;gap:.5rem;margin-bottom:.9rem;flex-wrap:wrap;}
+.rcpt-tab{padding:.45rem 1rem;border-radius:2rem;font-size:.78rem;font-weight:700;cursor:pointer;background:var(--gy);color:var(--mt);border:1px solid transparent;}
+.rcpt-tab.on{background:rgba(233,30,140,.12);color:var(--pk2);border-color:var(--pk2);}
+.rcpt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;}
+.rcpt-card{border:1px solid var(--bd);border-radius:.9rem;overflow:hidden;background:#fff;}
+.rcpt-card img,.rcpt-card .ph{width:100%;max-height:380px;object-fit:contain;background:#f4f4f4;display:block;}
+.rcpt-card .ph{aspect-ratio:1;max-height:none;display:flex;align-items:center;justify-content:center;font-size:2.2rem;background:var(--pkp);}
+.rcpt-card-body{padding:.7rem;}
+.rcpt-card-name{font-weight:700;font-size:.82rem;}
+.rcpt-card-price{color:var(--pk2);font-weight:800;font-size:.88rem;font-family:var(--font-en);margin-top:.15rem;}
+.rcpt-card-meta{font-size:.68rem;color:var(--mt);margin-top:.2rem;}
+.rcpt-card-acts{display:flex;gap:.4rem;margin-top:.6rem;}
+.rcpt-card-acts button{flex:1;padding:.4rem;border-radius:.5rem;font-size:.72rem;}
 .up-area{border:2px dashed var(--bd);border-radius:.8rem;padding:1.2rem;text-align:center;cursor:pointer;transition:.2s;margin-bottom:.7rem;}
 .up-area:hover,.up-area.drag{border-color:var(--pk2);background:var(--pkp);}
 .up-area .ico{font-size:1.8rem;margin-bottom:.35rem;}
@@ -258,7 +271,12 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
 
       <div class="page" id="page-receipts">
         <div class="pg-title">🧾 مراجعة الإيصالات</div>
-        <div class="pgrid" id="receiptsGrid"></div>
+        <div class="rcpt-tabs" id="rcptTabs">
+          <div class="rcpt-tab on" data-t="waiting_review">⏳ في الانتظار</div>
+          <div class="rcpt-tab" data-t="paid">✅ مقبولة</div>
+          <div class="rcpt-tab" data-t="rejected">❌ مرفوضة</div>
+        </div>
+        <div class="rcpt-grid" id="receiptsGrid"></div>
       </div>
 
       <!-- ═══ STAFF ═══ -->
@@ -784,9 +802,25 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
         </div>
         <div class="card">
           <div class="ct" style="margin-bottom:.8rem">🚀 صفحة الهبوط (Landing Page)</div>
+          <div class="fg"><label class="fl">رابط الصفحة</label>
+            <div style="display:flex;gap:.5rem">
+              <input class="fi" id="setLandingUrl" readonly style="flex:1;font-family:var(--font-en);direction:ltr">
+              <button class="btn btn-o" type="button" onclick="copyLandingUrl()">📋 نسخ</button>
+            </div>
+          </div>
           <div class="fg"><label class="fl">المنتج المميز في صفحة الهبوط</label>
             <select class="fi" id="setLandingProd"><option value="">— اختاري منتج —</option></select>
             <div style="font-size:.68rem;color:var(--mt);margin-top:.3rem">يظهر كبير في أعلى landing.html ويتحدث تلقائياً عند تغيير الاختيار</div>
+          </div>
+          <div class="fg"><label class="fl">العنوان الرئيسي (اختياري — إذا فارغ يُستعمل النص الافتراضي)</label>
+            <input class="fi" id="setLandingTitle" placeholder="باقات ورد فاخرة توصَل لبابك في الجزائر">
+          </div>
+          <div class="fg"><label class="fl">نص Subtitle (اختياري)</label>
+            <input class="fi" id="setLandingSubtitle" placeholder="ورود طازجة مستوردة ومحلية، تغليف أنيق يليق بالمناسبة...">
+          </div>
+          <div class="fg" style="display:flex;align-items:center;gap:.6rem">
+            <div class="tgl on" id="setLandingShowPricing" onclick="this.classList.toggle('on')"></div>
+            <span style="font-size:.82rem">إظهار قسم طرق الدفع في صفحة الهبوط</span>
           </div>
           <button class="btn btn-p" onclick="saveLandingFeatured()">💾 حفظ</button>
         </div>
@@ -2158,13 +2192,16 @@ async function signedUrl(orderId, action){
   }catch(e){return '';}
 }
 
+var _rcptTab='waiting_review';
+var RCPT_EMPTY_MSG={waiting_review:'🎉 لا توجد إيصالات بانتظار المراجعة',paid:'لا توجد إيصالات مقبولة بعد',rejected:'لا توجد إيصالات مرفوضة'};
 async function loadReceipts(){
   var g=document.getElementById('receiptsGrid');g.innerHTML='';
   try{
     // ✅ cib/dahabia (SlickPay) تُستثنى صراحةً — هذه لا تُؤكَّد إلا سيرفر-سايد
-    // عبر slickpay_check/webhook، أبداً من هذه القائمة اليدوية
-    var rows=await sbGet('orders','?payment_status=eq.waiting_review&payment_method=not.in.(cib,dahabia)&order=created_at.desc');
-    if(!rows||!rows.length){var em=document.createElement('div');em.style.cssText='grid-column:1/-1;text-align:center;padding:2rem;color:#888';em.textContent='🎉 لا توجد إيصالات بانتظار المراجعة';g.appendChild(em);return;}
+    // عبر slickpay_check/webhook، أبداً من هذه القائمة اليدوية. نطلب فقط
+    // الطلبات التي فيها إيصال مرفوع فعلاً، بغض النظر عن التبويب.
+    var rows=await sbGet('orders','?payment_status=eq.'+_rcptTab+'&payment_method=not.in.(cib,dahabia)&receipt_url=not.is.null&order=created_at.desc');
+    if(!rows||!rows.length){var em=document.createElement('div');em.style.cssText='grid-column:1/-1;text-align:center;padding:2rem;color:#888';em.textContent=RCPT_EMPTY_MSG[_rcptTab]||'لا توجد نتائج';g.appendChild(em);return;}
     // نجيب كل الـ signed URLs بشكل متوازي
     var signedMap={};
     await Promise.all(rows.map(async function(o){
@@ -2174,37 +2211,48 @@ async function loadReceipts(){
     }));
     rows.forEach(function(o){
       var oid=String(o.id||'');
-      var card=document.createElement('div');card.className='pcard-a';
+      var card=document.createElement('div');card.className='rcpt-card';
       var su=signedMap[o.id];
       if(su){
         var img=document.createElement('img');img.src=su;img.style.cursor='pointer';
         img.addEventListener('click',function(){window.open(su,'_blank','noopener,noreferrer');});
         card.appendChild(img);
       } else {var ph=document.createElement('div');ph.className='ph';ph.textContent='🧾';card.appendChild(ph);}
-      var cb=document.createElement('div');cb.className='pcard-a-body';
-      var cn=document.createElement('div');cn.className='pcard-a-name';cn.textContent='#'+oid;cb.appendChild(cn);
-      var nm=document.createElement('div');nm.style.fontSize='.72rem';nm.textContent=o.name||'';cb.appendChild(nm);
-      var pr=document.createElement('div');pr.className='pcard-a-price';pr.textContent=money(o.total)+' دج';cb.appendChild(pr);
-      var acts=document.createElement('div');acts.className='pcard-a-acts';
+      var cb=document.createElement('div');cb.className='rcpt-card-body';
+      var cn=document.createElement('div');cn.className='rcpt-card-name';cn.textContent=(o.name||'—')+' — #'+oid;cb.appendChild(cn);
+      var pr=document.createElement('div');pr.className='rcpt-card-price';pr.textContent=money(o.total)+' دج';cb.appendChild(pr);
+      if(_rcptTab==='rejected'&&o.reject_reason){var rr=document.createElement('div');rr.className='rcpt-card-meta';rr.textContent='سبب الرفض: '+o.reject_reason;cb.appendChild(rr);}
+      var acts=document.createElement('div');acts.className='rcpt-card-acts';
       // ✅ زر "عرض" مستقل — يفتح الصورة بتاب جديد، ويطلب رابطاً موقّعاً
       // جديداً عند الضغط (لا يعتمد فقط على su المخزّن مسبقاً، الذي قد
       // تنتهي صلاحيته بعد 10 دقائق إن بقيت القائمة مفتوحة لمدة أطول) —
       // يبقى يعمل بعد الضغط على قبول/رفض أيضاً لأنه لا يعتمد على حالة الطلب
       var vwBtn=document.createElement('button');vwBtn.className='btn-o btn-sm';vwBtn.textContent='👁️ عرض';vwBtn.dataset.id=oid;
-      if(!su){vwBtn.disabled=true;vwBtn.title='لا يوجد إيصال مرفوع لهذا الطلب';vwBtn.style.opacity='.4';vwBtn.style.cursor='not-allowed';}
+      if(!su){vwBtn.disabled=true;vwBtn.title='تعذّر تحميل الإيصال';vwBtn.style.opacity='.4';vwBtn.style.cursor='not-allowed';}
       else vwBtn.addEventListener('click',async function(){
         var fresh=await signedUrl(this.dataset.id,'get_receipt_url');
         window.open(fresh||su,'_blank','noopener,noreferrer');
       });
-      var apBtn=document.createElement('button');apBtn.className='btn-g btn-sm';apBtn.textContent='✅ قبول';apBtn.dataset.id=oid;
-      // ✅ لا قبول بلا إيصال حقيقي مرفوع — يمنع الموافقة العمياء على طلب بلا دليل دفع
-      if(!su){apBtn.disabled=true;apBtn.title='لا يوجد إيصال مرفوع لهذا الطلب';apBtn.style.opacity='.4';apBtn.style.cursor='not-allowed';}
-      else apBtn.addEventListener('click',function(){approveRec(this.dataset.id);});
-      var rjBtn=document.createElement('button');rjBtn.className='btn-d btn-sm';rjBtn.textContent='❌ رفض';rjBtn.dataset.id=oid;rjBtn.addEventListener('click',function(){rejectRec(this.dataset.id);});
-      acts.appendChild(vwBtn);acts.appendChild(apBtn);acts.appendChild(rjBtn);cb.appendChild(acts);card.appendChild(cb);g.appendChild(card);
+      acts.appendChild(vwBtn);
+      if(_rcptTab==='waiting_review'){
+        var apBtn=document.createElement('button');apBtn.className='btn-g btn-sm';apBtn.textContent='✅ قبول';apBtn.dataset.id=oid;
+        if(!su){apBtn.disabled=true;apBtn.title='تعذّر تحميل الإيصال';apBtn.style.opacity='.4';apBtn.style.cursor='not-allowed';}
+        else apBtn.addEventListener('click',function(){approveRec(this.dataset.id);});
+        var rjBtn=document.createElement('button');rjBtn.className='btn-d btn-sm';rjBtn.textContent='❌ رفض';rjBtn.dataset.id=oid;rjBtn.addEventListener('click',function(){rejectRec(this.dataset.id);});
+        acts.appendChild(apBtn);acts.appendChild(rjBtn);
+      }
+      cb.appendChild(acts);card.appendChild(cb);g.appendChild(card);
     });
-  }catch(e){var er=document.createElement('div');er.style.cssText='color:#e74c3c;padding:1rem';er.textContent='⚠️ '+e.message;g.appendChild(er);}
+  }catch(e){var er=document.createElement('div');er.style.cssText='grid-column:1/-1;color:#e74c3c;padding:1rem';er.textContent='⚠️ '+e.message;g.appendChild(er);}
 }
+document.querySelectorAll('#rcptTabs .rcpt-tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('#rcptTabs .rcpt-tab').forEach(function(x){x.classList.remove('on');});
+    t.classList.add('on');
+    _rcptTab=t.dataset.t;
+    loadReceipts();
+  });
+});
 async function approveRec(id){try{await sbPatch('orders','id=eq.'+encodeURIComponent(id),{payment_status:'paid',status:'confirmed'});toast('✅ تم القبول');loadReceipts();}catch(e){toast('❌ '+e.message);}}
 async function rejectRec(id){var r=prompt('سبب الرفض:')||'الإيصال غير واضح';try{await sbPatch('orders','id=eq.'+encodeURIComponent(id),{payment_status:'rejected',reject_reason:r});toast('❌ تم الرفض');loadReceipts();}catch(e){toast('❌ '+e.message);}}
 
@@ -2795,16 +2843,24 @@ function editAd(id){
   _adPendingImg=null;
   window.scrollTo({top:0,behavior:'smooth'});
 }
+function friendlyNetErr(e){
+  if(e&&/Failed to fetch|NetworkError|Load failed/i.test(e.message||''))return '❌ تعذّر الاتصال بالسيرفر — تحقّقي من اتصال الإنترنت وحاولي مجدداً';
+  return '❌ '+(e&&e.message?e.message:e);
+}
 async function saveAd(){
   var title=gv('adTitle');
   if(!title){toast('⚠️ أدخلي عنوان الإعلان');return;}
   var link=gv('adLink');
   if(link&&!/^https?:\/\//i.test(link)){toast('⚠️ الرابط يجب أن يبدأ بـ http:// أو https://');return;}
   toast('⏳ جاري الحفظ...');
+  // ✅ الحفظ الفعلي (رفع الصورة + POST/PATCH) منفصل عن إعادة تحميل القائمة
+  // بعدها — خطأ عابر في إعادة التحميل (مثلاً انقطاع شبكة لحظي) لا يجب أن
+  // يُعرض كأن عملية الحفظ نفسها فشلت رغم أنها نجحت فعلاً
+  var data;
   try{
     var imageUrl=gv('adImageUrl');
     if(_adPendingImg){imageUrl=await uploadImg(_adPendingImg,'products');}
-    var data={
+    data={
       title:title,image_url:imageUrl||null,link_url:gv('adLink')||null,
       placement:gv('adPlacement'),sort_order:parseInt(gv('adSort'))||0,
       active:document.getElementById('adActive').classList.contains('on'),
@@ -2815,9 +2871,10 @@ async function saveAd(){
     var id=gv('adId');
     if(id){await sbPatch('ads','id=eq.'+encodeURIComponent(id),data);}
     else{await sbPost('ads',data);}
-    toast('✅ تم حفظ الإعلان');
-    resetAdForm();loadAds();
-  }catch(e){toast('❌ '+e.message);}
+  }catch(e){toast(friendlyNetErr(e));return;}
+  toast('✅ تم حفظ الإعلان');
+  resetAdForm();
+  try{await loadAds();}catch(e){console.warn('ads refresh failed',e);}
 }
 async function toggleAd(id,cur){try{await sbPatch('ads','id=eq.'+encodeURIComponent(id),{active:!cur});toast(!cur?'✅ تم التفعيل':'⏸️ تم التعطيل');loadAds();}catch(e){toast('❌ '+e.message);}}
 
@@ -3107,17 +3164,40 @@ async function loadSettingsPage(){
 }
 async function loadLandingFeatured(){
   var sel=document.getElementById('setLandingProd');if(!sel)return;
+  var urlInp=document.getElementById('setLandingUrl');
+  if(urlInp)urlInp.value=location.origin+location.pathname.replace(/admin\.html.*$/,'landing.html');
   try{
     if(!allProds||!allProds.length){allProds=await sbGet('products','?deleted_at=is.null&order=sort_order.asc,created_at.desc')||[];}
     sel.innerHTML='<option value="">— اختاري منتج —</option>';
     allProds.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name_ar||p.name||p.id;sel.appendChild(o);});
     var cur=await getSetting('landing_featured_product');
     if(cur&&cur.product_id)sel.value=cur.product_id;
+    sv('setLandingTitle',cur&&cur.title||'');
+    sv('setLandingSubtitle',cur&&cur.subtitle||'');
+    var showPricing=!cur||cur.show_pricing!==false;
+    document.getElementById('setLandingShowPricing').classList.toggle('on',showPricing);
   }catch(e){}
 }
 async function saveLandingFeatured(){
   var id=gv('setLandingProd');
-  try{await setSetting('landing_featured_product',{product_id:id||null});toast('✅ تم الحفظ');}catch(e){toast('❌ '+e.message);}
+  var data={
+    product_id:id||null,
+    title:gv('setLandingTitle')||null,
+    subtitle:gv('setLandingSubtitle')||null,
+    show_pricing:document.getElementById('setLandingShowPricing').classList.contains('on'),
+  };
+  try{await setSetting('landing_featured_product',data);toast('✅ تم الحفظ');}catch(e){toast('❌ '+e.message);}
+}
+async function copyLandingUrl(){
+  var inp=document.getElementById('setLandingUrl');if(!inp)return;
+  inp.select();
+  try{
+    await navigator.clipboard.writeText(inp.value);
+    toast('✅ تم نسخ الرابط');
+  }catch(e){
+    try{document.execCommand('copy');toast('✅ تم نسخ الرابط');}
+    catch(e2){toast('⚠️ انسخيه يدوياً');}
+  }
 }
 var FEATURE_LABELS={cart:'🛒 السلة',wishlist:'🤍 المفضلة',promotions:'🎁 البروموسيون',ads:'📣 الإعلانات',reviews:'⭐ التقييمات',occasions:'🎉 المناسبات',telegram_notifications:'📱 إشعارات تيليغرام',email_notifications:'📧 إشعارات الإيميل',whatsapp_actions:'💬 واتساب',yalidine:'🚚 Yalidine',delivery_proof:'📸 إثبات التوصيل',tracking:'🔍 تتبع الطلب',invoice:'🧾 الفاتورة',search:'🔎 البحث'};
 async function loadFeatureFlags(){

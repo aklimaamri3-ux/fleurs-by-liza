@@ -10,6 +10,7 @@
 <title>Fleurs by Liza — توصيل ورد فاخر لكل الجزائر</title>
 <meta name="description" content="باقات ورد طازجة مستوردة ومحلية، تغليف أنيق، توصيل سريع لكل ولايات الجزائر. اطلبي الآن بدون تسجيل حساب 🌹">
 <meta name="keywords" content="ورود,باقات ورد,هدايا,توصيل ورد,الجزائر,fleurs,roses,bouquets,livraison,algerie">
+<!-- ⚠️ عند نشر الموقع على fleursbyliza.com، حدّثي canonical و og:url هنا لدومين الموقع الجديد -->
 <link rel="canonical" href="https://aklimaamri3-ux.github.io/fleurs-by-liza/landing.html">
 <meta property="og:title" content="Fleurs by Liza — توصيل ورد فاخر لكل الجزائر">
 <meta property="og:description" content="ورود طازجة مستوردة، تغليف أنيق، توصيل سريع لكل ولايات الجزائر 🌹">
@@ -224,6 +225,14 @@ var _heroImgSet = false;
 async function loadFeaturedProduct(){
   try{
     var cfg = await getSetting('landing_featured_product');
+    // ✅ العنوان/subtitle المخصّصان من الأدمن يُطبَّقان دائماً إذا كانا
+    // موجودين، بغض النظر عن اختيار منتج مميز — مستقلّان عن بعضهما
+    if(cfg&&cfg.title) document.getElementById('heroTitle').textContent = cfg.title;
+    if(cfg&&cfg.subtitle) document.getElementById('heroDesc').textContent = cfg.subtitle;
+    if(cfg&&cfg.show_pricing===false){
+      var payEl=document.getElementById('payMethods');
+      if(payEl)payEl.classList.add('h');
+    }
     var pid = cfg && cfg.product_id;
     if(!pid) return;
     var rows = await sbGet('products', '?id=eq.'+encodeURIComponent(pid)+'&active=eq.true&limit=1');
@@ -238,10 +247,10 @@ async function loadFeaturedProduct(){
       _heroImgSet = true;
     }
     document.getElementById('heroBadge').style.display='inline-flex';
-    if(name){
-      document.getElementById('heroTitle').textContent = name;
-      document.getElementById('heroDesc').textContent = p.description_ar || p.description || 'باقة مختارة بعناية من مجموعتنا — تغليف أنيق وتوصيل سريع لكل الجزائر.';
-    }
+    // ✅ لا نستبدل العنوان/الوصف إذا الأدمن حطّت نصاً مخصصاً فوق —
+    // الأولوية للنص المخصص، ثم اسم المنتج، ثم النص الافتراضي الثابت
+    if(name&&!(cfg&&cfg.title)) document.getElementById('heroTitle').textContent = name;
+    if(!(cfg&&cfg.subtitle)) document.getElementById('heroDesc').textContent = p.description_ar || p.description || 'باقة مختارة بعناية من مجموعتنا — تغليف أنيق وتوصيل سريع لكل الجزائر.';
     if(price){
       var priceBox = document.getElementById('heroPrice');
       priceBox.innerHTML = money(price)+' دج' + (old>price?'<del>'+money(old)+' دج</del>':'');

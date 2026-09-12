@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
-Sitemap: https://maamri3-ux.github.io/sitemap.xml
+Sitemap: https://aklimaamri3-ux.github.io/fleurs-by-liza/sitemap.xml
