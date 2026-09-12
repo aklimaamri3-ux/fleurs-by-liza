@@ -100,6 +100,7 @@ header{display:flex;align-items:center;justify-content:space-between;padding:1re
 <div class="content">
   <div class="pname" id="pName">جاري التحميل...</div>
   <div class="pdesc" id="pDesc"></div>
+  <div id="pRef" style="display:none;color:var(--mt);font-size:.7rem;margin:-.6rem 0 1rem"></div>
   <div class="price-row"><span class="pmain" id="pPrice">—</span><span class="pold" id="pOld"></span></div>
   <div class="peur" id="pEur"></div>
   <div class="opt-block" id="clrBlock" style="display:none">
@@ -451,6 +452,8 @@ async function loadProd(){
     var desc=LANG==='fr'&&prod.description_fr?prod.description_fr:(prod.description_ar||prod.description||'');
     document.getElementById('pName').textContent=name;
     document.getElementById('pDesc').textContent=desc;
+    var refEl=document.getElementById('pRef');
+    if(prod.sku){refEl.textContent='Réf: '+prod.sku;refEl.style.display='block';}
     document.title=name+' — Fleurs by Liza';
     // ✅ منتج غير مفعّل — يبقى ظاهراً بكل تفاصيله، فقط أزرار الطلب تتعطّل
     if(prod.active===false){

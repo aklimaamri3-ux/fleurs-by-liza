@@ -805,25 +805,34 @@ button,input,select,textarea{font-family:inherit;}button{cursor:pointer;border:n
           <div class="fg"><label class="fl">رابط الصفحة</label>
             <div style="display:flex;gap:.5rem">
               <input class="fi" id="setLandingUrl" readonly style="flex:1;font-family:var(--font-en);direction:ltr">
-              <button class="btn btn-o" type="button" onclick="copyLandingUrl()">📋 نسخ</button>
+              <button class="btn btn-o" type="button" onclick="copyLandingUrl()">📋 نسخ الرابط</button>
             </div>
           </div>
-          <div class="fg"><label class="fl">المنتج المميز في صفحة الهبوط</label>
+          <button class="btn btn-o" type="button" style="margin-bottom:1rem" onclick="previewLandingPage()">👁️ معاينة الصفحة</button>
+
+          <div class="ct" style="margin:.4rem 0 .6rem;font-size:.85rem">📦 المنتجات المعروضة</div>
+          <div class="fg"><label class="fl">المنتج المميز (يظهر كبير في أعلى الصفحة)</label>
             <select class="fi" id="setLandingProd"><option value="">— اختاري منتج —</option></select>
             <div style="font-size:.68rem;color:var(--mt);margin-top:.3rem">يظهر كبير في أعلى landing.html ويتحدث تلقائياً عند تغيير الاختيار</div>
           </div>
-          <div class="fg"><label class="fl">العنوان الرئيسي (اختياري — إذا فارغ يُستعمل النص الافتراضي)</label>
-            <input class="fi" id="setLandingTitle" placeholder="باقات ورد فاخرة توصَل لبابك في الجزائر">
+          <div class="fg"><label class="fl">المنتجات في قسم "الأكثر طلباً" (اختاري أي عدد — إذا لم تختاري شيء تُعرض المنتجات المروّجة تلقائياً)</label>
+            <div id="setLandingProdsList" style="max-height:260px;overflow-y:auto;border:1px solid var(--bd);border-radius:.6rem;padding:.5rem"></div>
           </div>
-          <div class="fg"><label class="fl">نص Subtitle (اختياري)</label>
-            <input class="fi" id="setLandingSubtitle" placeholder="ورود طازجة مستوردة ومحلية، تغليف أنيق يليق بالمناسبة...">
+
+          <div class="ct" style="margin:1rem 0 .6rem;font-size:.85rem">📝 النصوص (Hero)</div>
+          <div class="frow">
+            <div class="fg"><label class="fl">العنوان الرئيسي — عربي</label><input class="fi" id="setLandingTitle" placeholder="باقات ورد فاخرة توصَل لبابك في الجزائر"></div>
+            <div class="fg"><label class="fl">Titre principal — français</label><input class="fi" id="setLandingTitleFr" placeholder="Bouquets de roses de luxe livrés en Algérie"></div>
           </div>
+          <div class="frow">
+            <div class="fg"><label class="fl">Subtitle — عربي</label><input class="fi" id="setLandingSubtitle" placeholder="ورود طازجة مستوردة ومحلية، تغليف أنيق يليق بالمناسبة..."></div>
+            <div class="fg"><label class="fl">Subtitle — français</label><input class="fi" id="setLandingSubtitleFr" placeholder="Roses fraîches importées et locales..."></div>
+          </div>
+          <div style="font-size:.68rem;color:var(--mt);margin:-.3rem 0 .8rem">اتركي أي حقل فارغاً لاستعمال اسم/وصف المنتج المميز أو النص الافتراضي بدلاً منه</div>
+
           <div class="fg" style="display:flex;align-items:center;gap:.6rem">
             <div class="tgl on" id="setLandingShowPricing" onclick="this.classList.toggle('on')"></div>
             <span style="font-size:.82rem">إظهار قسم طرق الدفع في صفحة الهبوط</span>
-          </div>
-          <div class="fg"><label class="fl">المنتجات التي تظهر في قسم "الأكثر طلباً" (اختاري أي عدد — إذا لم تختاري شيء تُعرض المنتجات المروّجة تلقائياً)</label>
-            <div id="setLandingProdsList" style="max-height:260px;overflow-y:auto;border:1px solid var(--bd);border-radius:.6rem;padding:.5rem"></div>
           </div>
           <button class="btn btn-p" onclick="saveLandingFeatured()">💾 حفظ</button>
         </div>
@@ -1009,6 +1018,33 @@ function t(ar, fr) { return LANG === 'fr' ? (fr || ar) : ar; }
 function setLang(l) { LANG = l; localStorage.setItem('flz_lang', l); location.reload(); }
 
 // API
+// ✅ fetchNetRetry — يعيد المحاولة مرة واحدة فقط عند فشل شبكي حقيقي
+// (TypeError: Failed to fetch — انقطاع اتصال، لا استجابة HTTP إطلاقاً)
+// أو timeout، وليس عند خطأ HTTP فعلي (401/403/422...) الذي يجب أن يظهر
+// فوراً بلا إعادة محاولة. هذا يعالج بالضبط شكوى "Failed to fetch" عند
+// حفظ إعلان (رفع صورة على اتصال جوّال بطيء/متقطّع هو أكثر سيناريو
+// منطقي، لأنه أكبر طلب حجماً في لوحة الأدمن).
+async function fetchNetRetry(url, opts, retries, timeoutMs){
+  retries = (typeof retries==='number')?retries:1;
+  timeoutMs = timeoutMs||20000;
+  var lastErr;
+  for(var attempt=0; attempt<=retries; attempt++){
+    var ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+    var timer=ctrl?setTimeout(function(){ctrl.abort();},timeoutMs):null;
+    try{
+      var r=await fetch(url, Object.assign({}, opts, {signal: ctrl?ctrl.signal:undefined}));
+      if(timer)clearTimeout(timer);
+      return r;
+    }catch(e){
+      if(timer)clearTimeout(timer);
+      lastErr=e;
+      console.error('fetchNetRetry: attempt '+(attempt+1)+' failed for '+url,e);
+      if(attempt>=retries)throw e;
+      await new Promise(function(res){setTimeout(res,1000*(attempt+1));});
+    }
+  }
+  throw lastErr;
+}
 async function sbGet(table, q) {
   q = q || '';
   var r = await fetch(SB_URL + '/rest/v1/' + table + q, { headers: SB_H });
@@ -1016,7 +1052,7 @@ async function sbGet(table, q) {
   return r.json();
 }
 async function sbPost(table, data) {
-  var r = await fetch(SB_URL + '/rest/v1/' + table, {
+  var r = await fetchNetRetry(SB_URL + '/rest/v1/' + table, {
     method: 'POST', body: JSON.stringify(data),
     headers: Object.assign({}, SB_H, { 'Content-Type': 'application/json', 'Prefer': 'return=representation' })
   });
@@ -1024,7 +1060,7 @@ async function sbPost(table, data) {
   return r.json();
 }
 async function sbUpsert(table, data) {
-  var r = await fetch(SB_URL + '/rest/v1/' + table, {
+  var r = await fetchNetRetry(SB_URL + '/rest/v1/' + table, {
     method: 'POST', body: JSON.stringify(data),
     headers: Object.assign({}, SB_H, { 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=representation' })
   });
@@ -1032,7 +1068,7 @@ async function sbUpsert(table, data) {
   return r.json();
 }
 async function sbPatch(table, filter, data) {
-  var r = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, {
+  var r = await fetchNetRetry(SB_URL + '/rest/v1/' + table + '?' + filter, {
     method: 'PATCH', body: JSON.stringify(data),
     headers: Object.assign({}, SB_H, { 'Content-Type': 'application/json' })
   });
@@ -1040,7 +1076,7 @@ async function sbPatch(table, filter, data) {
   return true;
 }
 async function sbDelete(table, filter) {
-  var r = await fetch(SB_URL + '/rest/v1/' + table + '?' + filter, { method: 'DELETE', headers: SB_H });
+  var r = await fetchNetRetry(SB_URL + '/rest/v1/' + table + '?' + filter, { method: 'DELETE', headers: SB_H });
   if (!r.ok) throw new Error(await r.text());
   return true;
 }
@@ -1071,12 +1107,12 @@ async function uploadImg(file, bucket) {
   var name=Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
   var tok=sessionStorage.getItem(TOK);
   if(!tok)throw new Error('سجّلي الدخول أولاً');
-  var r=await fetch(SB_URL+'/storage/v1/object/'+bucket+'/'+name,{
+  var r=await fetchNetRetry(SB_URL+'/storage/v1/object/'+bucket+'/'+name,{
     method:'POST',
     headers:{apikey:SB_ANON,Authorization:'Bearer '+tok,'Content-Type':file.type,'x-upsert':'false'},
     body:file
-  });
-  if(!r.ok)throw new Error('Upload failed '+r.status);
+  },1,30000);
+  if(!r.ok){var errBody=await r.text().catch(function(){return '';});throw new Error('Upload failed '+r.status+(errBody?': '+errBody:''));}
   return SB_URL+'/storage/v1/object/public/'+bucket+'/'+name;
 }
 
@@ -3181,8 +3217,10 @@ async function loadLandingFeatured(){
     allProds.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name_ar||p.name||p.id;sel.appendChild(o);});
     var cur=await getSetting('landing_featured_product');
     if(cur&&cur.product_id)sel.value=cur.product_id;
-    sv('setLandingTitle',cur&&cur.title||'');
-    sv('setLandingSubtitle',cur&&cur.subtitle||'');
+    sv('setLandingTitle',(cur&&(cur.title_ar||cur.title))||'');
+    sv('setLandingTitleFr',(cur&&cur.title_fr)||'');
+    sv('setLandingSubtitle',(cur&&(cur.subtitle_ar||cur.subtitle))||'');
+    sv('setLandingSubtitleFr',(cur&&cur.subtitle_fr)||'');
     var showPricing=!cur||cur.show_pricing!==false;
     document.getElementById('setLandingShowPricing').classList.toggle('on',showPricing);
     var selectedIds=(cur&&Array.isArray(cur.featured_products))?cur.featured_products:[];
@@ -3203,8 +3241,10 @@ async function saveLandingFeatured(){
   var featuredProducts=Array.from(document.querySelectorAll('.setLandingProdChk:checked')).map(function(c){return c.value;});
   var data={
     product_id:id||null,
-    title:gv('setLandingTitle')||null,
-    subtitle:gv('setLandingSubtitle')||null,
+    title_ar:gv('setLandingTitle')||null,
+    title_fr:gv('setLandingTitleFr')||null,
+    subtitle_ar:gv('setLandingSubtitle')||null,
+    subtitle_fr:gv('setLandingSubtitleFr')||null,
     show_pricing:document.getElementById('setLandingShowPricing').classList.contains('on'),
     featured_products:featuredProducts,
   };
@@ -3220,6 +3260,10 @@ async function copyLandingUrl(){
     try{document.execCommand('copy');toast('✅ تم نسخ الرابط');}
     catch(e2){toast('⚠️ انسخيه يدوياً');}
   }
+}
+function previewLandingPage(){
+  var inp=document.getElementById('setLandingUrl');
+  if(inp&&inp.value)window.open(inp.value,'_blank','noopener,noreferrer');
 }
 var FEATURE_LABELS={cart:'🛒 السلة',wishlist:'🤍 المفضلة',promotions:'🎁 البروموسيون',ads:'📣 الإعلانات',reviews:'⭐ التقييمات',occasions:'🎉 المناسبات',telegram_notifications:'📱 إشعارات تيليغرام',email_notifications:'📧 إشعارات الإيميل',whatsapp_actions:'💬 واتساب',yalidine:'🚚 Yalidine',delivery_proof:'📸 إثبات التوصيل',tracking:'🔍 تتبع الطلب',invoice:'🧾 الفاتورة',search:'🔎 البحث'};
 async function loadFeatureFlags(){

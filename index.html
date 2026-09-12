@@ -287,7 +287,7 @@ footer p{font-size:.78rem;line-height:1.7;}
     <div class="sec-eyebrow">SUIVI COMMANDE</div>
     <h2 class="sec-title" id="trackTitle">أين طلبي؟</h2>
     <div class="track-row">
-      <input id="trackIn" placeholder="رقم هاتفك 05..." type="tel">
+      <input id="trackIn" placeholder="رقم الهاتف أو رقم الطلب..." type="text">
       <button onclick="doTrack()" id="trackBtn">بحث</button>
     </div>
     <div id="trackRes"></div>
@@ -925,17 +925,21 @@ async function loadRevs() {
 
 // ── TRACK ──
 async function doTrack() {
-  var q = document.getElementById('trackIn').value.trim().replace(/[\s\-\.]/g,'');
+  var raw = document.getElementById('trackIn').value.trim();
   var res = document.getElementById('trackRes');
-  if (!q) { toast('⚠️ أدخلي رقم هاتفك'); return; }
-  if (q.length < 9) { toast('⚠️ رقم الهاتف غير صحيح'); return; }
+  if (!raw) { toast('⚠️ أدخلي رقم هاتفك أو رقم طلبك'); return; }
+  // ✅ رقم الطلب (يبدأ بـ FBL) لا يُنظَّف من الشرطات — التنظيف
+  // (إزالة الفراغات/الشرطات/النقاط) يُطبَّق فقط على أرقام الهاتف
+  var isRef = /^FBL/i.test(raw);
+  var q = isRef ? raw : raw.replace(/[\s\-\.]/g,'');
+  if (!isRef && q.length < 9) { toast('⚠️ رقم الهاتف غير صحيح'); return; }
   res.innerHTML = '<div style="text-align:center;color:#888">⏳</div>';
   try {
     // ✅ RPC آمنة — تُرجع الحالة فقط بلا PII
     var r = await fetch(SB_URL + '/rest/v1/rpc/track_order', {
       method: 'POST',
       headers: Object.assign({}, SB_H, {'Content-Type':'application/json'}),
-      body: JSON.stringify({ p_phone: q })
+      body: JSON.stringify({ p_query: q })
     });
     if (!r.ok) throw new Error('fetch failed');
     var rows = await r.json();
@@ -943,7 +947,7 @@ async function doTrack() {
       res.innerHTML = '';
       var errD=document.createElement('div');
       errD.style.cssText='color:#e74c3c;text-align:center;font-size:.85rem;padding:.8rem';
-      errD.textContent='❌ لا توجد طلبات بهذا الرقم';
+      errD.textContent=isRef?'❌ لم يتم العثور على طلب بهذا الرقم':'❌ لا توجد طلبات بهذا الرقم';
       res.appendChild(errD);
       return;
     }

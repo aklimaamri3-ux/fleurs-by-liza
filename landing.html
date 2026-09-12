@@ -124,7 +124,10 @@ footer{padding:1.6rem 0;text-align:center;font-size:.7rem;color:var(--mt);}
 <header>
   <div class="wrap hd-row">
     <div class="brand">Fleurs<em>❀</em>by liza</div>
-    <a href="index.html" class="hd-cta">🌹 المتجر</a>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <button type="button" id="langBtn" onclick="setLang(LANG==='ar'?'fr':'ar')" style="background:none;border:1px solid var(--bd);border-radius:2rem;padding:.35rem .7rem;font-size:.72rem;font-weight:700;color:var(--txt);cursor:pointer">FR / AR</button>
+      <a href="index.html" class="hd-cta" id="hdCta">🌹 المتجر</a>
+    </div>
   </div>
 </header>
 
@@ -141,44 +144,44 @@ footer{padding:1.6rem 0;text-align:center;font-size:.7rem;color:var(--mt);}
 </section>
 
 <div class="trust">
-  <div><span class="ic">🌸</span>ورود طازجة</div>
-  <div><span class="ic">🎁</span>تغليف فاخر</div>
-  <div><span class="ic">🚚</span>توصيل سريع</div>
-  <div><span class="ic">🔒</span>دفع آمن</div>
+  <div><span class="ic">🌸</span><span id="trust1">ورود طازجة</span></div>
+  <div><span class="ic">🎁</span><span id="trust2">تغليف فاخر</span></div>
+  <div><span class="ic">🚚</span><span id="trust3">توصيل سريع</span></div>
+  <div><span class="ic">🔒</span><span id="trust4">دفع آمن</span></div>
 </div>
 
 <div class="stats" id="statsRow" style="display:none">
-  <div><div class="stat-n" id="stOrders">—</div><div class="stat-l">طلب مُنجز</div></div>
-  <div><div class="stat-n" id="stFollow">—</div><div class="stat-l">متابع على إنستغرام</div></div>
-  <div><div class="stat-n">58</div><div class="stat-l">ولاية نوصّل لها</div></div>
+  <div><div class="stat-n" id="stOrders">—</div><div class="stat-l" id="statL1">طلب مُنجز</div></div>
+  <div><div class="stat-n" id="stFollow">—</div><div class="stat-l" id="statL2">متابع على إنستغرام</div></div>
+  <div><div class="stat-n">58</div><div class="stat-l" id="statL3">ولاية نوصّل لها</div></div>
 </div>
 
 <section id="bestProds">
   <div class="wrap">
-    <div class="sec-eyebrow">مختارة بعناية</div>
-    <div class="sec-title">الأكثر طلباً</div>
+    <div class="sec-eyebrow" id="secEy1">مختارة بعناية</div>
+    <div class="sec-title" id="secTt1">الأكثر طلباً</div>
     <div class="pgrid" id="prodGrid"></div>
   </div>
 </section>
 
 <section id="testimonials" style="background:var(--gy)">
-  <div class="sec-eyebrow">آراء زبوناتنا</div>
-  <div class="sec-title">تجارب حقيقية</div>
+  <div class="sec-eyebrow" id="secEy2">آراء زبوناتنا</div>
+  <div class="sec-title" id="secTt2">تجارب حقيقية</div>
   <div class="rev-scroll" id="revScroll"></div>
 </section>
 
 <section id="payMethods">
   <div class="wrap">
-    <div class="sec-eyebrow">دفع مرن وآمن</div>
-    <div class="sec-title">طرق الدفع المتاحة</div>
+    <div class="sec-eyebrow" id="secEy3">دفع مرن وآمن</div>
+    <div class="sec-title" id="secTt3">طرق الدفع المتاحة</div>
     <div class="pay-row" id="payRow"></div>
   </div>
 </section>
 
 <section class="contact-sec">
   <div class="wrap">
-    <div class="sec-eyebrow" style="color:#f2b8d4">تواصلي معنا</div>
-    <div class="sec-title">عندك سؤال؟ راسلينا</div>
+    <div class="sec-eyebrow" style="color:#f2b8d4" id="secEy4">تواصلي معنا</div>
+    <div class="sec-title" id="secTt4">عندك سؤال؟ راسلينا</div>
     <div class="contact-btns" id="contactBtns"></div>
   </div>
 </section>
@@ -209,6 +212,44 @@ var _safeStorageRx = /^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/(
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 
+// ✅ FR/AR — نفس فكرة index.html: يبدّل النصوص الثابتة + الاتجاه فوراً،
+// ويعيد بناء نص الـ hero (بنفس أولوية النص المخصص من الأدمن > اسم
+// المنتج المميز > النص الافتراضي) بلغة الواجهة الحالية بلا أي fetch جديد
+var LANG='ar';
+var I18N={
+  ar:{hdCta:'🌹 المتجر',heroEyebrow:'FRAÎCHEUR · ÉLÉGANCE · LIVRAISON RAPIDE',heroTitleDefault:'باقات ورد <em>فاخرة</em><br>توصَل لبابك في الجزائر',heroDescDefault:'ورود طازجة مستوردة ومحلية، تغليف أنيق يليق بالمناسبة، وتوصيل سريع بدون الحاجة لإنشاء أي حساب.',heroCtaDefault:'🌹 اطلبي الآن',heroCtaProduct:'🌹 اطلبي هذه الباقة الآن',trust1:'ورود طازجة',trust2:'تغليف فاخر',trust3:'توصيل سريع',trust4:'دفع آمن',statL1:'طلب مُنجز',statL2:'متابع على إنستغرام',statL3:'ولاية نوصّل لها',secEy1:'مختارة بعناية',secTt1:'الأكثر طلباً',secEy2:'آراء زبوناتنا',secTt2:'تجارب حقيقية',secEy3:'دفع مرن وآمن',secTt3:'طرق الدفع المتاحة',secEy4:'تواصلي معنا',secTt4:'عندك سؤال؟ راسلينا'},
+  fr:{hdCta:'🌹 La boutique',heroEyebrow:'FRAÎCHEUR · ÉLÉGANCE · LIVRAISON RAPIDE',heroTitleDefault:'Bouquets de roses <em>de luxe</em><br>livrés chez vous en Algérie',heroDescDefault:'Roses fraîches importées et locales, emballage élégant, livraison rapide sans créer de compte.',heroCtaDefault:'🌹 Commander maintenant',heroCtaProduct:'🌹 Commander ce bouquet',trust1:'Roses fraîches',trust2:'Emballage soigné',trust3:'Livraison rapide',trust4:'Paiement sécurisé',statL1:'commandes livrées',statL2:'abonnés Instagram',statL3:'wilayas livrées',secEy1:'Sélection soignée',secTt1:'Les plus demandés',secEy2:'Avis clients',secTt2:'Expériences réelles',secEy3:'Paiement flexible et sûr',secTt3:'Moyens de paiement disponibles',secEy4:'Contactez-nous',secTt4:'Une question ? Écrivez-nous'}
+};
+var _landingCfg=null, _featuredProdData=null, _lastFeaturedIds=null;
+function applyHeroText(){
+  var l=I18N[LANG]||I18N.ar;
+  var cfg=_landingCfg, p=_featuredProdData;
+  var titleKey='title_'+LANG, subtitleKey='subtitle_'+LANG;
+  var customTitle=cfg&&(cfg[titleKey]||(LANG==='ar'&&cfg.title));
+  var customSubtitle=cfg&&(cfg[subtitleKey]||(LANG==='ar'&&cfg.subtitle));
+  var pName=p&&(LANG==='fr'&&p.name_fr?p.name_fr:(p.name_ar||p.name));
+  var pDesc=p&&(LANG==='fr'&&p.description_fr?p.description_fr:(p.description_ar||p.description));
+  document.getElementById('heroTitle').innerHTML = customTitle || pName || l.heroTitleDefault;
+  document.getElementById('heroDesc').textContent = customSubtitle || pDesc || l.heroDescDefault;
+  var cta=document.getElementById('heroCta');
+  if(p){ cta.href='product.html?id='+encodeURIComponent(p.id); cta.textContent=l.heroCtaProduct; }
+  else { cta.href='index.html#products'; cta.textContent=l.heroCtaDefault; }
+}
+function setLang(l){
+  LANG = (l==='fr')?'fr':'ar';
+  var dir = LANG==='ar'?'rtl':'ltr';
+  document.getElementById('htmlRoot').setAttribute('dir',dir);
+  document.getElementById('htmlRoot').setAttribute('lang',LANG);
+  var t=I18N[LANG];
+  document.getElementById('hdCta').textContent=t.hdCta;
+  document.getElementById('heroEyebrow').textContent=t.heroEyebrow;
+  ['trust1','trust2','trust3','trust4','statL1','statL2','statL3','secEy1','secTt1','secEy2','secTt2','secEy3','secTt3','secEy4','secTt4'].forEach(function(id){
+    var el=document.getElementById(id); if(el)el.textContent=t[id];
+  });
+  applyHeroText();
+  if(_lastFeaturedIds!==null) loadBestProds(_lastFeaturedIds);
+}
+
 function firstImg(p){
   if (p.media_items && p.media_items.length) {
     for (var j=0;j<p.media_items.length;j++){
@@ -226,20 +267,18 @@ async function loadFeaturedProduct(){
   var featuredIds=[];
   try{
     var cfg = await getSetting('landing_featured_product');
-    // ✅ العنوان/subtitle المخصّصان من الأدمن يُطبَّقان دائماً إذا كانا
-    // موجودين، بغض النظر عن اختيار منتج مميز — مستقلّان عن بعضهما
-    if(cfg&&cfg.title) document.getElementById('heroTitle').textContent = cfg.title;
-    if(cfg&&cfg.subtitle) document.getElementById('heroDesc').textContent = cfg.subtitle;
+    _landingCfg = cfg;
     if(cfg&&cfg.show_pricing===false){
       var payEl=document.getElementById('payMethods');
       if(payEl)payEl.classList.add('h');
     }
     if(cfg&&Array.isArray(cfg.featured_products))featuredIds=cfg.featured_products;
     var pid = cfg && cfg.product_id;
-    if(!pid) return featuredIds;
+    if(!pid){ applyHeroText(); return featuredIds; }
     var rows = await sbGet('products', '?id=eq.'+encodeURIComponent(pid)+'&active=eq.true&limit=1');
     var p = rows && rows[0];
-    if(!p) return featuredIds;
+    if(!p){ applyHeroText(); return featuredIds; }
+    _featuredProdData = p;
     var name = p.name_ar || p.name || '';
     var price = Number(p.price)||0, old = Number(p.old_price)||0;
     var imgSrc = firstImg(p);
@@ -249,18 +288,12 @@ async function loadFeaturedProduct(){
       _heroImgSet = true;
     }
     document.getElementById('heroBadge').style.display='inline-flex';
-    // ✅ لا نستبدل العنوان/الوصف إذا الأدمن حطّت نصاً مخصصاً فوق —
-    // الأولوية للنص المخصص، ثم اسم المنتج، ثم النص الافتراضي الثابت
-    if(name&&!(cfg&&cfg.title)) document.getElementById('heroTitle').textContent = name;
-    if(!(cfg&&cfg.subtitle)) document.getElementById('heroDesc').textContent = p.description_ar || p.description || 'باقة مختارة بعناية من مجموعتنا — تغليف أنيق وتوصيل سريع لكل الجزائر.';
     if(price){
       var priceBox = document.getElementById('heroPrice');
       priceBox.innerHTML = money(price)+' دج' + (old>price?'<del>'+money(old)+' دج</del>':'');
       priceBox.style.display='block';
     }
-    var cta = document.getElementById('heroCta');
-    cta.href = 'product.html?id='+encodeURIComponent(p.id);
-    cta.textContent = '🌹 اطلبي هذه الباقة الآن';
+    applyHeroText();
   }catch(e){ console.warn('featuredProduct', e.message); }
   return featuredIds;
 }
@@ -283,7 +316,7 @@ async function loadBestProds(featuredIds){
     g.innerHTML = '';
     if(!rows || !rows.length) return;
     rows.forEach(function(p){
-      var name = p.name_ar || p.name || '';
+      var name = (LANG==='fr'&&p.name_fr)?p.name_fr:(p.name_ar||p.name||'');
       var price = Number(p.price)||0, old = Number(p.old_price)||0;
       var imgSrc = firstImg(p);
       if(!_heroImgSet && imgSrc && _safeStorageRx.test(imgSrc)){
@@ -378,7 +411,8 @@ async function loadContact(){
   }catch(e){}
 }
 
-loadFeaturedProduct().then(loadBestProds);
+setLang('ar');
+loadFeaturedProduct().then(function(featuredIds){ _lastFeaturedIds=featuredIds; return loadBestProds(featuredIds); });
 loadStats();
 loadReviews();
 loadPayMethods();
